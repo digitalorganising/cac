@@ -1,5 +1,8 @@
 import scrapy
 from scrapy.crawler import CrawlerProcess
+from scrapy.exceptions import NotSupported
+import pymupdf
+import pymupdf4llm
 from markdownify import markdownify
 
 
@@ -10,7 +13,7 @@ def get_title(response):
 class CacOutcomeSpider(scrapy.Spider):
     name = "cac-outcomes"
 
-    start_year = 2020
+    start_year = 2014
     url_prefix = "https://www.gov.uk/government/collections/cac-outcomes-"
 
     def start_requests(self):
@@ -43,30 +46,36 @@ class CacOutcomeSpider(scrapy.Spider):
         decision_title = get_title(response).removeprefix("CAC Outcome: ")
         reference = response.css("section#documents p::text").re_first(r"Ref:\s*(.+)")
         for document in response.css("section#documents > section"):
+            outcome_link = document.css("h3 a")
+            outcome_title = outcome_link.css("*::text").get().strip()
             yield from response.follow_all(
-                urls=document.css("a"),
+                urls=outcome_link,
                 callback=self.parse_document,
                 cb_kwargs={
                     "reference": reference,
                     "decision_title": decision_title,
+                    "outcome_title": outcome_title,
                     "year": year
                 }
             )
 
-    def parse_document(self, response, reference, decision_title, year):
+    def parse_document(self, response, **kwargs):
         try:
-            title = get_title(response)
-            content = response.css("main#content div#contents div.govspeak").get()
-            content_md = markdownify(content).strip()
-            yield {
-                "reference": reference,
-                "decision_title": decision_title,
-                "document_title": title,
-                "year": str(year)
-                # "content": content_md
-            }
-        except Exception as e:
-            raise e
+            content = self.html_content(response)
+        except NotSupported:
+            content = self.pdf_content(response)
+        yield {
+            **kwargs,
+            "content": content.strip()
+        }
+
+    def html_content(self, response):
+        content = response.css("main#content div#contents div.govspeak").get().strip()
+        return markdownify(content)
+
+    def pdf_content(self, response):
+        pdf = pymupdf.open(stream=response.body)
+        return pymupdf4llm.to_markdown(pdf)
 
 
 if __name__ == "__main__":
