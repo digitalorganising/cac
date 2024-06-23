@@ -3,6 +3,7 @@ import re
 import pymupdf
 import pymupdf4llm
 import scrapy
+from cac_sqlite_pipeline import CacSqlitePipeline
 from markdownify import markdownify
 from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import NotSupported
@@ -39,30 +40,30 @@ class CacOutcomeSpider(scrapy.Spider):
         )
 
     def parse_outcome(self, response, year):
-        decision_title = response.css("main#content h1::text").get().strip()
-        decision_title = re.sub(
-            r"^CAC Outcome:\s+", "", decision_title, flags=re.RegexFlag.IGNORECASE
+        outcome_title = response.css("main#content h1::text").get().strip()
+        outcome_title = re.sub(
+            r"^CAC Outcome:\s+", "", outcome_title, flags=re.RegexFlag.IGNORECASE
         )
         reference = response.css("section#documents p::text").re_first(
             r"^Ref:\s*(TUR\d+/\d+[\/\(]\d+\)?).*"
         )
         if not reference:
             self.logger.warning(
-                f"Could not parse reference for '{decision_title}' at {response.url}"
+                f"Could not parse reference for '{outcome_title}' at {response.url}"
             )
             return
 
         for document in response.css("section#documents > section"):
             outcome_link = document.css("h3 a")
-            outcome_title = outcome_link.css("*::text").get().strip()
+            document_title = outcome_link.css("*::text").get().strip()
             yield from response.follow_all(
                 urls=outcome_link,
                 callback=self.parse_document,
                 cb_kwargs={
-                    "reference": reference,
-                    "decision_title": decision_title,
-                    "outcome_title": outcome_title,
                     "year": year,
+                    "reference": reference,
+                    "outcome_title": outcome_title,
+                    "document_title": document_title,
                 },
             )
 
@@ -74,7 +75,7 @@ class CacOutcomeSpider(scrapy.Spider):
                 content = self.pdf_content(response)
             else:
                 content = ""
-        yield {**kwargs, "content": content.strip()}
+        yield {**kwargs, "document_content": content.strip()}
 
     def html_content(self, response):
         content = response.css("main#content div#contents div.govspeak").get().strip()
@@ -90,7 +91,8 @@ if __name__ == "__main__":
         settings={
             "REQUEST_FINGERPRINTER_IMPLEMENTATION": "2.7",
             "LOG_LEVEL": "INFO",
-            "FEEDS": {"data/outcomes.json": {"format": "jsonlines"}},
+            "PIPELINE_DB_NAME": "data/outcomes.db",
+            "ITEM_PIPELINES": {CacSqlitePipeline: 100},
         }
     )
     process.crawl(CacOutcomeSpider)
