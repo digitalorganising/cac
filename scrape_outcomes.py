@@ -1,3 +1,5 @@
+import re
+
 import pymupdf
 import pymupdf4llm
 import scrapy
@@ -37,15 +39,19 @@ class CacOutcomeSpider(scrapy.Spider):
         )
 
     def parse_outcome(self, response, year):
-        decision_title = (
-            response.css("main#content h1::text")
-            .get()
-            .strip()
-            .removeprefix("CAC Outcome: ")
+        decision_title = response.css("main#content h1::text").get().strip()
+        decision_title = re.sub(
+            r"^CAC Outcome:\s+", "", decision_title, flags=re.RegexFlag.IGNORECASE
         )
         reference = response.css("section#documents p::text").re_first(
-            r"^Ref:\s*(TUR1/\d+\(\d+\)).*"
+            r"^Ref:\s*(TUR\d+/\d+[\/\(]\d+\)?).*"
         )
+        if not reference:
+            self.logger.warning(
+                f"Could not parse reference for '{decision_title}' at {response.url}"
+            )
+            return
+
         for document in response.css("section#documents > section"):
             outcome_link = document.css("h3 a")
             outcome_title = outcome_link.css("*::text").get().strip()
