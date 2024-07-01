@@ -4,6 +4,7 @@ import pymupdf
 import pymupdf4llm
 import scrapy
 from cac_sqlite_pipeline import CacSqlitePipeline
+from document_classifier import get_document_type
 from markdownify import markdownify
 from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import NotSupported
@@ -56,15 +57,20 @@ class CacOutcomeSpider(scrapy.Spider):
         for document in response.css("section#documents > section"):
             outcome_link = document.css("h3 a")
             document_title = outcome_link.css("*::text").get().strip()
+            document_type = get_document_type(document_title)
+            common_fields = {
+                "year": year,
+                "reference": reference,
+                "outcome_url": response.url,
+                "outcome_title": outcome_title,
+                "document_type": document_type,
+            }
+
+            if not document_type:
+                yield common_fields
+
             yield from response.follow_all(
-                urls=outcome_link,
-                callback=self.parse_document,
-                cb_kwargs={
-                    "year": year,
-                    "reference": reference,
-                    "outcome_title": outcome_title,
-                    "document_title": document_title,
-                },
+                urls=outcome_link, callback=self.parse_document, cb_kwargs=common_fields
             )
 
     def parse_document(self, response, **kwargs):
@@ -91,6 +97,7 @@ if __name__ == "__main__":
         settings={
             "REQUEST_FINGERPRINTER_IMPLEMENTATION": "2.7",
             "LOG_LEVEL": "INFO",
+            "FEEDS": {"data/outcomes.json": {"format": "jsonlines"}},
             "PIPELINE_DB_NAME": "data/outcomes.db",
             "ITEM_PIPELINES": {CacSqlitePipeline: 100},
         }

@@ -34,7 +34,7 @@ class CacSqlitePipeline:
     def process_item(self, item, spider):
         data = ItemAdapter(item).asdict()
         data["documents"] = json.dumps(
-            {data.get("document_title"): data.get("document_content")}
+            {data.get("document_type"): data.get("document_content")}
         )
         with closing(self.db.cursor()) as cursor:
             cursor.execute(
