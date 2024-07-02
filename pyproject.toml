@@ -5,12 +5,15 @@ description = ""
 authors = ["Jamie Parkinson <j.parkinson@wellcome.org>"]
 license = "MIT"
 readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
 scrapy = "^2.11.2"
 markdownify = "^0.12.1"
 pymupdf4llm = "^0.0.5"
+anthropic = "^0.30.0"
+baml-py = "^0.45.0"
 
 
 [build-system]
