@@ -3,11 +3,12 @@ import re
 import pymupdf
 import pymupdf4llm
 import scrapy
-from cac_sqlite_pipeline import CacSqlitePipeline
-from document_classifier import get_document_type
 from markdownify import markdownify
 from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import NotSupported
+
+from .cac_sqlite_pipeline import CacSqlitePipeline
+from .document_classifier import get_document_type
 
 
 class CacOutcomeSpider(scrapy.Spider):
@@ -92,7 +93,7 @@ class CacOutcomeSpider(scrapy.Spider):
         return pymupdf4llm.to_markdown(pdf)
 
 
-if __name__ == "__main__":
+def scrape():
     process = CrawlerProcess(
         settings={
             "REQUEST_FINGERPRINTER_IMPLEMENTATION": "2.7",
