@@ -7,8 +7,8 @@ from markdownify import markdownify
 from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import NotSupported
 
-from .cac_sqlite_pipeline import CacSqlitePipeline
 from .document_classifier import get_document_type
+from .opensearch_pipeline import OpensearchPipeline
 
 
 class CacOutcomeSpider(scrapy.Spider):
@@ -97,10 +97,12 @@ def scrape():
     process = CrawlerProcess(
         settings={
             "REQUEST_FINGERPRINTER_IMPLEMENTATION": "2.7",
+            "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
             "LOG_LEVEL": "INFO",
-            "FEEDS": {"data/outcomes.json": {"format": "jsonlines"}},
-            "PIPELINE_DB_NAME": "data/outcomes.db",
-            "ITEM_PIPELINES": {CacSqlitePipeline: 100},
+            "ITEM_PIPELINES": {OpensearchPipeline: 100},
+            "OPENSEARCH": {
+                "HOST": "http://127.0.0.1",
+            },
         }
     )
     process.crawl(CacOutcomeSpider)

@@ -17,6 +17,7 @@ markdownify = "^0.12.1"
 pymupdf4llm = "^0.0.5"
 anthropic = "^0.30.0"
 baml-py = "^0.45.0"
+opensearch-py = {extras = ["async"], version = "^2.6.0"}
 
 [build-system]
 requires = ["poetry-core"]
