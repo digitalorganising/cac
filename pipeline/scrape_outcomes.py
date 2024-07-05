@@ -52,6 +52,11 @@ class CacOutcomeSpider(scrapy.Spider):
         )
 
     def parse_outcome(self, response, year):
+        last_updated = (
+            response.css("meta[name='govuk:public-updated-at']::attr(content)")
+            .get()
+            .strip()
+        )
         outcome_title = response.css("main#content h1::text").get().strip()
         outcome_title = re.sub(
             r"^CAC Outcome:\s+", "", outcome_title, flags=re.RegexFlag.IGNORECASE
@@ -72,6 +77,7 @@ class CacOutcomeSpider(scrapy.Spider):
             common_fields = {
                 "year": year,
                 "reference": reference,
+                "last_updated": last_updated,
                 "outcome_url": response.url,
                 "outcome_title": outcome_title,
                 "document_type": document_type,
