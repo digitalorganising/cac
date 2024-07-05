@@ -3,12 +3,22 @@ import re
 import pymupdf
 import pymupdf4llm
 import scrapy
+from itemadapter import ItemAdapter
 from markdownify import markdownify
 from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import NotSupported
 
 from .document_classifier import get_document_type
 from .opensearch_pipeline import OpensearchPipeline
+
+
+class CacOutcomeOpensearchPipeline(OpensearchPipeline):
+    def id(self, item):
+        data = ItemAdapter(item).asdict()
+        return f"{data['reference']}_{data['document_type'] or 0}"
+
+    def doc(self, item):
+        return ItemAdapter(item).asdict()
 
 
 class CacOutcomeSpider(scrapy.Spider):
@@ -99,7 +109,7 @@ def scrape():
             "REQUEST_FINGERPRINTER_IMPLEMENTATION": "2.7",
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
             "LOG_LEVEL": "INFO",
-            "ITEM_PIPELINES": {OpensearchPipeline: 100},
+            "ITEM_PIPELINES": {CacOutcomeOpensearchPipeline: 100},
             "OPENSEARCH": {
                 "HOST": "http://127.0.0.1",
             },
