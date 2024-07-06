@@ -8,23 +8,25 @@ from markdownify import markdownify
 from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import NotSupported
 
-from .document_classifier import get_document_type
+from .document_classifier import get_document_type, should_get_content
 from .opensearch_pipeline import OpensearchPipeline
 
 
 class CacOutcomeOpensearchPipeline(OpensearchPipeline):
     def id(self, item):
-        data = ItemAdapter(item).asdict()
-        return f"{data['reference']}_{data['document_type'] or 0}"
+        return item["reference"]
 
     def doc(self, item):
-        return ItemAdapter(item).asdict()
+        data = ItemAdapter(item).asdict()
+        document_content = data.pop("document_content", None)
+        document_type = data.pop("document_type")
+        return {**data, "documents": {document_type: document_content}}
 
 
 class CacOutcomeSpider(scrapy.Spider):
     name = "cac-outcomes"
 
-    start_year = 2014
+    start_year = 2024
     url_prefix = "https://www.gov.uk/government/collections/cac-outcomes-"
 
     def start_requests(self):
@@ -83,7 +85,7 @@ class CacOutcomeSpider(scrapy.Spider):
                 "document_type": document_type,
             }
 
-            if not document_type:
+            if not should_get_content(document_type):
                 yield common_fields
 
             yield from response.follow_all(
@@ -116,9 +118,7 @@ def scrape():
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
             "LOG_LEVEL": "INFO",
             "ITEM_PIPELINES": {CacOutcomeOpensearchPipeline: 100},
-            "OPENSEARCH": {
-                "HOST": "http://127.0.0.1",
-            },
+            "OPENSEARCH": {"HOST": "http://127.0.0.1", "INDEX": "cac-outcomes"},
         }
     )
     process.crawl(CacOutcomeSpider)

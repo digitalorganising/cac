@@ -15,15 +15,19 @@ class DocumentType(StrEnum):
     recognition_decision = auto()
     application_received = auto()
 
+    # Types with boilerplate document content
+    method_agreed = auto()
+    application_withdrawn = auto()
+
 
 document_titles = {
     "Para 35 Decision": DocumentType.acceptance_decision,
     "Declaration Decision": DocumentType.derecognition_decision,
     "Unfair Practice Decision": DocumentType.access_decision,
-    "Method Agreed": None,
+    "Method Agreed": DocumentType.method_agreed,
     "Decision under s.264 of the Act": DocumentType.bargaining_unit_decision,
     "Acceptance Decision": DocumentType.acceptance_decision,
-    "Application Withdrawn": None,
+    "Application Withdrawn": DocumentType.application_withdrawn,
     "Paragraph 26 Decision": DocumentType.access_decision,
     "Method Decision": DocumentType.bargaining_decision,
     "Form of Ballot": DocumentType.form_of_ballot_decision,
@@ -37,7 +41,7 @@ document_titles = {
     "Nullification Decision": DocumentType.nullification_decision,
     "Recognition Decision": DocumentType.recognition_decision,
     "Paragraph 35 Decision": DocumentType.acceptance_decision,
-    "Application withdrawn": None,
+    "Application withdrawn": DocumentType.application_withdrawn,
     "Form of Ballot Decision": DocumentType.form_of_ballot_decision,
     "Whether to Ballot decision": DocumentType.whether_to_ballot_decision,
     "Access Decision": DocumentType.access_decision,
@@ -50,3 +54,13 @@ def get_document_type(title):
         return document_titles[title]
     else:
         raise ValueError(f"Unexpected document title '{title}'")
+
+
+def should_get_content(document_type):
+    match document_type:
+        case DocumentType.method_agreed:
+            return False
+        case DocumentType.application_withdrawn:
+            return False
+        case _:
+            return True

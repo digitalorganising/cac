@@ -1,3 +1,67 @@
 {
-  "dynamic": "true"
+  "dynamic": "strict",
+  "properties": {
+    "year": {
+      "type": "date",
+      "format": "yyyy"
+    },
+    "reference": {
+      "type": "keyword"
+    },
+    "last_updated": {
+      "type": "date"
+    },
+    "outcome_url": {
+      "type": "keyword"
+    },
+    "outcome_title": {
+      "type": "text"
+    },
+    "documents": {
+      "properties": {
+        "acceptance_decision": {
+          "type": "text"
+        },
+        "derecognition_decision": {
+          "type":  "text"
+        },
+        "access_decision": {
+          "type":  "text"
+        },
+        "bargaining_unit_decision": {
+          "type":  "text"
+        },
+        "bargaining_decision": {
+          "type":  "text"
+        },
+        "form_of_ballot_decision": {
+          "type":  "text"
+        },
+        "whether_to_ballot_decision": {
+          "type":  "text"
+        },
+        "validity_decision": {
+          "type":  "text"
+        },
+        "case_closure": {
+          "type":  "text"
+        },
+        "nullification_decision": {
+          "type":  "text"
+        },
+        "recognition_decision": {
+          "type":  "text"
+        },
+        "application_received": {
+          "type":  "text"
+        },
+        "method_agreed": {
+          "type": "keyword"
+        },
+        "application_withdrawn": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
 }

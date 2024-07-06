@@ -43,9 +43,9 @@ class OpensearchPipeline(ABC):
         settings = crawler.settings.get("OPENSEARCH")
         return cls(
             cluster_host=settings.get("HOST"),
+            index=settings.get("INDEX"),
             cluster_user=settings.get("USER", None),
             cluster_pass=settings.get("PASS", None),
-            index=settings.get("INDEX", "outcomes"),
         )
 
     def open_spider(self, spider):
@@ -56,9 +56,8 @@ class OpensearchPipeline(ABC):
             http_auth=http_auth if all(http_auth) else None,
             http_compress=True,
         )
-        loop = asyncio.get_event_loop()
         for _ in range(self.concurrency):
-            self.worker_tasks.add(loop.create_task(self.index_worker()))
+            self.start_worker(spider)
         return deferred(self.client.ping())
 
     def close_spider(self, spider):
@@ -75,6 +74,26 @@ class OpensearchPipeline(ABC):
 
         return deferred(shutdown())
 
+    def start_worker(self, spider):
+        loop = asyncio.get_event_loop()
+        task = loop.create_task(self.index_worker())
+        task.add_done_callback(self.worker_done_handler(spider))
+        self.worker_tasks.add(task)
+
+    def worker_done_handler(self, spider):
+        def handle_done(task):
+            self.worker_tasks.remove(task)
+
+            try:
+                exc = task.exception()
+                if exc:
+                    spider.logger.error(exc.exception)
+                    self.start_worker(spider)
+            except Exception:
+                pass
+
+        return handle_done
+
     async def index_worker(self):
         while True:
             items = []
@@ -86,12 +105,21 @@ class OpensearchPipeline(ABC):
 
             if items:
                 ingest_actions = [
-                    {"_index": self.index, "_id": self.id(item), **self.doc(item)}
+                    {
+                        "_op_type": "update",
+                        "_index": self.index,
+                        "_id": self.id(item),
+                        "doc": self.doc(item),
+                        "doc_as_upsert": True,
+                        "retry_on_conflict": 3,
+                    }
                     for item in items
                 ]
-                await helpers.async_bulk(self.client, ingest_actions)
-                for _ in items:
-                    self.ingest_queue.task_done()
+                try:
+                    await helpers.async_bulk(self.client, ingest_actions)
+                finally:
+                    for _ in items:
+                        self.ingest_queue.task_done()
 
     async def process_item(self, item, spider):
         await self.ingest_queue.put(item)
