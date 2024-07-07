@@ -9,8 +9,8 @@
 
 ### To do:
 
-- [ ] Try some free text summary of applications
-- [ ] Ingest plain docs into local ~Elasticsearch~ Opensearch
+- [x] Try some free text summary of applications
+- [x] Ingest plain docs into local ~Elasticsearch~ Opensearch
 - [ ] Write prompts + tests for all document types
 - [ ] Pipeline for docs with extracted data
 - [ ] Build interface for search & filter
