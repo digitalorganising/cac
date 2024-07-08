@@ -1,6 +1,6 @@
 import pytest
 from pipeline.baml_client import b
-from pipeline.baml_client.types import BargainingUnit, Panel, Petition
+from pipeline.baml_client.types import BargainingUnit, Panel
 
 
 @pytest.mark.parametrize(
@@ -19,13 +19,12 @@ async def test_prospect_british_academy(cac_document_contents):
         "Philosophical and Philological Studies"
     )
     assert ad.success
+    assert 0 <= ad.employer_hostility <= 100
     assert ad.application_date == "2024-03-08"
     assert ad.end_of_acceptance_period == "2024-04-19"
     assert ad.panel == Panel(
         case_manager="Joanne Curtis",
-        panel_members=sorted(
-            ["Ms Laura Prince K.C.", "Mr Richard Fulham", "Mr Nicholas Childs"]
-        ),
+        panel_members=sorted(["Laura Prince", "Richard Fulham", "Nicholas Childs"]),
     )
     assert ad.bargaining_unit == BargainingUnit(
         description="all employees of the British Academy, except Directors and "
@@ -34,16 +33,7 @@ async def test_prospect_british_academy(cac_document_contents):
         size=147,
         claimed_membership=50,
         membership=47,
-    )
-    assert (
-        Petition(
-            source="union",
-            in_favor=106,
-            in_bargaining_unit=95,
-            members=40,
-            non_members=55,
-        )
-        in ad.petitions
+        supporters=95,
     )
 
 
@@ -60,12 +50,13 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
 
     assert ad.union_name == "GMB"
     assert ad.employer_name == "Cranswick Country Foods"
+    assert 0 <= ad.employer_hostility <= 100
     assert ad.success
     assert ad.application_date == "2019-04-30"
     assert ad.end_of_acceptance_period == "2019-06-21"
     assert ad.panel == Panel(
         case_manager="Linda Lehan",
-        panel_members=sorted(["Mr James Tayler", "Mr Tom Keeney", "Mr David Coats"]),
+        panel_members=sorted(["James Tayler", "Tom Keeney", "David Coats"]),
     )
     assert ad.bargaining_unit == BargainingUnit(
         description="Butchery One – Knife Holders, Butchery Two – Knife Holders"
@@ -74,16 +65,7 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
         size=368,
         claimed_membership=100,
         membership=77,
-    )
-    assert (
-        Petition(
-            source="union",
-            in_favor=257,
-            in_bargaining_unit=147,
-            members=43,
-            non_members=104,
-        )
-        in ad.petitions
+        supporters=147,
     )
 
 
@@ -100,14 +82,13 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
 
     assert ad.union_name == "RMT"
     assert ad.employer_name == "Isles of Scilly Shipping (Guernsey) Ltd"
+    assert 0 <= ad.employer_hostility <= 100
     assert ad.success
     assert ad.application_date == "2022-08-11"
     assert ad.end_of_acceptance_period == "2022-09-14"
     assert ad.panel == Panel(
         case_manager="Joanne Curtis",
-        panel_members=sorted(
-            ["Mrs Sarah Havlin", "Mrs Susan Jordan", "Ms Joanna Brown"]
-        ),
+        panel_members=sorted(["Sarah Havlin", "Susan Jordan", "Joanna Brown"]),
     )
     assert ad.bargaining_unit == BargainingUnit(
         description="Motorman, Bosun, Pursers and Able Seaman employed on "
@@ -116,8 +97,8 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
         size=12,
         claimed_membership=11,
         membership=10,
+        supporters=10,
     )
-    assert ad.petitions == []
 
 
 @pytest.mark.parametrize(
@@ -133,14 +114,13 @@ async def test_gmb_mitie_services(cac_document_contents):
 
     assert ad.union_name == "GMB"
     assert ad.employer_name == "Mitie Services Ltd"
+    assert 0 <= ad.employer_hostility <= 100
     assert ad.success
     assert ad.application_date == "2014-09-22"
     assert ad.end_of_acceptance_period == "2014-10-24"
     assert ad.panel == Panel(
         case_manager="Linda Lehan",
-        panel_members=sorted(
-            ["Professor Lynette Harris", "Mr. Len Aspell", "Mr. Bob Purkiss MBE"]
-        ),
+        panel_members=sorted(["Lynette Harris", "Len Aspell", "Bob Purkiss"]),
     )
     assert ad.bargaining_unit == BargainingUnit(
         description="All staff employed to clean Non Advertising Bus Shelters",
@@ -148,16 +128,7 @@ async def test_gmb_mitie_services(cac_document_contents):
         size=42,
         claimed_membership=19,
         membership=17,
-    )
-    assert (
-        Petition(
-            source="union",
-            in_favor=21,
-            in_bargaining_unit=20,
-            members=15,
-            non_members=5,
-        )
-        in ad.petitions
+        supporters=22,
     )
 
 
@@ -174,14 +145,13 @@ async def test_community_coilcolor(cac_document_contents):
 
     assert ad.union_name == "Community Union"
     assert ad.employer_name == "Coilcolor Limited"
+    assert 0 <= ad.employer_hostility <= 100
     assert not ad.success
     assert ad.application_date == "2016-08-02"
     assert ad.end_of_acceptance_period == "2017-05-17"
     assert ad.panel == Panel(
-        case_manager="Miss Sharmin Khan",
-        panel_members=sorted(
-            ["Professor Gillian Morris", "Mr Michael Shepherd", "Ms Lesley Mercer"]
-        ),
+        case_manager="Sharmin Khan",
+        panel_members=sorted(["Gillian Morris", "Michael Shepherd", "Lesley Mercer"]),
     )
     assert ad.bargaining_unit == BargainingUnit(
         description="All hourly paid production workers in the paint line "
@@ -190,24 +160,5 @@ async def test_community_coilcolor(cac_document_contents):
         size=27,
         claimed_membership=12,
         membership=9,
-    )
-    assert (
-        Petition(
-            source="union",
-            in_favor=23,
-            in_bargaining_unit=20,
-            members=9,
-            non_members=11,
-        )
-        in ad.petitions
-    )
-    assert (
-        Petition(
-            source="employer",
-            in_favor=7,
-            in_bargaining_unit=16,
-            members=2,
-            non_members=14,
-        )
-        in ad.petitions
+        supporters=16,
     )
