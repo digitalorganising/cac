@@ -25,6 +25,7 @@ anthropic = "^0.30.0"
 baml-py = "^0.45.0"
 opensearch-py = {extras = ["async"], version = "^2.6.0"}
 python-dotenv = "^1.0.1"
+python-dateutil = "^2.9.0.post0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.2"
