@@ -3,7 +3,6 @@ from enum import StrEnum, auto
 
 class DocumentType(StrEnum):
     acceptance_decision = auto()
-    derecognition_decision = auto()
     access_decision = auto()
     bargaining_unit_decision = auto()
     bargaining_decision = auto()
@@ -18,6 +17,9 @@ class DocumentType(StrEnum):
     # Types with boilerplate document content
     method_agreed = auto()
     application_withdrawn = auto()
+
+    # Types to ignore
+    derecognition_decision = auto()
 
 
 document_titles = {
@@ -56,6 +58,7 @@ def get_document_type(title):
         raise ValueError(f"Unexpected document title '{title}'")
 
 
+# These documents contain text which is the same in all cases - we don't need to analyze
 def should_get_content(document_type):
     match document_type:
         case DocumentType.method_agreed:
@@ -64,3 +67,12 @@ def should_get_content(document_type):
             return False
         case _:
             return True
+
+
+def should_skip(document_type):
+    match document_type:
+        # There is only one of these and it shouldn't be there
+        case DocumentType.derecognition_decision:
+            return True
+        case _:
+            return False

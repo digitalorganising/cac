@@ -1,6 +1,7 @@
 import asyncio
 from abc import ABC, abstractmethod
 
+import scrapy
 from opensearchpy import AsyncOpenSearch, helpers
 from twisted.internet.defer import Deferred
 
@@ -13,6 +14,9 @@ def deferred(coroutine):
 class OpensearchPipeline(ABC):
     ingest_queue = asyncio.Queue()
     worker_tasks = set()
+
+    def skip_item(self, item):
+        return False
 
     @abstractmethod
     def doc(self, item):
@@ -122,5 +126,8 @@ class OpensearchPipeline(ABC):
                         self.ingest_queue.task_done()
 
     async def process_item(self, item, spider):
+        skip_reason = self.skip_item(item)
+        if skip_reason:
+            raise scrapy.exceptions.DropItem(skip_reason)
         await self.ingest_queue.put(item)
         return item

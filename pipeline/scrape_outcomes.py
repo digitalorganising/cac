@@ -8,11 +8,18 @@ from markdownify import markdownify
 from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import NotSupported
 
-from .document_classifier import get_document_type, should_get_content
+from .document_classifier import DocumentType, get_document_type, should_get_content
 from .opensearch_pipeline import OpensearchPipeline
 
 
 class CacOutcomeOpensearchPipeline(OpensearchPipeline):
+    def skip_item(self, item):
+        match ItemAdapter(item)["document_type"]:
+            case DocumentType.derecognition_decision:
+                return "Skipping a derecognition decision"
+            case _:
+                False
+
     def id(self, item):
         return item["reference"]
 
