@@ -10,9 +10,12 @@ class DocumentType(StrEnum):
     whether_to_ballot_decision = auto()
     validity_decision = auto()
     case_closure = auto()
-    nullification_decision = auto()
     recognition_decision = auto()
     application_received = auto()
+
+    # Only one of these ever, will index but
+    # no point trying to extract data
+    nullification_decision = auto()
 
     # Types with boilerplate document content
     method_agreed = auto()
