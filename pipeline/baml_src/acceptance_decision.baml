@@ -26,15 +26,15 @@ class AcceptanceDecision {
 function ExtractAcceptanceDecision(decision_document: string) -> AcceptanceDecision {
   client Claude
   prompt #"
-    Given the CAC acceptance decision document below, 
+    Given the CAC acceptance decision document below,
 
     <doc>
     {{ decision_document }}
     </doc>
 
     1. Extract a list of the sentences related to bargaining unit size and membership numbers.
-    3. Extract a list of the names of the panel members and the case manager. Now give a list of their names without any titles/honorifics/roles/postnominals. Use this list when constructing your response.
-    4. Given the above, extract all of the details as specified. 
+    2. Extract a list of the names of the panel members and the case manager. Now give a list of their names without any titles/honorifics/roles/postnominals. Use this list when constructing your response.
+    3. Given the above, extract all of the details as specified.
 
     {{ ctx.output_format }}
   "#

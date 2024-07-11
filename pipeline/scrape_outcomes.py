@@ -94,10 +94,12 @@ class CacOutcomeSpider(scrapy.Spider):
 
             if not should_get_content(document_type):
                 yield common_fields
-
-            yield from response.follow_all(
-                urls=outcome_link, callback=self.parse_document, cb_kwargs=common_fields
-            )
+            else:
+                yield from response.follow_all(
+                    urls=outcome_link,
+                    callback=self.parse_document,
+                    cb_kwargs=common_fields,
+                )
 
     def parse_document(self, response, **kwargs):
         try:

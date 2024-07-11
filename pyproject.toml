@@ -12,9 +12,6 @@ ingest = "pipeline.scrape_outcomes:scrape"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-#addopts = [
-#    "--import-mode=importlib",
-#]
 
 [tool.poetry.dependencies]
 python = "^3.11"
