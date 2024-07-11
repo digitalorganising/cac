@@ -21,7 +21,7 @@ class DocumentType(StrEnum):
     method_agreed = auto()
     application_withdrawn = auto()
 
-    # Types to ignore
+    # Types to ignore, shouldn't be there
     derecognition_decision = auto()
 
 
