@@ -11,8 +11,10 @@
 
 - [x] Try some free text summary of applications
 - [x] Ingest plain docs into local ~Elasticsearch~ Opensearch
+- [ ] Markdown cleaning?
 - [ ] Write prompts + tests for all document types
   - [ ] Add rejection reason parsing to application decisions
+  - [ ] Extract dates for all decisions
 - [ ] Pipeline for docs with extracted data
 - [ ] Build interface for search & filter
 - [ ] Dashboard or something?
