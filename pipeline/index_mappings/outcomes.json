@@ -25,7 +25,7 @@
         "derecognition_decision": {
           "type":  "text"
         },
-        "access_decision": {
+        "access_decision_or_dispute": {
           "type":  "text"
         },
         "bargaining_unit_decision": {

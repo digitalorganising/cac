@@ -19,7 +19,7 @@ scrapy = "^2.11.2"
 markdownify = "^0.12.1"
 pymupdf4llm = "^0.0.5"
 anthropic = "^0.30.0"
-baml-py = "^0.45.0"
+baml-py = "^0.50.0"
 opensearch-py = {extras = ["async"], version = "^2.6.0"}
 python-dotenv = "^1.0.1"
 python-dateutil = "^2.9.0.post0"
