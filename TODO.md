@@ -15,6 +15,7 @@
 - [ ] Write prompts + tests for all document types
   - [ ] Add rejection reason parsing to application decisions
   - [ ] Extract dates for all decisions
+  - [ ] Get form-of-ballot details if decision was not required
 - [ ] Pipeline for docs with extracted data
 - [ ] Build interface for search & filter
 - [ ] Dashboard or something?

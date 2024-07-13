@@ -3,15 +3,6 @@ class Panel {
   panel_members string[]
 }
 
-class BargainingUnit {
-  description string @description("Not including the address if given")
-  agreed bool @description("Whether the employer agreed with the bargaining unit")
-  size int @description("Size determined after all checks.")
-  claimed_membership int @description("Union members in the bargaining unit initially claimed by the union. Be careful to count only members, not all workers.")
-  membership int @description("Union members in the bargaining unit as determined by the case manager")
-  supporters int @description("Workers in the bargaining unit likely to favour union recognition as entitled to conduct collective bargaining")
-}
-
 class AcceptanceDecision {
   union_name string
   employer_name string
@@ -21,6 +12,7 @@ class AcceptanceDecision {
   end_of_acceptance_period string @description("The date for the end of the acceptance period after any extensions")
   panel Panel
   bargaining_unit BargainingUnit
+  bargaining_unit_agreed bool @description("Whether the employer agreed with the bargaining unit")
 }
 
 function ExtractAcceptanceDecision(decision_document: string) -> AcceptanceDecision {

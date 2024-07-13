@@ -26,10 +26,10 @@ async def test_prospect_british_academy(cac_document_contents):
         case_manager="Joanne Curtis",
         panel_members=sorted(["Laura Prince", "Richard Fulham", "Nicholas Childs"]),
     )
+    assert ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="all employees of the British Academy, except Directors and "
         "the Head of HR",
-        agreed=True,
         size=147,
         claimed_membership=50,
         membership=47,
@@ -58,10 +58,10 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
         case_manager="Linda Lehan",
         panel_members=sorted(["James Tayler", "Tom Keeney", "David Coats"]),
     )
+    assert not ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="Butchery One – Knife Holders, Butchery Two – Knife Holders"
         " and Cutting Lines",
-        agreed=False,
         size=368,
         claimed_membership=100,
         membership=77,
@@ -90,10 +90,10 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
         case_manager="Joanne Curtis",
         panel_members=sorted(["Sarah Havlin", "Susan Jordan", "Joanna Brown"]),
     )
+    assert not ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="Motorman, Bosun, Pursers and Able Seaman employed on "
         "board the vessel the Scillonian 111",
-        agreed=False,
         size=12,
         claimed_membership=11,
         membership=10,
@@ -122,9 +122,9 @@ async def test_gmb_mitie_services(cac_document_contents):
         case_manager="Linda Lehan",
         panel_members=sorted(["Lynette Harris", "Len Aspell", "Bob Purkiss"]),
     )
+    assert ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="All staff employed to clean Non Advertising Bus Shelters",
-        agreed=True,
         size=42,
         claimed_membership=19,
         membership=17,
@@ -153,10 +153,10 @@ async def test_community_coilcolor(cac_document_contents):
         case_manager="Sharmin Khan",
         panel_members=sorted(["Gillian Morris", "Michael Shepherd", "Lesley Mercer"]),
     )
+    assert not ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="All hourly paid production workers in the paint line "
         "and profiling areas",
-        agreed=False,
         size=27,
         claimed_membership=12,
         membership=9,
