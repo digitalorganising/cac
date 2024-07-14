@@ -12,6 +12,7 @@ from pipeline.baml_client.types import QualifyingCondition
 async def test_neu_radley_college(cac_document_contents):
     wtbd = await b.ExtractWhetherToBallotDecision(cac_document_contents)
 
+    assert wtbd.decision_date == "2023-06-20"
     assert wtbd.decision_to_ballot
     assert wtbd.majority_membership
     assert QualifyingCondition.GoodIndustrialRelations in wtbd.qualifying_conditions
@@ -30,6 +31,7 @@ async def test_neu_radley_college(cac_document_contents):
 async def test_uvw_ocs_group(cac_document_contents):
     wtbd = await b.ExtractWhetherToBallotDecision(cac_document_contents)
 
+    assert wtbd.decision_date == "2019-09-26"
     assert wtbd.decision_to_ballot
     assert not wtbd.majority_membership
     assert not wtbd.qualifying_conditions
@@ -44,6 +46,7 @@ async def test_uvw_ocs_group(cac_document_contents):
 async def test_nuj_buzzfeed(cac_document_contents):
     wtbd = await b.ExtractWhetherToBallotDecision(cac_document_contents)
 
+    assert wtbd.decision_date == "2018-04-11"
     assert wtbd.decision_to_ballot
     assert wtbd.majority_membership
     assert QualifyingCondition.GoodIndustrialRelations in wtbd.qualifying_conditions
@@ -62,6 +65,7 @@ async def test_nuj_buzzfeed(cac_document_contents):
 async def test_neu_bishops_stortford_college(cac_document_contents):
     wtbd = await b.ExtractWhetherToBallotDecision(cac_document_contents)
 
+    assert wtbd.decision_date == "2020-11-09"
     assert wtbd.decision_to_ballot
     assert wtbd.majority_membership
     assert QualifyingCondition.GoodIndustrialRelations in wtbd.qualifying_conditions
@@ -80,6 +84,7 @@ async def test_neu_bishops_stortford_college(cac_document_contents):
 async def test_unison_abbey_healthcare(cac_document_contents):
     wtbd = await b.ExtractWhetherToBallotDecision(cac_document_contents)
 
+    assert wtbd.decision_date == "2018-07-23"
     assert wtbd.decision_to_ballot
     assert not wtbd.majority_membership
     assert not wtbd.qualifying_conditions

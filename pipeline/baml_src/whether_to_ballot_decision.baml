@@ -5,6 +5,7 @@ enum QualifyingCondition {
 }
 
 class WhetherToBallotDecision {
+    decision_date string @description("ISO8601 date")
     decision_to_ballot bool
     majority_membership bool
     qualifying_conditions QualifyingCondition[]

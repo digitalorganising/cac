@@ -13,6 +13,7 @@ async def test_prospect_british_academy(cac_document_contents):
     ad = await b.ExtractAcceptanceDecision(cac_document_contents)
     ad.panel.panel_members.sort()
 
+    assert ad.decision_date == "2024-04-17"
     assert ad.union_name == "Prospect"
     assert (
         ad.employer_name == "The British Academy for the Promotion of Historical "
@@ -48,6 +49,7 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
     ad = await b.ExtractAcceptanceDecision(cac_document_contents)
     ad.panel.panel_members.sort()
 
+    assert ad.decision_date == "2019-06-19"
     assert ad.union_name == "GMB"
     assert ad.employer_name == "Cranswick Country Foods"
     assert 0 <= ad.employer_hostility <= 100
@@ -80,6 +82,7 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
     ad = await b.ExtractAcceptanceDecision(cac_document_contents)
     ad.panel.panel_members.sort()
 
+    assert ad.decision_date == "2022-09-08"
     assert ad.union_name == "RMT"
     assert ad.employer_name == "Isles of Scilly Shipping (Guernsey) Ltd"
     assert 0 <= ad.employer_hostility <= 100
@@ -112,6 +115,7 @@ async def test_gmb_mitie_services(cac_document_contents):
     ad = await b.ExtractAcceptanceDecision(cac_document_contents)
     ad.panel.panel_members.sort()
 
+    assert ad.decision_date == "2014-10-23"
     assert ad.union_name == "GMB"
     assert ad.employer_name == "Mitie Services Ltd"
     assert 0 <= ad.employer_hostility <= 100
@@ -143,6 +147,7 @@ async def test_community_coilcolor(cac_document_contents):
     ad = await b.ExtractAcceptanceDecision(cac_document_contents)
     ad.panel.panel_members.sort()
 
+    assert ad.decision_date == "2017-05-17"
     assert ad.union_name == "Community Union"
     assert ad.employer_name == "Coilcolor Limited"
     assert 0 <= ad.employer_hostility <= 100

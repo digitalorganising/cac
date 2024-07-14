@@ -1,6 +1,6 @@
 import pytest
 from pipeline.baml_client import b
-from pipeline.baml_client.types import BallotResult
+from pipeline.baml_client.types import BallotResult, FormOfBallot
 
 
 @pytest.mark.parametrize(
@@ -12,9 +12,11 @@ from pipeline.baml_client.types import BallotResult
 async def test_gmb_apcoa_parking(cac_document_contents):
     rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
+    assert rd.decision_date == "2023-06-02"
     assert rd.union_recognized
     assert not rd.good_relations_contested
     assert not rd.ballot
+    assert not rd.form_of_ballot
 
 
 @pytest.mark.parametrize(
@@ -26,9 +28,11 @@ async def test_gmb_apcoa_parking(cac_document_contents):
 async def test_unite_mitie_property_services(cac_document_contents):
     rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
+    assert rd.decision_date == "2018-06-15"
     assert rd.union_recognized
     assert rd.good_relations_contested
     assert not rd.ballot
+    assert not rd.form_of_ballot
 
 
 @pytest.mark.parametrize(
@@ -40,8 +44,10 @@ async def test_unite_mitie_property_services(cac_document_contents):
 async def test_gmb_sgl_carbon_fibres(cac_document_contents):
     rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
+    assert rd.decision_date == "2022-05-24"
     assert rd.union_recognized
     assert not rd.good_relations_contested
+    assert rd.form_of_ballot == FormOfBallot.Postal
     assert rd.ballot == BallotResult(
         eligible_workers=38,
         spoiled_ballots=0,
@@ -61,8 +67,10 @@ async def test_gmb_sgl_carbon_fibres(cac_document_contents):
 async def test_unite_international_baccalaureate(cac_document_contents):
     rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
+    assert rd.decision_date == "2019-07-17"
     assert rd.union_recognized
     assert not rd.good_relations_contested
+    assert rd.form_of_ballot == FormOfBallot.Combination
     assert rd.ballot == BallotResult(
         eligible_workers=242,
         spoiled_ballots=1,
@@ -82,8 +90,10 @@ async def test_unite_international_baccalaureate(cac_document_contents):
 async def test_nasuwt_radley_college(cac_document_contents):
     rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
+    assert rd.decision_date == "2023-10-23"
     assert not rd.union_recognized
     assert rd.good_relations_contested
+    assert rd.form_of_ballot == FormOfBallot.Postal
     assert rd.ballot == BallotResult(
         eligible_workers=114,
         spoiled_ballots=1,

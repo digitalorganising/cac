@@ -1,10 +1,5 @@
-enum FormOfBallot {
-    Postal
-    Workplace
-    Combination
-}
-
 class FormOfBallotDecision {
+    decision_date string @description("ISO8601 date")
     form_of_ballot FormOfBallot
     employer_preferred FormOfBallot
     union_preferred FormOfBallot
