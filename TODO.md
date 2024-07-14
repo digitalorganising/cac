@@ -12,8 +12,8 @@
 - [x] Try some free text summary of applications
 - [x] Ingest plain docs into local ~Elasticsearch~ Opensearch
 - [ ] Markdown cleaning?
-- [ ] Write prompts + tests for all document types
-  - [ ] Add rejection reason parsing to application decisions
+- [x] Write prompts + tests for all document types
+  - [x] Add rejection reason parsing to application decisions
   - [x] Extract dates for all decisions
   - [x] Get form-of-ballot details if decision was not required
 - [ ] Pipeline for docs with extracted data

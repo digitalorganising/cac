@@ -1,6 +1,6 @@
 import pytest
 from pipeline.baml_client import b
-from pipeline.baml_client.types import BargainingUnit, Panel
+from pipeline.baml_client.types import BargainingUnit, Panel, RejectionReason
 
 
 @pytest.mark.parametrize(
@@ -20,6 +20,7 @@ async def test_prospect_british_academy(cac_document_contents):
         "Philosophical and Philological Studies"
     )
     assert ad.success
+    assert not ad.rejection_reasons
     assert 0 <= ad.employer_hostility <= 100
     assert ad.application_date == "2024-03-08"
     assert ad.end_of_acceptance_period == "2024-04-19"
@@ -54,6 +55,7 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
     assert ad.employer_name == "Cranswick Country Foods"
     assert 0 <= ad.employer_hostility <= 100
     assert ad.success
+    assert not ad.rejection_reasons
     assert ad.application_date == "2019-04-30"
     assert ad.end_of_acceptance_period == "2019-06-21"
     assert ad.panel == Panel(
@@ -87,6 +89,7 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
     assert ad.employer_name == "Isles of Scilly Shipping (Guernsey) Ltd"
     assert 0 <= ad.employer_hostility <= 100
     assert ad.success
+    assert not ad.rejection_reasons
     assert ad.application_date == "2022-08-11"
     assert ad.end_of_acceptance_period == "2022-09-14"
     assert ad.panel == Panel(
@@ -120,6 +123,7 @@ async def test_gmb_mitie_services(cac_document_contents):
     assert ad.employer_name == "Mitie Services Ltd"
     assert 0 <= ad.employer_hostility <= 100
     assert ad.success
+    assert not ad.rejection_reasons
     assert ad.application_date == "2014-09-22"
     assert ad.end_of_acceptance_period == "2014-10-24"
     assert ad.panel == Panel(
@@ -152,6 +156,7 @@ async def test_community_coilcolor(cac_document_contents):
     assert ad.employer_name == "Coilcolor Limited"
     assert 0 <= ad.employer_hostility <= 100
     assert not ad.success
+    assert ad.rejection_reasons == [RejectionReason.NoMajoritySupportLikely]
     assert ad.application_date == "2016-08-02"
     assert ad.end_of_acceptance_period == "2017-05-17"
     assert ad.panel == Panel(

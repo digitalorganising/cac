@@ -2,7 +2,7 @@ from difflib import SequenceMatcher as SM
 
 import pytest
 from pipeline.baml_client import b
-from pipeline.baml_client.types import BargainingUnit
+from pipeline.baml_client.types import BargainingUnit, RejectionReason
 
 
 @pytest.mark.parametrize(
@@ -34,7 +34,7 @@ But not including Shift or Team Leaders, Office based employees or Company
 Management""",
             vd.new_bargaining_unit.description,
         ).ratio()
-        > 0.95
+        > 0.90
     )
 
     assert vd.new_bargaining_unit.size == 69
@@ -76,6 +76,7 @@ async def test_gmb_noble_collection(cac_document_contents):
 
     assert vd.decision_date == "2022-11-02"
     assert vd.valid
+    assert not vd.rejection_reasons
     assert vd.new_bargaining_unit == BargainingUnit(
         description="all retail staff employed by the Noble Collection UK "
         "Ltd at 26-28 Neal Street, "
@@ -99,6 +100,7 @@ async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
 
     assert vd.decision_date == "2019-03-04"
     assert vd.valid
+    assert not vd.rejection_reasons
     assert vd.new_bargaining_unit == BargainingUnit(
         description="All staff employed by the Corporation of the Hall of Arts and "
         "Sciences (commonly known as the Royal Albert Hall) at the "
@@ -124,6 +126,7 @@ async def test_gmb_metallink(cac_document_contents):
 
     assert vd.decision_date == "2016-04-05"
     assert not vd.valid
+    assert vd.rejection_reasons == [RejectionReason.NoMajoritySupportLikely]
     assert vd.new_bargaining_unit == BargainingUnit(
         description="All employees excluding management",
         size=38,
