@@ -93,7 +93,7 @@ class OpensearchPipeline(ABC):
                 if exc:
                     spider.logger.error(exc.exception)
                     self.start_worker(spider)
-            except Exception:
+            except (Exception, asyncio.exceptions.CancelledError):
                 pass
 
         return handle_done

@@ -11,7 +11,6 @@
 
 - [x] Try some free text summary of applications
 - [x] Ingest plain docs into local ~Elasticsearch~ Opensearch
-- [ ] Markdown cleaning?
 - [x] Write prompts + tests for all document types
   - [x] Add rejection reason parsing to application decisions
   - [x] Extract dates for all decisions

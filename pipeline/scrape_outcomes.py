@@ -33,7 +33,7 @@ class CacOutcomeOpensearchPipeline(OpensearchPipeline):
 class CacOutcomeSpider(scrapy.Spider):
     name = "cac-outcomes"
 
-    start_year = 2024
+    start_year = 2014
     url_prefix = "https://www.gov.uk/government/collections/cac-outcomes-"
 
     def start_requests(self):
@@ -127,7 +127,7 @@ def scrape():
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
             "LOG_LEVEL": "INFO",
             "ITEM_PIPELINES": {CacOutcomeOpensearchPipeline: 100},
-            "OPENSEARCH": {"HOST": "http://127.0.0.1", "INDEX": "cac-outcomes"},
+            "OPENSEARCH": {"HOST": "http://127.0.0.1", "INDEX": "outcomes-raw"},
         }
     )
     process.crawl(CacOutcomeSpider)
