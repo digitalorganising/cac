@@ -1,8 +1,10 @@
+from abc import ABC, abstractmethod
 from datetime import timedelta
 from typing import Any, AsyncIterator, Iterable, List, Optional
 
 from bytewax.inputs import FixedPartitionedSource, StatefulSourcePartition, batch_async
-from opensearchpy import AsyncOpenSearch, exceptions
+from bytewax.outputs import DynamicSink, StatelessSinkPartition
+from opensearchpy import AsyncOpenSearch, OpenSearch, exceptions, helpers
 
 
 class OpensearchStatefulSourcePartition(
@@ -85,7 +87,7 @@ class OpensearchStatefulSourcePartition(
             await client.close()
 
 
-class OpensearchFixedPartionedSource(FixedPartitionedSource[Any, List[str]]):
+class OpensearchSource(FixedPartitionedSource[Any, List[str]]):
     def __init__(
         self,
         cluster_host,
@@ -122,4 +124,74 @@ class OpensearchFixedPartionedSource(FixedPartitionedSource[Any, List[str]]):
             query=self.query,
             sort=self.sort,
             search_after=resume_state,
+        )
+
+
+class OpensearchStatelessSinkPartition(StatelessSinkPartition[Any]):
+    def __init__(
+        self, cluster_host, cluster_user, cluster_pass, index, get_doc, get_id
+    ):
+        self.index = index
+        self.get_doc = get_doc
+        self.get_id = get_id
+
+        http_auth = (cluster_user, cluster_pass)
+        self._client = OpenSearch(
+            hosts=[cluster_host],
+            use_ssl=("https" in cluster_host),
+            http_auth=http_auth if all(http_auth) else None,
+            http_compress=True,
+        )
+
+    def to_action(self, item):
+        return {
+            "_op_type": "update",
+            "_index": self.index,
+            "_id": self.get_id(item),
+            "doc": self.get_doc(item),
+            "doc_as_upsert": True,
+            "retry_on_conflict": 3,
+        }
+
+    def write_batch(self, items: List[Any]) -> None:
+        ingest_actions = [self.to_action(item) for item in items]
+        try:
+            helpers.bulk(self._client, ingest_actions)
+        except exceptions.OpenSearchException as e:
+            print(e)
+            raise e
+
+    def close(self):
+        self._client.close()
+
+
+class OpensearchSink(DynamicSink[Any], ABC):
+    def __init__(
+        self,
+        cluster_host,
+        cluster_user,
+        cluster_pass,
+        index,
+    ):
+        self.cluster_host = cluster_host
+        self.cluster_user = cluster_user
+        self.cluster_pass = cluster_pass
+        self.index = index
+
+    @abstractmethod
+    def doc(self, item) -> Any:
+        pass
+
+    @abstractmethod
+    def id(self, item) -> str:
+        pass
+
+    def build(self, step_id: str, worker_index: int, worker_count: int):
+        return OpensearchStatelessSinkPartition(
+            cluster_host=self.cluster_host,
+            cluster_user=self.cluster_user,
+            cluster_pass=self.cluster_pass,
+            index=self.index,
+            get_doc=self.doc,
+            get_id=self.id,
         )
