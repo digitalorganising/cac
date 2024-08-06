@@ -23,6 +23,7 @@ baml-py = "^0.51.1"
 opensearch-py = {extras = ["async"], version = "^2.6.0"}
 python-dotenv = "^1.0.1"
 python-dateutil = "^2.9.0.post0"
+bytewax = "^0.20.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.1"

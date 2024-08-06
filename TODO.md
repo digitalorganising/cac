@@ -16,6 +16,8 @@
   - [x] Extract dates for all decisions
   - [x] Get form-of-ballot details if decision was not required
 - [ ] Pipeline for docs with extracted data
+  - [ ] Build adapters for opensearch
+  - [ ] Rate-limited augmentation transformer
 - [ ] Build interface for search & filter
 - [ ] Dashboard or something?
 
