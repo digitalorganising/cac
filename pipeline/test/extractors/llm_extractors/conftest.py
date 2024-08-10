@@ -8,7 +8,6 @@ from parsel import Selector
 
 
 def pytest_configure(config):
-    print("FAS")
     env_file = find_dotenv("dev.env")
     load_dotenv(env_file)
 
