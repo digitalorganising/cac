@@ -10,7 +10,7 @@ def get_extracted_data(doc):
         return None
     match document_type:
         case DocumentType.acceptance_decision:
-            return b.ExtractValidityDecision(content).model_dump()
+            return b.ExtractAcceptanceDecision(content).model_dump()
         case DocumentType.bargaining_unit_decision:
             return b.ExtractBargainingUnitDecision(content).model_dump()
         case DocumentType.bargaining_decision:

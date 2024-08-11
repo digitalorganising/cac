@@ -107,7 +107,7 @@ class OpensearchSource(FixedPartitionedSource[Any, List[str]]):
         self.sort = sort
 
     def list_parts(self) -> List[str]:
-        return ["singleton"]
+        return [self.index]
 
     def build_part(
         self,
@@ -178,9 +178,8 @@ class OpensearchSink(DynamicSink[Any], ABC):
         self.cluster_pass = cluster_pass
         self.index = index
 
-    @abstractmethod
     def doc(self, item) -> Any:
-        pass
+        return item
 
     @abstractmethod
     def id(self, item) -> str:

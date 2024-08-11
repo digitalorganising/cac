@@ -1,5 +1,5 @@
 import pytest
-from pipeline.baml_client import b
+from pipeline.baml_client.async_client import b
 from pipeline.baml_client.types import BargainingUnit, Panel, RejectionReason
 
 
@@ -171,4 +171,38 @@ async def test_community_coilcolor(cac_document_contents):
         claimed_membership=12,
         membership=9,
         supporters=16,
+    )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://assets.publishing.service.gov.uk/media/"
+        "5a820a5ae5274a2e87dc0d5b/Acceptance_Decision.pdf"
+    ],
+)
+async def test_iwgb_university_of_london(cac_document_contents):
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
+    ad.panel.panel_members.sort()
+
+    assert ad.decision_date == "2018-01-10"
+    assert ad.union_name == "Independent Workers' Union of Great Britain (IWGB)"
+    assert ad.employer_name == "University of London"
+    assert 0 <= ad.employer_hostility <= 100
+    assert not ad.success
+    assert ad.rejection_reasons == [RejectionReason.SomeOtherReason]
+    assert ad.application_date == "2017-11-20"
+    assert ad.end_of_acceptance_period == "2017-12-11"
+    assert ad.panel == Panel(
+        case_manager="Nigel Cookson",
+        panel_members=sorted(["Barry Clarke", "David Coats", "Roger Roberts"]),
+    )
+    assert not ad.bargaining_unit_agreed
+    assert ad.bargaining_unit == BargainingUnit(
+        description="Security Guards, Postroom Workers, AV Staff, Porters, and "
+        "Receptionists working for Cordant Security and/at University of London",
+        size=69,
+        claimed_membership=61,
+        membership=61,
+        supporters=35,
     )

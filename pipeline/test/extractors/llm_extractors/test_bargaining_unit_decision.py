@@ -1,7 +1,7 @@
 from difflib import SequenceMatcher as SM
 
 import pytest
-from pipeline.baml_client import b
+from pipeline.baml_client.async_client import b
 
 
 @pytest.mark.parametrize(

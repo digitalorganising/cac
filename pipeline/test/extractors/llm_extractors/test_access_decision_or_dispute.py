@@ -1,5 +1,5 @@
 import pytest
-from pipeline.baml_client import b
+from pipeline.baml_client.async_client import b
 from pipeline.baml_client.types import Party
 
 

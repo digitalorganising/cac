@@ -28,7 +28,11 @@ def flat_map_outcome(outcome):
         yield {**outcome_doc, "document_type": document_type, "content": content}
 
 
-@retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
+@retry(
+    wait=wait_random_exponential(min=1, max=60),
+    stop=stop_after_attempt(6),
+    reraise=True,
+)
 def augment_doc(doc):
     return {**doc, "extracted_data": get_extracted_data(doc)}
 
@@ -38,7 +42,7 @@ outcomes_source = OpensearchSource(
     cluster_user=None,
     cluster_pass=None,
     index="outcomes-raw",
-    page_size=10,
+    page_size=25,
 )
 opensearch_sink = OutcomeSink(
     cluster_host="http://127.0.0.1",

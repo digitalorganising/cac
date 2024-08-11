@@ -24,4 +24,5 @@ enum RejectionReason {
     NoMajoritySupportLikely
     PreviousApplicationExists
     AnotherUnionAlreadyRecognized
+    SomeOtherReason @description("For exceptional cases where none of the usual reasons fit")
 }
