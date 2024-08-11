@@ -192,7 +192,7 @@ async def test_iwgb_university_of_london(cac_document_contents):
     assert not ad.success
     assert ad.rejection_reasons == [RejectionReason.SomeOtherReason]
     assert ad.application_date == "2017-11-20"
-    assert ad.end_of_acceptance_period == "2017-12-11"
+    assert not ad.end_of_acceptance_period
     assert ad.panel == Panel(
         case_manager="Nigel Cookson",
         panel_members=sorted(["Barry Clarke", "David Coats", "Roger Roberts"]),
@@ -203,6 +203,6 @@ async def test_iwgb_university_of_london(cac_document_contents):
         "Receptionists working for Cordant Security and/at University of London",
         size=69,
         claimed_membership=61,
-        membership=61,
-        supporters=35,
+        membership=None,
+        supporters=None,
     )

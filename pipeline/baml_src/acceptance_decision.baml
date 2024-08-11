@@ -11,7 +11,7 @@ class AcceptanceDecision {
   success bool @description("Whether the application was successful")
   rejection_reasons RejectionReason[] @description("If the application was not sucessful, why was it rejected? Empty if application was successful")
   application_date string @description("An ISO8601 date string for the date the application was received by the CAC")
-  end_of_acceptance_period string @description("The date for the end of the acceptance period after any extensions")
+  end_of_acceptance_period string? @description("The date for the end of the acceptance period after any extensions")
   panel Panel
   bargaining_unit BargainingUnit
   bargaining_unit_agreed bool @description("Whether the employer agreed with the bargaining unit")

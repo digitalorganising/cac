@@ -29,8 +29,8 @@ def flat_map_outcome(outcome):
 
 
 @retry(
-    wait=wait_random_exponential(min=1, max=60),
-    stop=stop_after_attempt(6),
+    wait=wait_random_exponential(min=1, max=90),
+    stop=stop_after_attempt(7),
     reraise=True,
 )
 def augment_doc(doc):
