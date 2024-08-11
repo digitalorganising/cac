@@ -1,6 +1,13 @@
 import pytest
 from pipeline.baml_client.async_client import b
 from pipeline.baml_client.types import Party
+from pipeline.services import anthropic_rate_limit
+from tenacity import retry
+
+
+@retry(**anthropic_rate_limit)
+async def ExtractAccessDecisionOrDispute(content):
+    return await b.ExtractAccessDecisionOrDispute(content)
 
 
 @pytest.mark.parametrize(
@@ -10,7 +17,7 @@ from pipeline.baml_client.types import Party
     ],
 )
 async def test_gmb_dyer_engineering(cac_document_contents):
-    ad = await b.ExtractAccessDecisionOrDispute(cac_document_contents)
+    ad = await ExtractAccessDecisionOrDispute(cac_document_contents)
 
     assert ad.decision_date == "2021-02-05"
     assert ad.details.complainant == Party.Union
@@ -24,7 +31,7 @@ async def test_gmb_dyer_engineering(cac_document_contents):
     ],
 )
 async def test_prospect_prestwick_aircraft_maintenance(cac_document_contents):
-    ad = await b.ExtractAccessDecisionOrDispute(cac_document_contents)
+    ad = await ExtractAccessDecisionOrDispute(cac_document_contents)
 
     assert ad.decision_date == "2021-11-22"
     assert not ad.details.favors
@@ -38,7 +45,7 @@ async def test_prospect_prestwick_aircraft_maintenance(cac_document_contents):
     ],
 )
 async def test_rmt_carefree_travel(cac_document_contents):
-    ad = await b.ExtractAccessDecisionOrDispute(cac_document_contents)
+    ad = await ExtractAccessDecisionOrDispute(cac_document_contents)
 
     assert ad.decision_date == "2017-06-06"
     assert ad.details.complainant == Party.Union
@@ -52,7 +59,7 @@ async def test_rmt_carefree_travel(cac_document_contents):
     ],
 )
 async def test_uvw_ocs_group(cac_document_contents):
-    ad = await b.ExtractAccessDecisionOrDispute(cac_document_contents)
+    ad = await ExtractAccessDecisionOrDispute(cac_document_contents)
 
     assert ad.decision_date == "2020-06-12"
     assert ad.details.complainant == Party.Union
@@ -66,7 +73,7 @@ async def test_uvw_ocs_group(cac_document_contents):
     ],
 )
 async def test_urtu_eddie_stobart(cac_document_contents):
-    ad = await b.ExtractAccessDecisionOrDispute(cac_document_contents)
+    ad = await ExtractAccessDecisionOrDispute(cac_document_contents)
 
     assert ad.decision_date == "2021-10-12"
     assert ad.details.favors == Party.Employer

@@ -26,9 +26,10 @@ function ExtractAcceptanceDecision(decision_document: string) -> AcceptanceDecis
     {{ decision_document }}
     </doc>
 
-    1. Extract a list of the sentences related to bargaining unit size and membership numbers.
+    1. Extract a list of all the sentences related to bargaining unit size and membership numbers. Be very thorough.
     2. Extract a list of the names of the panel members and the case manager. Now give a list of their names without any titles/honorifics/roles/postnominals. Use this list when constructing your response.
 
+    Only miss out or return null values if you are certain there is no information: you are fined $1 for each null you return.
     {{ ctx.output_format }}
   "#
 }

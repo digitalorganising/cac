@@ -1,5 +1,12 @@
 import pytest
 from pipeline.baml_client.async_client import b
+from pipeline.services import anthropic_rate_limit
+from tenacity import retry
+
+
+@retry(**anthropic_rate_limit)
+async def ExtractBargainingDecision(content):
+    return await b.ExtractBargainingDecision(content)
 
 
 @pytest.mark.parametrize(
@@ -9,7 +16,7 @@ from pipeline.baml_client.async_client import b
     ],
 )
 async def test_prospect_ashford_airport(cac_document_contents):
-    bd = await b.ExtractBargainingDecision(cac_document_contents)
+    bd = await ExtractBargainingDecision(cac_document_contents)
 
     assert bd.decision_date == "2024-01-11"
     assert bd.cac_involvement_date == "2023-12-08"
@@ -22,7 +29,7 @@ async def test_prospect_ashford_airport(cac_document_contents):
     ],
 )
 async def test_unite_hayakawa_international(cac_document_contents):
-    bd = await b.ExtractBargainingDecision(cac_document_contents)
+    bd = await ExtractBargainingDecision(cac_document_contents)
 
     assert bd.decision_date == "2020-10-26"
     assert bd.cac_involvement_date == "2020-10-07"
@@ -35,7 +42,7 @@ async def test_unite_hayakawa_international(cac_document_contents):
     ],
 )
 async def test_rmt_bespoke_facilities_management(cac_document_contents):
-    bd = await b.ExtractBargainingDecision(cac_document_contents)
+    bd = await ExtractBargainingDecision(cac_document_contents)
 
     assert bd.decision_date == "2023-07-11"
     assert bd.cac_involvement_date == "2023-05-25"
@@ -48,7 +55,7 @@ async def test_rmt_bespoke_facilities_management(cac_document_contents):
     ],
 )
 async def test_pcs_axis_security_services(cac_document_contents):
-    bd = await b.ExtractBargainingDecision(cac_document_contents)
+    bd = await ExtractBargainingDecision(cac_document_contents)
 
     assert bd.decision_date == "2021-04-16"
     assert bd.cac_involvement_date == "2021-02-24"
@@ -61,7 +68,7 @@ async def test_pcs_axis_security_services(cac_document_contents):
     ],
 )
 async def test_ucu_university_of_brighton(cac_document_contents):
-    bd = await b.ExtractBargainingDecision(cac_document_contents)
+    bd = await ExtractBargainingDecision(cac_document_contents)
 
     assert bd.decision_date == "2023-01-30"
     assert bd.cac_involvement_date == "2022-10-07"

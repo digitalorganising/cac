@@ -2,6 +2,13 @@ from difflib import SequenceMatcher as SM
 
 import pytest
 from pipeline.baml_client.async_client import b
+from pipeline.services import anthropic_rate_limit
+from tenacity import retry
+
+
+@retry(**anthropic_rate_limit)
+async def ExtractBargainingUnitDecision(content):
+    return await b.ExtractBargainingUnitDecision(content)
 
 
 @pytest.mark.parametrize(
@@ -11,7 +18,7 @@ from pipeline.baml_client.async_client import b
     ],
 )
 async def test_nuj_press_association(cac_document_contents):
-    bud = await b.ExtractBargainingUnitDecision(cac_document_contents)
+    bud = await ExtractBargainingUnitDecision(cac_document_contents)
 
     assert bud.decision_date == "2024-04-17"
     assert bud.appropriate_unit_differs
@@ -37,7 +44,7 @@ async def test_nuj_press_association(cac_document_contents):
     ],
 )
 async def test_gmb_eddie_stobart(cac_document_contents):
-    bud = await b.ExtractBargainingUnitDecision(cac_document_contents)
+    bud = await ExtractBargainingUnitDecision(cac_document_contents)
 
     assert bud.decision_date == "2021-10-29"
     assert bud.appropriate_unit_differs
@@ -62,7 +69,7 @@ async def test_gmb_eddie_stobart(cac_document_contents):
     ],
 )
 async def test_rmt_city_cruises(cac_document_contents):
-    bud = await b.ExtractBargainingUnitDecision(cac_document_contents)
+    bud = await ExtractBargainingUnitDecision(cac_document_contents)
 
     assert bud.decision_date == "2015-07-20"
     assert not bud.appropriate_unit_differs
@@ -76,7 +83,7 @@ async def test_rmt_city_cruises(cac_document_contents):
     ],
 )
 async def test_pcs_mitie_group(cac_document_contents):
-    bud = await b.ExtractBargainingUnitDecision(cac_document_contents)
+    bud = await ExtractBargainingUnitDecision(cac_document_contents)
 
     assert bud.decision_date == "2023-02-14"
     assert bud.appropriate_unit_differs
@@ -114,7 +121,7 @@ async def test_pcs_mitie_group(cac_document_contents):
     ],
 )
 async def test_unison_addaction(cac_document_contents):
-    bud = await b.ExtractBargainingUnitDecision(cac_document_contents)
+    bud = await ExtractBargainingUnitDecision(cac_document_contents)
 
     assert bud.decision_date == "2020-08-21"
     assert not bud.appropriate_unit_differs

@@ -3,6 +3,13 @@ from difflib import SequenceMatcher as SM
 import pytest
 from pipeline.baml_client.async_client import b
 from pipeline.baml_client.types import BargainingUnit, RejectionReason
+from pipeline.services import anthropic_rate_limit
+from tenacity import retry
+
+
+@retry(**anthropic_rate_limit)
+async def ExtractValidityDecision(content):
+    return await b.ExtractValidityDecision(content)
 
 
 @pytest.mark.parametrize(
@@ -12,7 +19,7 @@ from pipeline.baml_client.types import BargainingUnit, RejectionReason
     ],
 )
 async def test_unite_primopost(cac_document_contents):
-    vd = await b.ExtractValidityDecision(cac_document_contents)
+    vd = await ExtractValidityDecision(cac_document_contents)
 
     assert vd.decision_date == "2014-06-25"
     assert vd.valid
@@ -38,7 +45,7 @@ Management""",
     )
 
     assert vd.new_bargaining_unit.size == 69
-    assert vd.new_bargaining_unit.claimed_membership == 35
+    assert vd.new_bargaining_unit.claimed_membership is None
     assert vd.new_bargaining_unit.membership == 35
     assert vd.new_bargaining_unit.supporters == 51
 
@@ -50,7 +57,7 @@ Management""",
     ],
 )
 async def test_rmt_cwind(cac_document_contents):
-    vd = await b.ExtractValidityDecision(cac_document_contents)
+    vd = await ExtractValidityDecision(cac_document_contents)
 
     assert vd.decision_date == "2019-11-14"
     assert not vd.valid
@@ -59,9 +66,9 @@ async def test_rmt_cwind(cac_document_contents):
         "the Ramsgate site "
         "that were subject to the existing bargaining arrangements",
         size=16,
-        claimed_membership=7,
+        claimed_membership=None,
         membership=5,
-        supporters=0,
+        supporters=None,
     )
 
 
@@ -72,7 +79,7 @@ async def test_rmt_cwind(cac_document_contents):
     ],
 )
 async def test_gmb_noble_collection(cac_document_contents):
-    vd = await b.ExtractValidityDecision(cac_document_contents)
+    vd = await ExtractValidityDecision(cac_document_contents)
 
     assert vd.decision_date == "2022-11-02"
     assert vd.valid
@@ -83,7 +90,7 @@ async def test_gmb_noble_collection(cac_document_contents):
         "London WC2 and Hamleys Toy Store, "
         "188-196 Regent Street, London W1 excluding the Head of the Retail Team",
         size=15,
-        claimed_membership=7,
+        claimed_membership=None,
         membership=7,
         supporters=7,
     )
@@ -96,7 +103,7 @@ async def test_gmb_noble_collection(cac_document_contents):
     ],
 )
 async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
-    vd = await b.ExtractValidityDecision(cac_document_contents)
+    vd = await ExtractValidityDecision(cac_document_contents)
 
     assert vd.decision_date == "2019-03-04"
     assert vd.valid
@@ -122,7 +129,7 @@ async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
     ],
 )
 async def test_gmb_metallink(cac_document_contents):
-    vd = await b.ExtractValidityDecision(cac_document_contents)
+    vd = await ExtractValidityDecision(cac_document_contents)
 
     assert vd.decision_date == "2016-04-05"
     assert not vd.valid

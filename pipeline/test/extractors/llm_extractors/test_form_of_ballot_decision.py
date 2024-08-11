@@ -1,6 +1,13 @@
 import pytest
 from pipeline.baml_client.async_client import b
 from pipeline.baml_client.types import FormOfBallot
+from pipeline.services import anthropic_rate_limit
+from tenacity import retry
+
+
+@retry(**anthropic_rate_limit)
+async def ExtractFormOfBallotDecision(content):
+    return await b.ExtractFormOfBallotDecision(content)
 
 
 @pytest.mark.parametrize(
@@ -10,7 +17,7 @@ from pipeline.baml_client.types import FormOfBallot
     ],
 )
 async def test_uvw_sage(cac_document_contents):
-    fbd = await b.ExtractFormOfBallotDecision(cac_document_contents)
+    fbd = await ExtractFormOfBallotDecision(cac_document_contents)
 
     assert fbd.decision_date == "2021-02-16"
     assert fbd.form_of_ballot == FormOfBallot.Postal
@@ -25,7 +32,7 @@ async def test_uvw_sage(cac_document_contents):
     ],
 )
 async def test_nuj_buzzfeed(cac_document_contents):
-    fbd = await b.ExtractFormOfBallotDecision(cac_document_contents)
+    fbd = await ExtractFormOfBallotDecision(cac_document_contents)
 
     assert fbd.decision_date == "2018-04-30"
     assert fbd.form_of_ballot == FormOfBallot.Postal
@@ -40,7 +47,7 @@ async def test_nuj_buzzfeed(cac_document_contents):
     ],
 )
 async def test_gmb_grissan_carrick(cac_document_contents):
-    fbd = await b.ExtractFormOfBallotDecision(cac_document_contents)
+    fbd = await ExtractFormOfBallotDecision(cac_document_contents)
 
     assert fbd.decision_date == "2021-05-07"
     assert fbd.form_of_ballot == FormOfBallot.Postal
@@ -55,7 +62,7 @@ async def test_gmb_grissan_carrick(cac_document_contents):
     ],
 )
 async def test_rmt_interserve(cac_document_contents):
-    fbd = await b.ExtractFormOfBallotDecision(cac_document_contents)
+    fbd = await ExtractFormOfBallotDecision(cac_document_contents)
 
     assert fbd.decision_date == "2015-03-26"
     assert fbd.form_of_ballot == FormOfBallot.Postal
@@ -70,7 +77,7 @@ async def test_rmt_interserve(cac_document_contents):
     ],
 )
 async def test_bfawu_wealmoor(cac_document_contents):
-    fbd = await b.ExtractFormOfBallotDecision(cac_document_contents)
+    fbd = await ExtractFormOfBallotDecision(cac_document_contents)
 
     assert fbd.decision_date == "2018-02-14"
     assert fbd.form_of_ballot == FormOfBallot.Postal

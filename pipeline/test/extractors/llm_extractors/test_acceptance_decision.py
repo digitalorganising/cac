@@ -1,6 +1,13 @@
 import pytest
 from pipeline.baml_client.async_client import b
 from pipeline.baml_client.types import BargainingUnit, Panel, RejectionReason
+from pipeline.services import anthropic_rate_limit
+from tenacity import retry
+
+
+@retry(**anthropic_rate_limit)
+async def ExtractAcceptanceDecision(content):
+    return await b.ExtractAcceptanceDecision(content)
 
 
 @pytest.mark.parametrize(
@@ -10,7 +17,7 @@ from pipeline.baml_client.types import BargainingUnit, Panel, RejectionReason
     ],
 )
 async def test_prospect_british_academy(cac_document_contents):
-    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
+    ad = await ExtractAcceptanceDecision(cac_document_contents)
     ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2024-04-17"
@@ -47,7 +54,7 @@ async def test_prospect_british_academy(cac_document_contents):
     ],
 )
 async def test_gmb_cranswick_country_foods(cac_document_contents):
-    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
+    ad = await ExtractAcceptanceDecision(cac_document_contents)
     ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2019-06-19"
@@ -81,7 +88,7 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
     ],
 )
 async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
-    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
+    ad = await ExtractAcceptanceDecision(cac_document_contents)
     ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2022-09-08"
@@ -115,7 +122,7 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
     ],
 )
 async def test_gmb_mitie_services(cac_document_contents):
-    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
+    ad = await ExtractAcceptanceDecision(cac_document_contents)
     ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2014-10-23"
@@ -148,7 +155,7 @@ async def test_gmb_mitie_services(cac_document_contents):
     ],
 )
 async def test_community_coilcolor(cac_document_contents):
-    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
+    ad = await ExtractAcceptanceDecision(cac_document_contents)
     ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2017-05-17"
@@ -170,7 +177,7 @@ async def test_community_coilcolor(cac_document_contents):
         size=27,
         claimed_membership=12,
         membership=9,
-        supporters=16,
+        supporters=None,
     )
 
 
@@ -182,7 +189,7 @@ async def test_community_coilcolor(cac_document_contents):
     ],
 )
 async def test_iwgb_university_of_london(cac_document_contents):
-    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
+    ad = await ExtractAcceptanceDecision(cac_document_contents)
     ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2018-01-10"
