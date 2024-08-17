@@ -48,7 +48,7 @@ opensearch_sink = OutcomeSink(
     cluster_host="http://127.0.0.1",
     cluster_user=None,
     cluster_pass=None,
-    index="outcomes-transformed",
+    index="outcomes-augmented",
 )
 
 

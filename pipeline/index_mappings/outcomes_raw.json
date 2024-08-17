@@ -22,9 +22,6 @@
         "acceptance_decision": {
           "type": "text"
         },
-        "derecognition_decision": {
-          "type":  "text"
-        },
         "access_decision_or_dispute": {
           "type":  "text"
         },

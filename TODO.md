@@ -15,9 +15,9 @@
   - [x] Add rejection reason parsing to application decisions
   - [x] Extract dates for all decisions
   - [x] Get form-of-ballot details if decision was not required
-- [ ] Pipeline for docs with extracted data
-  - [ ] Build adapters for opensearch
-  - [ ] Rate-limited augmentation transformer
+- [x] Pipeline for docs with extracted data
+  - [x] Build adapters for opensearch
+  - [x] Rate-limited augmentation transformer
 - [ ] Build interface for search & filter
 - [ ] Dashboard or something?
 
