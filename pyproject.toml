@@ -25,6 +25,7 @@ python-dotenv = "^1.0.1"
 python-dateutil = "^2.9.0.post0"
 bytewax = "^0.20.1"
 tenacity = "^9.0.0"
+pre-commit = "^3.8.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.1"
