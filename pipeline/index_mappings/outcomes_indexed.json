@@ -1,0 +1,394 @@
+{
+  "dynamic": "strict",
+  "properties": {
+    "year": {
+      "type": "date",
+      "format": "yyyy"
+    },
+    "reference": {
+      "type": "keyword"
+    },
+    "last_updated": {
+      "type": "date"
+    },
+    "outcome_url": {
+      "type": "keyword"
+    },
+    "outcome_title": {
+      "type": "text"
+    },
+    "documents": {
+      "properties": {
+        "acceptance_decision": {
+          "type": "text",
+          "copy_to": "all_decisions"
+        },
+        "derecognition_decision": {
+          "type":  "text",
+          "copy_to": "all_decisions"
+        },
+        "access_decision_or_dispute": {
+          "type":  "text",
+          "copy_to": "all_decisions"
+        },
+        "bargaining_unit_decision": {
+          "type":  "text",
+          "copy_to": "all_decisions"
+        },
+        "bargaining_decision": {
+          "type":  "text",
+          "copy_to": "all_decisions"
+        },
+        "form_of_ballot_decision": {
+          "type":  "text",
+          "copy_to": "all_decisions"
+        },
+        "whether_to_ballot_decision": {
+          "type":  "text",
+          "copy_to": "all_decisions"
+        },
+        "validity_decision": {
+          "type":  "text",
+          "copy_to": "all_decisions"
+        },
+        "case_closure": {
+          "type":  "text",
+          "copy_to": "all_decisions"
+        },
+        "nullification_decision": {
+          "type":  "text",
+          "copy_to": "all_decisions"
+        },
+        "recognition_decision": {
+          "type":  "text",
+          "copy_to": "all_decisions"
+        },
+        "application_received": {
+          "type":  "text",
+          "copy_to": "all_decisions"
+        },
+        "method_agreed": {
+          "type": "keyword"
+        },
+        "application_withdrawn": {
+          "type": "keyword"
+        }
+      }
+    },
+    "all_decisions": {
+      "type": "text"
+    },
+    "extracted_data": {
+      "properties": {
+        "acceptance_decision": {
+          "properties": {
+            "decision_date": {
+              "type": "date"
+            },
+            "union_name": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "employer_name": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "employer_hostility": {
+              "type": "byte"
+            },
+            "success": {
+              "type": "boolean"
+            },
+            "rejection_reasons": {
+              "type": "keyword"
+            },
+            "application_date": {
+              "type": "date"
+            },
+            "end_of_acceptance_period": {
+              "type": "date"
+            },
+            "panel": {
+              "properties": {
+                "case_manager": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword"
+                    }
+                  }
+                },
+                "panel_members": {
+                  "type": "text",
+                  "fields": {
+                    "keyword": {
+                      "type": "keyword"
+                    }
+                  }
+                }
+              }
+            },
+            "bargaining_unit": {
+              "properties": {
+                "description": {
+                  "type": "text"
+                },
+                "size": {
+                  "type": "integer"
+                },
+                "claimed_membership": {
+                  "type": "integer"
+                },
+                "membership": {
+                  "type": "integer"
+                },
+                "supporters": {
+                  "type": "integer"
+                }
+              }
+            },
+            "bargaining_unit_agreed": {
+              "type": "boolean"
+            }
+          }
+        },
+        "access_decision_or_dispute": {
+          "properties": {
+            "decision_date": {
+              "type": "date"
+            },
+            "details": {
+              "properties": {
+                "favors": {
+                  "type": "keyword"
+                },
+                "description": {
+                  "type": "text"
+                },
+                "upheld": {
+                  "type": "boolean"
+                },
+                "complainant": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        },
+        "bargaining_unit_decision": {
+          "properties": {
+            "decision_date": {
+              "type": "date"
+            },
+            "appropriate_unit_differs": {
+              "type": "boolean"
+            },
+            "new_bargaining_unit_description": {
+              "type": "text"
+            }
+          }
+        },
+        "bargaining_decision": {
+          "properties": {
+            "decision_date": {
+              "type": "date"
+            },
+            "cac_involvement_date": {
+              "type": "date"
+            }
+          }
+        },
+        "form_of_ballot_decision": {
+          "properties": {
+            "decision_date": {
+              "type": "date"
+            },
+            "form_of_ballot": {
+              "type": "keyword"
+            },
+            "employer_preferred": {
+              "type": "keyword"
+            },
+            "union_preferred": {
+              "type": "keyword"
+            }
+          }
+        },
+        "whether_to_ballot_decision": {
+          "properties": {
+            "decision_date": {
+              "type": "date"
+            },
+            "decision_to_ballot": {
+              "type": "boolean"
+            },
+            "majority_membership": {
+              "type": "boolean"
+            },
+            "qualifying_conditions": {
+              "type": "keyword"
+            }
+          }
+        },
+        "validity_decision": {
+          "properties": {
+            "decision_date": {
+              "type": "date"
+            },
+            "valid": {
+              "type": "boolean"
+            },
+            "rejection_reasons": {
+              "type": "keyword"
+            },
+            "new_bargaining_unit": {
+              "properties": {
+                "description": {
+                  "type": "text"
+                },
+                "size": {
+                  "type": "integer"
+                },
+                "claimed_membership": {
+                  "type": "integer"
+                },
+                "membership": {
+                  "type": "integer"
+                },
+                "supporters": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "case_closure": {
+          "properties": {
+            "decision_date": {
+              "type": "date"
+            }
+          }
+        },
+        "nullification_decision": {
+          "type":  "keyword"
+        },
+        "recognition_decision": {
+          "properties": {
+            "decision_date": {
+              "type": "date"
+            },
+            "union_recognized": {
+              "type": "boolean"
+            },
+            "form_of_ballot": {
+              "type": "keyword"
+            },
+            "ballot": {
+              "properties": {
+                "eligible_workers": {
+                  "type": "integer"
+                },
+                "spoiled_ballots": {
+                  "type": "integer"
+                },
+                "votes_in_favor": {
+                  "type": "integer"
+                },
+                "votes_against": {
+                  "type": "integer"
+                },
+                "start_ballot_period": {
+                  "type": "date"
+                },
+                "end_ballot_period": {
+                  "type": "date"
+                }
+              }
+            },
+            "good_relations_contested": {
+              "type": "boolean"
+            }
+          }
+        },
+        "application_received": {
+          "properties": {
+            "decision_date": {
+              "type": "date"
+            }
+          }
+        },
+        "method_agreed": {
+          "type": "keyword"
+        },
+        "application_withdrawn": {
+          "type": "keyword"
+        }
+      }
+    },
+    "document_types": {
+      "type": "keyword"
+    },
+    "derived_query": {
+      "properties": {
+        "union_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "employer_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "bargaining_unit_size": {
+          "type": "integer"
+        },
+        "bargaining_unit": {
+          "properties": {
+            "description": {
+              "type": "text"
+            },
+            "size": {
+              "type": "integer"
+            },
+            "claimed_membership": {
+              "type": "integer"
+            },
+            "membership": {
+              "type": "integer"
+            },
+            "membership_pct": {
+              "type": "float"
+            },
+            "supporters": {
+              "type": "integer"
+            },
+            "supporters_pct": {
+              "type": "float"
+            }
+          }
+        },
+        "ballot_turnout_pct": {
+          "type": "float"
+        },
+        "ballot_for_pct": {
+          "type": "float"
+        }
+      }
+    }
+  }
+}

@@ -60,7 +60,7 @@ def transform_for_index(outcome):
             "ballot_turnout_pct": pct(ballot["votes_in_favor"] + ballot["votes_against"], ballot["eligible_workers"]),
             "ballot_for_pct": pct(ballot["votes_in_favor"], ballot["eligible_workers"]),
         }
-    except KeyError:
+    except (KeyError, TypeError):
         ballot_details = {}
     return {
         **outcome,
