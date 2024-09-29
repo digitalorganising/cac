@@ -11,3 +11,8 @@ resource "opensearch_index" "outcomes_augmented" {
   name     = "outcomes-augmented"
   mappings = file("${local.mappings_dir}/outcomes_augmented.json")
 }
+
+resource "opensearch_index" "outcomes_indexed" {
+  name     = "outcomes-indexed"
+  mappings = file("${local.mappings_dir}/outcomes_indexed.json")
+}

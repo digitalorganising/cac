@@ -5,8 +5,6 @@ class Panel {
 
 class AcceptanceDecision {
   decision_date string @description("ISO8601 date")
-  union_name string
-  employer_name string
   employer_hostility int @description("A number between 0 and 100 reflecting the level of employer hostility and opposition to union recognition, where 1.0 is the most hostile")
   success bool @description("Whether the application was successful")
   rejection_reasons RejectionReason[] @description("If the application was not sucessful, why was it rejected? Empty if application was successful")

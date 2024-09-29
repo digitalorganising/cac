@@ -18,6 +18,11 @@
 - [x] Pipeline for docs with extracted data
   - [x] Build adapters for opensearch
   - [x] Rate-limited augmentation transformer
+- [x] Another step for transformation/derivation
+  - [x] Get rid of union/employer name from LLM stuff; use the outcome title
+  - [ ] Other fields blah blah
+- [ ] Generate BAML stuff automatically
 - [ ] Build interface for search & filter
+  - [ ] Cards for outcome progress
 - [ ] Dashboard or something?
 
