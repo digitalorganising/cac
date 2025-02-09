@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Timeline, TimelineItem } from "@/components/timeline/timeline";
 
 type Outcome = {
   outcome_title: string;
@@ -9,6 +10,13 @@ type Outcome = {
   derived_query: {
     union_name: string;
     employer_name: string;
+  };
+  extracted_data: {
+    [decision: string]:
+      | undefined
+      | {
+          decision_date: string;
+        };
   };
   documents: object[];
 };
@@ -19,6 +27,14 @@ type Props = {
 
 const formatJSON = ({ documents, ...outcome }: Outcome): string =>
   JSON.stringify(outcome, null, 2);
+
+const getTimeline = (outcome: Outcome) =>
+  Object.entries(outcome.extracted_data ?? {})
+    .map(([decisionType, decision]) => ({
+      decisionType,
+      date: decision?.decision_date ?? outcome.last_updated,
+    }))
+    .toSorted((a, b) => dayjs(a.date).diff(b.date));
 
 const OutcomeCard = ({ outcome }: Props) => (
   <Card>
@@ -39,7 +55,18 @@ const OutcomeCard = ({ outcome }: Props) => (
       </div>
     </CardHeader>
     <CardContent>
-      <pre>{formatJSON(outcome)}</pre>
+      {/*<pre>{formatJSON(outcome)}</pre>*/}
+      <Timeline className="ml-2">
+        {getTimeline(outcome).map(({ date, decisionType }) => (
+          <TimelineItem
+            key={decisionType}
+            date={date}
+            title={decisionType}
+            description="Lorem ipsum dolor sit amet"
+            status="completed"
+          />
+        ))}
+      </Timeline>
     </CardContent>
   </Card>
 );
