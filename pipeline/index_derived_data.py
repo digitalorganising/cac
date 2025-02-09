@@ -43,6 +43,16 @@ def bargaining_unit_size(bargaining_unit, data):
             return None
 
 
+def application_received(data):
+    try:
+        return data["application_received"]["decision_date"]
+    except (KeyError, TypeError):
+        try:
+            return data["acceptance_decision"]["application_date"]
+        except (KeyError, TypeError):
+            return None
+
+
 def pct(x, n):
     try:
         return 100.0 * x / n
@@ -68,6 +78,7 @@ def transform_for_index(outcome):
         "derived_query": {
             "union_name": parties["union"],
             "employer_name": parties["employer"],
+            "application_received": application_received(data),
             "bargaining_unit_size": bargaining_unit_size(bargaining_unit, data),
             "bargaining_unit": bargaining_unit,
             **ballot_details,

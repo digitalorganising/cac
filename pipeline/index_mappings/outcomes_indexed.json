@@ -354,6 +354,9 @@
             }
           }
         },
+        "application_received": {
+          "type": "date"
+        },
         "bargaining_unit_size": {
           "type": "integer"
         },

@@ -10,6 +10,7 @@ type Outcome = {
   derived_query: {
     union_name: string;
     employer_name: string;
+    application_received: string;
   };
   extracted_data: {
     [decision: string]:
@@ -28,13 +29,19 @@ type Props = {
 const formatJSON = ({ documents, ...outcome }: Outcome): string =>
   JSON.stringify(outcome, null, 2);
 
-const getTimeline = (outcome: Outcome) =>
-  Object.entries(outcome.extracted_data ?? {})
+const getTimeline = (outcome: Outcome) => [
+  {
+    decisionType: "application_received",
+    date: outcome.derived_query.application_received ?? outcome.last_updated,
+  },
+  ...Object.entries(outcome.extracted_data ?? {})
+    .filter(([decisionType, _]) => decisionType !== "application_received")
     .map(([decisionType, decision]) => ({
       decisionType,
       date: decision?.decision_date ?? outcome.last_updated,
     }))
-    .toSorted((a, b) => dayjs(a.date).diff(b.date));
+    .toSorted((a, b) => dayjs(a.date).diff(b.date)),
+];
 
 const OutcomeCard = ({ outcome }: Props) => (
   <Card>
