@@ -26,7 +26,7 @@ const OutcomeCard = ({ outcome }: Props) => (
       <CardTitle className="text-xl">{outcome.outcome_title}</CardTitle>
       <div className="flex flex-row space-x-2">
         <a
-          className="flex flex-row items-center justify-center space-x-2 rounded-full border px-2.5 py-0.5 text-xs border-transparent bg-slate-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-slate-300"
+          className="flex flex-row items-center justify-center space-x-2 rounded-full border px-2.5 py-0.5 text-xs border-transparent bg-slate-200 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-slate-300"
           href={outcome.outcome_url}
           target="_blank"
         >

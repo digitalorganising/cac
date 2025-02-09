@@ -60,7 +60,7 @@ export default async function Home({
     query: params.query,
   });
   return (
-    <main className="container max-w-screen-lg px-5 xs:px-8">
+    <main className="container max-w-(--breakpoint-lg) px-5 xs:px-8">
       <h1 className="text-5xl font-extrabold text-center mt-12">
         CAC Outcomes
       </h1>
