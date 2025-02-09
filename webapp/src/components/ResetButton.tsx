@@ -24,7 +24,7 @@ export default function ResetButton({ forInput }: Props) {
       type="reset"
       variant="secondary"
       title="Clear"
-      className="aspect-square"
+      className="aspect-square cursor-pointer"
       onClick={reset}
     >
       <XIcon />

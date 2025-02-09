@@ -74,7 +74,7 @@ export default async function Home({
           name="query"
         />
         <ResetButton forInput="query" />
-        <Button type="submit">
+        <Button type="submit" className="cursor-pointer">
           <SearchIcon />
           Search outcomes
         </Button>
