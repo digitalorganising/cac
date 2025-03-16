@@ -1,8 +1,9 @@
 from transitions import Machine, MachineError
 from collections import OrderedDict
 from datetime import date
-from pipeline.document_classifier import DocumentType
+from typing import Optional
 
+from ..document_classifier import DocumentType
 from .model import EventType, OutcomeState, Event
 from .known_bad_data import allow_transform_errors
 
@@ -69,7 +70,7 @@ class EventsBuilder(Machine):
             "auto_transitions": False
         }
 
-    def add_event(self, event_type: EventType, event_date: str):
+    def add_event(self, event_type: EventType, event_date: str, description: Optional[str] = None):
         d = date.fromisoformat(event_date[:10])
         if is_state_changing(event_type):
             self.trigger(event_type.value)
@@ -82,10 +83,10 @@ class EventsBuilder(Machine):
             raise ValueError(f"Event out of order: {event_type.value} is before ({d}) previous "
                              f"event {prev_event.event_type.value} ({prev_event.date})")
 
-        self.event_list.append(Event(event_type=event_type, date=d))
+        self.event_list.append(Event(event_type=event_type, date=d, description=description))
 
     def dump_events(self):
-        return [e.model_dump() for e in self.event_list]
+        return [e.model_dump(exclude_none=True) for e in self.event_list]
 
     def labelled_state(self):
         return OutcomeState(self.state)
@@ -116,23 +117,28 @@ def events_from_outcome(outcome):
                 case DocumentType.acceptance_decision:
                     if events.labelled_state() is OutcomeState.Initial:
                         events.add_event(EventType.ApplicationReceived, doc["application_date"])
+
+                    bargaining_unit = "Bargaining unit: " + doc["bargaining_unit"]["description"]
                     if doc["success"]:
-                        events.add_event(EventType.ApplicationAccepted, doc["decision_date"])
+                        events.add_event(EventType.ApplicationAccepted, doc["decision_date"], bargaining_unit)
                     else:
-                        events.add_event(EventType.ApplicationRejected, doc["decision_date"])
+                        events.add_event(EventType.ApplicationRejected, doc["decision_date"], bargaining_unit)
                 case DocumentType.application_withdrawn:
                     # This is a workaround until proper withdrawal data is used
                     if events.labelled_state() is OutcomeState.Initial:
                         events.add_event(EventType.ApplicationReceived, fallback_date)
                     events.add_event(EventType.ApplicationWithdrawn, fallback_date)
                 case DocumentType.bargaining_unit_decision:
-                    events.add_event(EventType.BargainingUnitDecided, doc["decision_date"])
+                    new_bargaining_unit = doc["new_bargaining_unit_description"]
+                    events.add_event(EventType.BargainingUnitDecided, doc["decision_date"], new_bargaining_unit)
                 case DocumentType.bargaining_decision:
                     events.add_event(EventType.MethodDecision, doc["decision_date"])
                 case DocumentType.form_of_ballot_decision:
-                    events.add_event(EventType.BallotFormDecided, doc["decision_date"])
+                    ballot_form = doc["form_of_ballot"]
+                    events.add_event(EventType.BallotFormDecided, doc["decision_date"], ballot_form)
                 case DocumentType.whether_to_ballot_decision:
-                    events.add_event(EventType.BallotRequirementDecided, doc["decision_date"])
+                    will_ballot = "Ballot required" if doc["decision_to_ballot"] else "Ballot not required"
+                    events.add_event(EventType.BallotRequirementDecided, doc["decision_date"], will_ballot)
                 case DocumentType.validity_decision:
                     if not doc["valid"]:
                         events.add_event(EventType.ApplicationRejected, doc["decision_date"])
@@ -140,14 +146,29 @@ def events_from_outcome(outcome):
                     events.add_event(EventType.CaseClosed, doc["decision_date"])
                 case DocumentType.recognition_decision:
                     if doc["ballot"]:
-                        events.add_event(EventType.BallotHeld, doc["ballot"]["start_ballot_period"])
+                        ballot_summary = f"{doc['form_of_ballot']} ballot; " \
+                                         f"{doc['ballot']['eligible_workers']} eligible workers."
+                        events.add_event(EventType.BallotHeld, doc["ballot"]["start_ballot_period"], ballot_summary)
 
-                    if doc["union_recognized"]:
-                        events.add_event(EventType.UnionRecognized, doc["decision_date"])
+                    if doc["ballot"]:
+                        description = f"{doc['ballot']['votes_in_favor']} votes in favour; " \
+                                      f"{doc['ballot']['votes_against']} votes against."
                     else:
-                        events.add_event(EventType.UnionNotRecognized, doc["decision_date"])
+                        description = "No ballot held"
+                    if doc["union_recognized"]:
+                        events.add_event(EventType.UnionRecognized, doc["decision_date"], description)
+                    else:
+                        events.add_event(EventType.UnionNotRecognized, doc["decision_date"], description)
                 case DocumentType.access_decision_or_dispute:
-                    events.add_event(EventType.AccessDisputed, doc["decision_date"])
+                    if "complainant" in doc["details"]:
+                        description = f"Complaint from {doc['details']['complainant']} "
+                        if doc["details"]["upheld"]:
+                            description += "upheld"
+                        else:
+                            description += "not upheld"
+                    else:
+                        description = doc["details"]["description"]
+                    events.add_event(EventType.AccessDisputed, doc["decision_date"], description)
                 case DocumentType.method_agreed:
                     # These sometimes come after a method decision, in which case we ignore them
                     if events.labelled_state() is not OutcomeState.MethodAgreed:
