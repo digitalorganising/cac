@@ -3,7 +3,7 @@ import re
 import bytewax.operators as op
 from bytewax.dataflow import Dataflow
 
-from .transforms.events import events_from_data
+from .transforms.events import events_from_outcome
 from .services.opensearch_connectors import OpensearchSink, OpensearchSource
 
 
@@ -20,8 +20,12 @@ def get_parties(outcome):
 
 def transform_for_index(outcome):
     parties = get_parties(outcome)
-    fallback_date = outcome["last_updated"][:10]
-    events = events_from_data(outcome["extracted_data"], fallback_date=fallback_date)
+    events = events_from_outcome(outcome)
+    state = events.labelled_state()
+    json_state = {
+        "value": state.value,
+        "label": state.label
+    }
 
     return {
         **outcome,
@@ -30,12 +34,12 @@ def transform_for_index(outcome):
             "reference": outcome["reference"],
             "cacUrl": outcome["outcome_url"],
             "lastUpdated": outcome["last_updated"],
-            "state": events.labelled_state(),
+            "state": json_state,
             "parties": parties,
             "events": events.dump_events()
         },
         "filter": {
-            "state": events.labelled_state(),
+            "state": state.value,
             "parties": parties
         },
     }

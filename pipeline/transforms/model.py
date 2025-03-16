@@ -1,5 +1,5 @@
 from datetime import date
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 
 from .labelled_enum import LabelledEnum
 
@@ -39,3 +39,14 @@ class OutcomeState(LabelledEnum):
 class Event(BaseModel):
     event_type: EventType
     date: date
+
+    @field_serializer("date")
+    def serialize_date(self, date: date, _info):
+        return date.isoformat()
+
+    @field_serializer("event_type")
+    def serialize_event_type(self, event_type: EventType, _info):
+        return {
+            "value": event_type.value,
+            "label": event_type.label
+        }

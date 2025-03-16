@@ -336,60 +336,34 @@
     "document_types": {
       "type": "keyword"
     },
-    "derived_query": {
+    "display": {
+      "type": "object",
+      "enabled": false
+    },
+    "filter": {
       "properties": {
-        "union_name": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword"
-            }
-          }
-        },
-        "employer_name": {
-          "type": "text",
-          "fields": {
-            "keyword": {
-              "type": "keyword"
-            }
-          }
-        },
-        "application_received": {
-          "type": "date"
-        },
-        "bargaining_unit_size": {
-          "type": "integer"
-        },
-        "bargaining_unit": {
+        "parties": {
           "properties": {
-            "description": {
-              "type": "text"
+            "union": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
             },
-            "size": {
-              "type": "integer"
-            },
-            "claimed_membership": {
-              "type": "integer"
-            },
-            "membership": {
-              "type": "integer"
-            },
-            "membership_pct": {
-              "type": "float"
-            },
-            "supporters": {
-              "type": "integer"
-            },
-            "supporters_pct": {
-              "type": "float"
+            "employer": {
+              "type": "text",
+              "fields": {
+                "keyword": {
+                  "type": "keyword"
+                }
+              }
             }
           }
         },
-        "ballot_turnout_pct": {
-          "type": "float"
-        },
-        "ballot_for_pct": {
-          "type": "float"
+        "state": {
+          "type": "keyword"
         }
       }
     }
