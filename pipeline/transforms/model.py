@@ -38,7 +38,7 @@ class OutcomeState(LabelledEnum):
 
 
 class Event(BaseModel):
-    event_type: EventType
+    type: EventType
     date: date
     description: Optional[str] = None
 
@@ -46,9 +46,9 @@ class Event(BaseModel):
     def serialize_date(self, date: date, _info):
         return date.isoformat()
 
-    @field_serializer("event_type")
-    def serialize_event_type(self, event_type: EventType, _info):
+    @field_serializer("type")
+    def serialize_event_type(self, type: EventType, _info):
         return {
-            "value": event_type.value,
-            "label": event_type.label
+            "value": type.value,
+            "label": type.label
         }

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import OutcomeCard from "@/components/OutcomeCard";
 import OutcomePagination from "@/components/OutcomePagination";
 import ResetButton from "@/components/ResetButton";
+import { Outcome } from "@/lib/types";
 
 type GetOutcomesOptions = {
   from: number;
@@ -16,7 +17,7 @@ const getOutcomes = async ({
   from,
   size,
   query,
-}: GetOutcomesOptions): Promise<{ size: number; docs: any[] }> => {
+}: GetOutcomesOptions): Promise<{ size: number; docs: Outcome[] }> => {
   const res = await fetch("http://localhost:9200/outcomes-indexed/_search", {
     method: "POST",
     headers: {
@@ -37,13 +38,14 @@ const getOutcomes = async ({
         { _score: { order: "desc" } },
         { last_updated: { order: "desc" } },
       ],
+      _source: ["display"],
     }),
   });
   const data = await res.json();
   const totalHits = data.hits.total.value;
   return {
     size: totalHits,
-    docs: data.hits.hits.map((hit: any) => hit._source),
+    docs: data.hits.hits.map((hit: any) => hit._source.display),
   };
 };
 
@@ -81,7 +83,7 @@ export default async function Home({
       </Form>
       <OutcomePagination totalPages={Math.ceil(outcomes.size / pageSize)} />
       <section className="container space-y-6 my-16 px-0">
-        {outcomes.docs.map((outcome: any) => (
+        {outcomes.docs.map((outcome) => (
           <OutcomeCard key={outcome.reference} outcome={outcome} />
         ))}
       </section>

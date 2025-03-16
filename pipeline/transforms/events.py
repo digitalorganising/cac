@@ -78,12 +78,12 @@ class EventsBuilder(Machine):
         prev_event = self.event_list[-1] if self.event_list else None
         if prev_event and \
                 is_state_changing(event_type) and \
-                is_state_changing(prev_event.event_type) and \
+                is_state_changing(prev_event.type) and \
                 d < prev_event.date:
             raise ValueError(f"Event out of order: {event_type.value} is before ({d}) previous "
-                             f"event {prev_event.event_type.value} ({prev_event.date})")
+                             f"event {prev_event.type.value} ({prev_event.date})")
 
-        self.event_list.append(Event(event_type=event_type, date=d, description=description))
+        self.event_list.append(Event(type=event_type, date=d, description=description))
 
     def dump_events(self):
         return [e.model_dump(exclude_none=True) for e in self.event_list]
