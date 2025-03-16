@@ -23,7 +23,8 @@ transitions = [
     [EventType.UnionNotRecognized, OutcomeState.Balloting, OutcomeState.NotRecognised],
     [EventType.MethodDecision, OutcomeState.Recognized, OutcomeState.MethodAgreed],
     [EventType.MethodAgreed, OutcomeState.Recognized, OutcomeState.MethodAgreed],
-    [EventType.CaseClosed, OutcomeState.Recognized, OutcomeState.Closed]
+    [EventType.CaseClosed, OutcomeState.Recognized, OutcomeState.Closed],
+    [EventType.CaseClosed, OutcomeState.PendingRecognitionDecision, OutcomeState.Closed]
 ]
 
 
@@ -68,8 +69,8 @@ class EventsBuilder(Machine):
             "auto_transitions": False
         }
 
-    def add_event(self, event_type: EventType, event_date: date | str):
-        d = date.fromisoformat(event_date)
+    def add_event(self, event_type: EventType, event_date: str):
+        d = date.fromisoformat(event_date[:10])
         if is_state_changing(event_type):
             self.trigger(event_type.value)
 
@@ -151,6 +152,8 @@ def events_from_outcome(outcome):
                     # These sometimes come after a method decision, in which case we ignore them
                     if events.labelled_state() is not OutcomeState.MethodAgreed:
                         events.add_event(EventType.MethodAgreed, fallback_date)
+                case DocumentType.nullification_decision:
+                    events.add_event(EventType.ApplicationRejected, fallback_date)
                 case _:
                     print(f"Non-event document encountered ({doc_type} for {ref})")
         except (MachineError, ValueError) as e:
