@@ -3,6 +3,7 @@ import re
 import bytewax.operators as op
 from bytewax.dataflow import Dataflow
 
+from .transforms.events import events_from_data
 from .services.opensearch_connectors import OpensearchSink, OpensearchSource
 
 
@@ -17,72 +18,26 @@ def get_parties(outcome):
     }
 
 
-def get_bargaining_unit(data):
-    try:
-        bu = data["validity_decision"]["bargaining_unit"]
-    except KeyError:
-        try:
-            bu = data["acceptance_decision"]["bargaining_unit"]
-        except KeyError:
-            return None
-
-    return {
-        **bu,
-        "membership_pct": pct(bu["membership"], bu["size"]),
-        "supporters_pct": pct(bu["supporters"], bu["size"]),
-    }
-
-
-def bargaining_unit_size(bargaining_unit, data):
-    try:
-        return data["recognition_decision"]["ballot"]["eligible_workers"]
-    except (KeyError, TypeError):
-        try:
-            return bargaining_unit["size"]
-        except TypeError:
-            return None
-
-
-def application_received(data):
-    try:
-        return data["application_received"]["decision_date"]
-    except (KeyError, TypeError):
-        try:
-            return data["acceptance_decision"]["application_date"]
-        except (KeyError, TypeError):
-            return None
-
-
-def pct(x, n):
-    try:
-        return 100.0 * x / n
-    except TypeError:
-        return None
-
-
 def transform_for_index(outcome):
-    data = outcome["extracted_data"]
     parties = get_parties(outcome)
-    bargaining_unit = get_bargaining_unit(data)
-    try:
-        ballot = data["recognition_decision"]["ballot"]
-        ballot_details = {
-            "ballot_turnout_pct": pct(ballot["votes_in_favor"] + ballot["votes_against"], ballot["eligible_workers"]),
-            "ballot_for_pct": pct(ballot["votes_in_favor"], ballot["eligible_workers"]),
-        }
-    except (KeyError, TypeError):
-        ballot_details = {}
+    fallback_date = outcome["last_updated"][:10]
+    events = events_from_data(outcome["extracted_data"], fallback_date=fallback_date)
+
     return {
         **outcome,
-        "document_types": list(outcome["documents"].keys()),
-        "derived_query": {
-            "union_name": parties["union"],
-            "employer_name": parties["employer"],
-            "application_received": application_received(data),
-            "bargaining_unit_size": bargaining_unit_size(bargaining_unit, data),
-            "bargaining_unit": bargaining_unit,
-            **ballot_details,
-        }
+        "display": {
+            "title": outcome["outcome_title"],
+            "reference": outcome["reference"],
+            "cacUrl": outcome["outcome_url"],
+            "lastUpdated": outcome["last_updated"],
+            "state": events.labelled_state(),
+            "parties": parties,
+            "events": events.dump_events()
+        },
+        "filter": {
+            "state": events.labelled_state(),
+            "parties": parties
+        },
     }
 
 
