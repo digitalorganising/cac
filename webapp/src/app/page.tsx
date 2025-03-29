@@ -68,7 +68,7 @@ export default async function Home({
       </h1>
       <Form
         action=""
-        className="flex flex-col max-xs:space-y-2 xs:flex-row xs:space-x-2 my-12 max-w-2xl mx-auto"
+        className="flex flex-col max-xs:space-y-2 xs:flex-row xs:space-x-2 my-8 xs:my-12 max-w-2xl mx-auto"
       >
         <Input
           defaultValue={params.query}
@@ -82,7 +82,7 @@ export default async function Home({
         </Button>
       </Form>
       <OutcomePagination totalPages={Math.ceil(outcomes.size / pageSize)} />
-      <section className="container space-y-6 my-16 px-0">
+      <section className="container space-y-6 my-8 xs:my-16 px-0">
         {outcomes.docs.map((outcome) => (
           <OutcomeCard key={outcome.reference} outcome={outcome} />
         ))}

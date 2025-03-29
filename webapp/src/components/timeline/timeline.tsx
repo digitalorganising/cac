@@ -2,33 +2,16 @@
 
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { cva, type VariantProps } from "class-variance-authority";
 import type { TimelineColor } from "./types";
 import { HTMLProps } from "react";
 import dayjs from "dayjs";
-
-const timelineVariants = cva("flex flex-col relative", {
-  variants: {
-    size: {
-      sm: "gap-4",
-      md: "gap-6",
-      lg: "gap-8",
-    },
-  },
-  defaultVariants: {
-    size: "md",
-  },
-});
 
 /**
  * Timeline component props interface
  * @interface TimelineProps
  * @extends {React.HTMLAttributes<HTMLOListElement>}
- * @extends {VariantProps<typeof timelineVariants>}
  */
-interface TimelineProps
-  extends React.HTMLAttributes<HTMLOListElement>,
-    VariantProps<typeof timelineVariants> {
+interface TimelineProps extends React.HTMLAttributes<HTMLOListElement> {
   /** Size of the timeline icons */
   iconsize?: "sm" | "md" | "lg";
 }
@@ -38,25 +21,19 @@ interface TimelineProps
  * @component
  */
 const Timeline = React.forwardRef<HTMLOListElement, TimelineProps>(
-  ({ className, iconsize, size, children, ...props }, ref) => {
+  ({ className, iconsize, children, ...props }, ref) => {
     const items = React.Children.toArray(children);
 
     return (
       <ol
         ref={ref}
         aria-label="Timeline"
-        className={cn(timelineVariants({ size }), "relative py-8", className)}
+        className={cn("relative pt-3", className)}
         {...props}
       >
         {React.Children.map(children, (child, index) => {
-          if (
-            React.isValidElement(child) &&
-            typeof child.type !== "string" &&
-            "displayName" in child.type &&
-            child.type.displayName === "TimelineItem"
-          ) {
+          if (React.isValidElement(child)) {
             return React.cloneElement(child, {
-              iconsize,
               showConnector: index !== items.length - 1,
             } as React.ComponentProps<typeof TimelineItem>);
           }
@@ -73,7 +50,8 @@ Timeline.displayName = "Timeline";
  * @interface TimelineItemProps
  * @extends {Omit<HTMLProps<"li">, "ref">}
  */
-interface TimelineItemProps extends Omit<HTMLProps<HTMLLIElement>, "ref"> {
+export interface TimelineItemProps
+  extends Omit<HTMLProps<HTMLLIElement>, "ref"> {
   /** Date string for the timeline item */
   date?: string;
   /** Title of the timeline item */
@@ -83,7 +61,7 @@ interface TimelineItemProps extends Omit<HTMLProps<HTMLLIElement>, "ref"> {
   /** Custom icon element */
   icon?: React.ReactNode;
   /** Color theme for the icon */
-  iconColor?: TimelineColor;
+  iconColor?: TimelineColor | string;
   /** Current status of the item */
   status?: "completed" | "in-progress" | "pending";
   /** Color theme for the connector line */
@@ -111,7 +89,7 @@ const TimelineItem = React.forwardRef<HTMLLIElement, TimelineItemProps>(
     },
     ref,
   ) => {
-    const commonClassName = cn("relative mb-8 last:mb-0", className);
+    const commonClassName = cn("relative", className);
     const content = (
       <div
         className="flex space-x-4"
@@ -127,7 +105,9 @@ const TimelineItem = React.forwardRef<HTMLLIElement, TimelineItemProps>(
               iconSize={iconsize}
             />
           </div>
-          {showConnector && <div className="h-16 w-0.5 bg-border mt-2" />}
+          {showConnector && (
+            <div className="h-full min-h-6 w-0.5 bg-border mt-2" />
+          )}
         </div>
 
         {/* Content */}
@@ -238,7 +218,7 @@ const TimelineIcon = ({
   iconSize = "md",
 }: {
   icon?: React.ReactNode;
-  color?: "primary" | "secondary" | "muted" | "accent" | "destructive";
+  color?: "primary" | "secondary" | "muted" | "accent" | "destructive" | string;
   status?: "completed" | "in-progress" | "pending" | "error";
   iconSize?: "sm" | "md" | "lg";
 }) => {
@@ -265,9 +245,9 @@ const TimelineIcon = ({
   return (
     <div
       className={cn(
-        "relative flex items-center justify-center rounded-full ring-8 ring-background shadow-sm",
+        "relative text-primary-foreground flex items-center justify-center rounded-full ring-8 ring-background shadow-sm",
         sizeClasses[iconSize],
-        colorClasses[color],
+        colorClasses[color as keyof typeof colorClasses] ?? color,
       )}
     >
       {icon ? (
@@ -292,7 +272,10 @@ const TimelineDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("max-w-sm text-sm text-muted-foreground", className)}
+    className={cn(
+      "max-w-sm text-sm text-muted-foreground capitalize",
+      className,
+    )}
     {...props}
   />
 ));
@@ -304,7 +287,7 @@ const TimelineContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col gap-2 pl-2", className)}
+    className={cn("flex flex-col gap-0.5 pl-2 pb-4", className)}
     {...props}
   />
 ));

@@ -1,5 +1,21 @@
+export type EventTypeValue =
+  | "application_received"
+  | "application_withdrawn"
+  | "application_accepted"
+  | "application_rejected"
+  | "bargaining_unit_decided"
+  | "ballot_requirement_decided"
+  | "ballot_form_decided"
+  | "ballot_held"
+  | "access_disputed"
+  | "union_recognized"
+  | "union_not_recognized"
+  | "method_decision"
+  | "method_agreed"
+  | "case_closed";
+
 type EventType = {
-  value: string;
+  value: EventTypeValue;
   label: string;
 };
 

@@ -1,16 +1,95 @@
-import { TimelineItem } from "./timeline/timeline";
-import { OutcomeEvent } from "@/lib/types";
+import { ReactNode } from "react";
+import {
+  Archive,
+  ArchiveX,
+  BookOpenCheck,
+  BookText,
+  BookUp,
+  ClipboardX,
+  Grid2x2Check,
+  Inbox,
+  Mailbox,
+  Megaphone,
+  OctagonX,
+  Scale,
+  ScrollText,
+  Trophy,
+} from "lucide-react";
+
+import { TimelineItem, TimelineItemProps } from "./timeline/timeline";
+import { EventTypeValue, OutcomeEvent } from "@/lib/types";
 
 type Props = {
   event: OutcomeEvent;
+} & TimelineItemProps;
+
+const getIcon = (eventType: EventTypeValue): ReactNode => {
+  switch (eventType) {
+    case "application_received":
+      return <Inbox />;
+    case "application_withdrawn":
+      return <Archive />;
+    case "application_accepted":
+      return <BookOpenCheck />;
+    case "application_rejected":
+      return <ClipboardX />;
+    case "bargaining_unit_decided":
+      return <Grid2x2Check />;
+    case "ballot_requirement_decided":
+      return <ScrollText />;
+    case "ballot_form_decided":
+      return <Mailbox />;
+    case "ballot_held":
+      return <Megaphone />;
+    case "access_disputed":
+      return <Scale />;
+    case "union_recognized":
+      return <Trophy />;
+    case "union_not_recognized":
+      return <OctagonX />;
+    case "method_decision":
+      return <BookText />;
+    case "method_agreed":
+      return <BookUp />;
+    case "case_closed":
+      return <ArchiveX />;
+  }
 };
-export default function DecisionTimelineItem({ event }: Props) {
+
+const getColor = (eventType: EventTypeValue): string => {
+  switch (eventType) {
+    case "case_closed":
+    case "method_decision":
+    case "method_agreed":
+      return "bg-zinc-400";
+    case "application_received":
+    case "bargaining_unit_decided":
+    case "ballot_requirement_decided":
+    case "ballot_form_decided":
+    case "ballot_held":
+      return "bg-zinc-500";
+    case "access_disputed":
+      return "bg-amber-600";
+    case "application_accepted":
+    case "union_recognized":
+      return "bg-green-600";
+    case "application_rejected":
+    case "union_not_recognized":
+      return "bg-red-600";
+    default:
+      return "bg-zinc-500";
+  }
+};
+export default function DecisionTimelineItem({ event, ...otherProps }: Props) {
   return (
     <TimelineItem
       date={event.date}
       title={event.type.label}
       description={event.description}
+      icon={getIcon(event.type.value)}
+      iconColor={getColor(event.type.value)}
       status="completed"
+      {...otherProps}
     />
   );
 }
