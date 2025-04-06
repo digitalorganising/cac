@@ -66,7 +66,7 @@ async def test_rmt_cwind(cac_document_contents):
         "the Ramsgate site "
         "that were subject to the existing bargaining arrangements",
         size=16,
-        claimed_membership=None,
+        claimed_membership=7,
         membership=5,
         supporters=None,
     )

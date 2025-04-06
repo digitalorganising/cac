@@ -101,26 +101,6 @@
             "end_of_acceptance_period": {
               "type": "date"
             },
-            "panel": {
-              "properties": {
-                "case_manager": {
-                  "type": "text",
-                  "fields": {
-                    "keyword": {
-                      "type": "keyword"
-                    }
-                  }
-                },
-                "panel_members": {
-                  "type": "text",
-                  "fields": {
-                    "keyword": {
-                      "type": "keyword"
-                    }
-                  }
-                }
-              }
-            },
             "bargaining_unit": {
               "properties": {
                 "description": {

@@ -1,6 +1,6 @@
 import pytest
 from pipeline.baml_client.async_client import b
-from pipeline.baml_client.types import BargainingUnit, Panel, RejectionReason
+from pipeline.baml_client.types import BargainingUnit, RejectionReason
 from pipeline.services import anthropic_rate_limit
 from tenacity import retry
 
@@ -18,7 +18,6 @@ async def ExtractAcceptanceDecision(content):
 )
 async def test_prospect_british_academy(cac_document_contents):
     ad = await ExtractAcceptanceDecision(cac_document_contents)
-    ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2024-04-17"
     assert ad.success
@@ -26,10 +25,6 @@ async def test_prospect_british_academy(cac_document_contents):
     assert 0 <= ad.employer_hostility <= 100
     assert ad.application_date == "2024-03-08"
     assert ad.end_of_acceptance_period == "2024-04-19"
-    assert ad.panel == Panel(
-        case_manager="Joanne Curtis",
-        panel_members=sorted(["Laura Prince", "Richard Fulham", "Nicholas Childs"]),
-    )
     assert ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="all employees of the British Academy, except Directors and "
@@ -50,7 +45,6 @@ async def test_prospect_british_academy(cac_document_contents):
 )
 async def test_gmb_cranswick_country_foods(cac_document_contents):
     ad = await ExtractAcceptanceDecision(cac_document_contents)
-    ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2019-06-19"
     assert 0 <= ad.employer_hostility <= 100
@@ -58,10 +52,6 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
     assert not ad.rejection_reasons
     assert ad.application_date == "2019-04-30"
     assert ad.end_of_acceptance_period == "2019-06-21"
-    assert ad.panel == Panel(
-        case_manager="Linda Lehan",
-        panel_members=sorted(["James Tayler", "Tom Keeney", "David Coats"]),
-    )
     assert not ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="Butchery One – Knife Holders, Butchery Two – Knife Holders"
@@ -82,7 +72,6 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
 )
 async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
     ad = await ExtractAcceptanceDecision(cac_document_contents)
-    ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2022-09-08"
     assert 0 <= ad.employer_hostility <= 100
@@ -90,10 +79,6 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
     assert not ad.rejection_reasons
     assert ad.application_date == "2022-08-11"
     assert ad.end_of_acceptance_period == "2022-09-14"
-    assert ad.panel == Panel(
-        case_manager="Joanne Curtis",
-        panel_members=sorted(["Sarah Havlin", "Susan Jordan", "Joanna Brown"]),
-    )
     assert not ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="Motorman, Bosun, Pursers and Able Seaman employed on "
@@ -114,7 +99,6 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
 )
 async def test_gmb_mitie_services(cac_document_contents):
     ad = await ExtractAcceptanceDecision(cac_document_contents)
-    ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2014-10-23"
     assert 0 <= ad.employer_hostility <= 100
@@ -122,10 +106,6 @@ async def test_gmb_mitie_services(cac_document_contents):
     assert not ad.rejection_reasons
     assert ad.application_date == "2014-09-22"
     assert ad.end_of_acceptance_period == "2014-10-24"
-    assert ad.panel == Panel(
-        case_manager="Linda Lehan",
-        panel_members=sorted(["Lynette Harris", "Len Aspell", "Bob Purkiss"]),
-    )
     assert ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="All staff employed to clean Non Advertising Bus Shelters",
@@ -145,7 +125,6 @@ async def test_gmb_mitie_services(cac_document_contents):
 )
 async def test_community_coilcolor(cac_document_contents):
     ad = await ExtractAcceptanceDecision(cac_document_contents)
-    ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2017-05-17"
     assert 0 <= ad.employer_hostility <= 100
@@ -153,10 +132,6 @@ async def test_community_coilcolor(cac_document_contents):
     assert ad.rejection_reasons == [RejectionReason.NoMajoritySupportLikely]
     assert ad.application_date == "2016-08-02"
     assert ad.end_of_acceptance_period == "2017-05-17"
-    assert ad.panel == Panel(
-        case_manager="Sharmin Khan",
-        panel_members=sorted(["Gillian Morris", "Michael Shepherd", "Lesley Mercer"]),
-    )
     assert not ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="All hourly paid production workers in the paint line "
@@ -164,7 +139,7 @@ async def test_community_coilcolor(cac_document_contents):
         size=27,
         claimed_membership=12,
         membership=9,
-        supporters=None,
+        supporters=16,
     )
 
 
@@ -177,7 +152,6 @@ async def test_community_coilcolor(cac_document_contents):
 )
 async def test_iwgb_university_of_london(cac_document_contents):
     ad = await ExtractAcceptanceDecision(cac_document_contents)
-    ad.panel.panel_members.sort()
 
     assert ad.decision_date == "2018-01-10"
     assert 0 <= ad.employer_hostility <= 100
@@ -185,10 +159,6 @@ async def test_iwgb_university_of_london(cac_document_contents):
     assert ad.rejection_reasons == [RejectionReason.SomeOtherReason]
     assert ad.application_date == "2017-11-20"
     assert not ad.end_of_acceptance_period
-    assert ad.panel == Panel(
-        case_manager="Nigel Cookson",
-        panel_members=sorted(["Barry Clarke", "David Coats", "Roger Roberts"]),
-    )
     assert not ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="Security Guards, Postroom Workers, AV Staff, Porters, and "

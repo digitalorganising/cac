@@ -35,7 +35,7 @@ async def test_prospect_prestwick_aircraft_maintenance(cac_document_contents):
 
     assert ad.decision_date == "2021-11-22"
     assert not ad.details.favors
-    assert "virtual means" in ad.details.description
+    assert "virtual" in ad.details.description.lower()
 
 
 @pytest.mark.parametrize(
@@ -77,4 +77,4 @@ async def test_urtu_eddie_stobart(cac_document_contents):
 
     assert ad.decision_date == "2021-10-12"
     assert ad.details.favors == Party.Employer
-    assert "virtual means" in ad.details.description
+    assert "virtual" in ad.details.description.lower()

@@ -68,7 +68,7 @@ class CacOutcomeSpider(scrapy.Spider):
         )
         outcome_title = response.css("main#content h1::text").get().strip()
         outcome_title = re.sub(
-            r"^CAC Outcome:\s+", "", outcome_title, flags=re.RegexFlag.IGNORECASE
+            r"^CAC Outcome:\s*", "", outcome_title, flags=re.RegexFlag.IGNORECASE
         )
         reference = response.css("section#documents p::text").re_first(
             r"^Ref:\s*(TUR\d+/\d+[\/\(]\d+\)?).*"
@@ -77,7 +77,7 @@ class CacOutcomeSpider(scrapy.Spider):
             self.logger.warning(
                 f"Could not parse reference for '{outcome_title}' at {response.url}"
             )
-            return
+            reference = response.url
 
         for document in response.css("section#documents > section"):
             outcome_link = document.css("h3 a")
@@ -104,6 +104,10 @@ class CacOutcomeSpider(scrapy.Spider):
     def parse_document(self, response, **kwargs):
         try:
             content = self.html_content(response)
+            # Bit of a hack, oops :)
+            if kwargs["document_type"] == DocumentType.method_agreed:
+                published_date = response.css("meta[name='govuk:first-published-at']::attr(content)").get()
+                content = f"First published at: {published_date}"
         except NotSupported:
             if response.headers.get("Content-Type").decode() == "application/pdf":
                 content = self.pdf_content(response)
@@ -127,7 +131,7 @@ def scrape():
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
             "LOG_LEVEL": "INFO",
             "ITEM_PIPELINES": {CacOutcomeOpensearchPipeline: 100},
-            "OPENSEARCH": {"HOST": "http://127.0.0.1", "INDEX": "outcomes-raw"},
+            "OPENSEARCH": {"HOST": "http://127.0.0.1", "INDEX": "outcomes-raw-2025"},
         }
     )
     process.crawl(CacOutcomeSpider)

@@ -12,7 +12,7 @@ class RecognitionDecision {
     union_recognized bool
     form_of_ballot FormOfBallot? @description("Null if there was no ballot")
     ballot BallotResult? @description("Null if there was no ballot")
-    good_relations_contested bool @description("Did the employer think that the ballot should be held in the interests of good industrial relations?")
+    good_relations_contested bool @description("Was the ballot held in the interests of good industrial relations regardless of membership numbers?")
 }
 
 function ExtractRecognitionDecision(decision_document: string) -> RecognitionDecision {

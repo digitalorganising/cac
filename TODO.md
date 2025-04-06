@@ -4,7 +4,7 @@
 
 1. I can see a timeline of CAC outcomes with key information visible
 2. I can search CAC outcomes
-3. I can filter by entities (union, employer, panel member) and other information (final outcome)
+3. I can filter by entities (union, employer, etc) and other information (final outcome)
 4. I can view aggregated information about statutory recognition
 
 ### To do:

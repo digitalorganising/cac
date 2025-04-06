@@ -1,6 +1,9 @@
-from dateutil.parser import parse as dateparse
+from dateutil.parser import parse as dateparse, ParserError
 
 
 def extract_date(statement):
-    date = dateparse(statement, fuzzy=True)
-    return date.strftime("%Y-%m-%d")
+    try:
+        date = dateparse(statement, fuzzy=True)
+        return date.strftime("%Y-%m-%d")
+    except ParserError:
+        return None

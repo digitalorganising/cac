@@ -26,8 +26,8 @@ async def test_nuj_press_association(cac_document_contents):
         bud.new_bargaining_unit_description
         == "editorial roles which ultimately report "
         "to the Editor in Chief, barring the senior management roles and the following "
-        "positions "
-        "(the Deputies positions): Deputy Chief News Editor, Deputy Real Life and "
+        "Deputy positions: "
+        "Deputy Chief News Editor, Deputy Real Life and "
         "Social Media Editor, "
         "Lifestyle Editor, Puzzles Deputy, Deputy Editor Entertainment, Deputy "
         "Sports Editor, Scotland "

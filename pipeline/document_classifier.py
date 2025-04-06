@@ -71,8 +71,6 @@ def get_document_type(title):
 # These documents contain text which is the same in all cases - we don't need to analyze
 def should_get_content(document_type):
     match document_type:
-        case DocumentType.method_agreed:
-            return False
         case DocumentType.application_withdrawn:
             return False
         case _:

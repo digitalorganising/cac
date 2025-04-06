@@ -29,5 +29,7 @@ def get_extracted_data(doc):
             return {"decision_date": extract_date(content)}
         case DocumentType.access_decision_or_dispute:
             return b.ExtractAccessDecisionOrDispute(content).model_dump()
+        case DocumentType.method_agreed:
+            return {"decision_date": extract_date(content)}
         case DocumentType.nullification_decision:
             return None

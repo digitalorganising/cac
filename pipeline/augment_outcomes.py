@@ -41,14 +41,14 @@ outcomes_source = OpensearchSource(
     cluster_host="http://127.0.0.1",
     cluster_user=None,
     cluster_pass=None,
-    index="outcomes-raw",
+    index="outcomes-raw-2025",
     page_size=25,
 )
 opensearch_sink = OutcomeSink(
     cluster_host="http://127.0.0.1",
     cluster_user=None,
     cluster_pass=None,
-    index="outcomes-augmented",
+    index="outcomes-augmented-2025",
 )
 
 

@@ -1,7 +1,7 @@
 class ValidityDecision {
     decision_date string @description("ISO8601 format")
     valid bool
-    rejection_reasons RejectionReason[] @description("If the new unit was not valid, why? Empty if application was successful")
+    rejection_reasons RejectionReason[] @description("What was the FINAL decision's reason for rejection? Empty if application was successful")
     new_bargaining_unit BargainingUnit
 }
 
