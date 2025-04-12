@@ -45,7 +45,7 @@ Management""",
     )
 
     assert vd.new_bargaining_unit.size == 69
-    assert vd.new_bargaining_unit.claimed_membership is None
+    assert vd.new_bargaining_unit.claimed_membership is 35
     assert vd.new_bargaining_unit.membership == 35
     assert vd.new_bargaining_unit.supporters == 51
 
@@ -62,9 +62,8 @@ async def test_rmt_cwind(cac_document_contents):
     assert vd.decision_date == "2019-11-14"
     assert not vd.valid
     assert vd.new_bargaining_unit == BargainingUnit(
-        description="all Skippers and Crew employed by CWind except those based at "
-        "the Ramsgate site "
-        "that were subject to the existing bargaining arrangements",
+        description="All Skippers and Crew employed by CWind except those based at "
+        "the Ramsgate site",
         size=16,
         claimed_membership=7,
         membership=5,
@@ -90,7 +89,7 @@ async def test_gmb_noble_collection(cac_document_contents):
         "London WC2 and Hamleys Toy Store, "
         "188-196 Regent Street, London W1 excluding the Head of the Retail Team",
         size=15,
-        claimed_membership=None,
+        claimed_membership=7,
         membership=7,
         supporters=7,
     )

@@ -6,7 +6,7 @@ class ValidityDecision {
 }
 
 function ExtractValidityDecision(decision_document: string) -> ValidityDecision {
-  client Claude
+  client DefaultClient
   prompt #"
     Given the CAC validity decision document below,
 
@@ -15,5 +15,7 @@ function ExtractValidityDecision(decision_document: string) -> ValidityDecision 
     </doc>
 
     {{ ctx.output_format }}
+
+    Before you answer, outline all the information you know about the composition of the new bargaining unit.
   "#
 }

@@ -4,7 +4,7 @@ class BargainingDecision {
 }
 
 function ExtractBargainingDecision(decision_document: string) -> BargainingDecision {
-  client Claude
+  client DefaultClient
   prompt #"
     Given the CAC bargaining decision document below,
 

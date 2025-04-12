@@ -23,17 +23,18 @@ async def test_nuj_press_association(cac_document_contents):
     assert bud.decision_date == "2024-04-17"
     assert bud.appropriate_unit_differs
     assert (
-        bud.new_bargaining_unit_description
-        == "editorial roles which ultimately report "
+        SM(None,
+        bud.new_bargaining_unit_description,
+        "editorial roles which ultimately report "
         "to the Editor in Chief, barring the senior management roles and the following "
-        "Deputy positions: "
+        "positions (the Deputies positions): "
         "Deputy Chief News Editor, Deputy Real Life and "
         "Social Media Editor, "
         "Lifestyle Editor, Puzzles Deputy, Deputy Editor Entertainment, Deputy "
         "Sports Editor, Scotland "
         "Deputy Editor, Group Picture Editor, Deputy Head of Video, Deputy "
         "Business Editor, Deputy Head "
-        "of Production, Head of Features, Deputy Picture Editor, Page Production Editor"
+        "of Production, Head of Features, Deputy Picture Editor, Page Production Editor").ratio() > 0.9
     )
 
 

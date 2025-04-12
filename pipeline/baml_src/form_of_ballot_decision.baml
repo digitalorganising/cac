@@ -6,7 +6,7 @@ class FormOfBallotDecision {
 }
 
 function ExtractFormOfBallotDecision(decision_document: string) -> FormOfBallotDecision {
-  client Claude
+  client DefaultClient
   prompt #"
     Given the CAC form-of-ballot decision document below,
 
@@ -15,5 +15,8 @@ function ExtractFormOfBallotDecision(decision_document: string) -> FormOfBallotD
     </doc>
 
     {{ ctx.output_format }}
+
+    Before you answer that a ballot preference is either Postal or Workplace,
+    please show your working to be sure it is not a Combination:
   "#
 }

@@ -16,7 +16,7 @@ class RecognitionDecision {
 }
 
 function ExtractRecognitionDecision(decision_document: string) -> RecognitionDecision {
-  client Claude
+  client DefaultClient
   prompt #"
     Given the CAC recognition decision document below,
 

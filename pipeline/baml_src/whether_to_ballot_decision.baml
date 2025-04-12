@@ -12,7 +12,7 @@ class WhetherToBallotDecision {
 }
 
 function ExtractWhetherToBallotDecision(decision_document: string) -> WhetherToBallotDecision {
-  client Claude
+  client DefaultClient
   prompt #"
     Given the CAC whether-to-ballot decision document below,
 
@@ -20,10 +20,12 @@ function ExtractWhetherToBallotDecision(decision_document: string) -> WhetherToB
     {{ decision_document }}
     </doc>
 
+    {{ ctx.output_format }}
+
+    Before you answer, show your reasoning for these points:
+
     1. Was the panel satisfied that the majority of workers in the bargaining unit were members of the union?
     2. If there will be a ballot AND the answer to 1 is YES: extract a list of the qualifying conditions that WERE met.
     3. If majority_membership is false then qualifying_conditions MUST be an empty list.
-
-    {{ ctx.output_format }}
   "#
 }

@@ -48,8 +48,8 @@ async def test_rmt_carefree_travel(cac_document_contents):
     ad = await ExtractAccessDecisionOrDispute(cac_document_contents)
 
     assert ad.decision_date == "2017-06-06"
-    assert ad.details.complainant == Party.Union
-    assert ad.details.upheld
+    assert ad.details.favors == Party.Union
+    assert "canteen" in ad.details.description.lower()
 
 
 @pytest.mark.parametrize(

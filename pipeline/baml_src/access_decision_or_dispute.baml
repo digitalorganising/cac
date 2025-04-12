@@ -1,30 +1,28 @@
 class AccessArrangementDecision {
+  decision_type "a decision on access arrangements in advance of a ballot"
   favors Party? @description("Will the union or the employer be happier with the decision? Null if mixed")
   description string @description("1-sentence description of the decided access arrangement")
 }
 
 class UnfairPracticeDisputeDecision {
+  decision_type "a decision on an unfair practice dispute during the access period"
   upheld bool @description("Is the claim of unfair practice upheld?")
   complainant Party @description("Which party submitted a complaint to the CAC?")
 }
 
 class AccessDecisionOrDispute {
     decision_date string @description("ISO8601 date")
-    details UnfairPracticeDisputeDecision | AccessArrangementDecision @alias("decision") 
+    details UnfairPracticeDisputeDecision | AccessArrangementDecision @alias("decision") @description("details of the decision")
 }
 
 function ExtractAccessDecisionOrDispute(decision_document: string) -> AccessDecisionOrDispute {
-  client Claude
+  client DefaultClient
   prompt #"
     Given the CAC document below,
 
     <doc>
     {{ decision_document }}
     </doc>
-
-    1. What is the preferred outcome of (a) the union and (b) the employer?
-    2. What is the outcome that the CAC decided upon?
-    3. Is this more similar to one of the preferred outcomes, or is the decision a mix that doesn't clearly favor one party?
 
     {{ ctx.output_format }}
   "#

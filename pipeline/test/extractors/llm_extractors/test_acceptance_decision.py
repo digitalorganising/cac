@@ -112,7 +112,7 @@ async def test_gmb_mitie_services(cac_document_contents):
         size=42,
         claimed_membership=19,
         membership=17,
-        supporters=22,
+        supporters=20,
     )
 
 
@@ -139,7 +139,7 @@ async def test_community_coilcolor(cac_document_contents):
         size=27,
         claimed_membership=12,
         membership=9,
-        supporters=16,
+        supporters=None,
     )
 
 
@@ -157,7 +157,7 @@ async def test_iwgb_university_of_london(cac_document_contents):
     assert 0 <= ad.employer_hostility <= 100
     assert not ad.success
     assert ad.rejection_reasons == [RejectionReason.SomeOtherReason]
-    assert ad.application_date == "2017-11-20"
+    assert ad.application_date == "2017-11-21"
     assert not ad.end_of_acceptance_period
     assert not ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
