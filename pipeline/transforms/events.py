@@ -1,6 +1,6 @@
 from transitions import Machine, MachineError
 from collections import OrderedDict
-from datetime import date
+from dateutil.parser import parse as date_parse
 from typing import Optional
 
 from ..document_classifier import DocumentType
@@ -45,7 +45,7 @@ def doc_ordering(fallback_date):
             DocumentType.method_agreed: 4
         }.get(doc_type, 0)
         return (
-            doc["decision_date"] if doc else fallback_date,
+            date_parse(doc["decision_date"]) if doc and doc["decision_date"] else fallback_date,
             tiebreaker
         )
 
@@ -57,8 +57,9 @@ class InvalidEventError(Exception):
 
 
 class EventsBuilder(Machine):
-    def __init__(self):
+    def __init__(self, fallback_date):
         self.event_list = []
+        self.fallback_date = fallback_date
         Machine.__init__(self, **EventsBuilder.get_machine_params())
 
     @classmethod
@@ -70,8 +71,8 @@ class EventsBuilder(Machine):
             "auto_transitions": False
         }
 
-    def add_event(self, event_type: EventType, event_date: str, description: Optional[str] = None):
-        d = date.fromisoformat(event_date[:10])
+    def add_event(self, event_type: EventType, event_date: Optional[str] = None, description: Optional[str] = None):
+        d = date_parse(event_date) if event_date else self.fallback_date
         if is_state_changing(event_type):
             self.trigger(event_type.value)
 
@@ -79,11 +80,11 @@ class EventsBuilder(Machine):
         if prev_event and \
                 is_state_changing(event_type) and \
                 is_state_changing(prev_event.type) and \
-                d < prev_event.date:
+                d.date() < prev_event.date:
             raise ValueError(f"Event out of order: {event_type.value} is before ({d}) previous "
                              f"event {prev_event.type.value} ({prev_event.date})")
 
-        self.event_list.append(Event(type=event_type, date=d, description=description))
+        self.event_list.append(Event(type=event_type, date=d.date(), description=description))
 
     def dump_events(self):
         return [e.model_dump(exclude_none=True) for e in self.event_list]
@@ -93,21 +94,22 @@ class EventsBuilder(Machine):
 
 
 def events_from_outcome(outcome):
-    fallback_date = outcome["last_updated"][:10]
+    fallback_date = date_parse(outcome["last_updated"][:10])
     data = outcome["extracted_data"]
     ref = outcome["reference"]
-    events = EventsBuilder()
     sorted_docs = OrderedDict(
         sorted(data.items(), key=doc_ordering(fallback_date))
     )
 
     # There seem to be a few cases where the last_updated date is wrong
     last_doc = sorted_docs[next(reversed(sorted_docs))]
-    if last_doc and last_doc["decision_date"] and fallback_date < last_doc["decision_date"]:
-        fallback_date = last_doc["decision_date"]
+    if last_doc and last_doc["decision_date"] and fallback_date < date_parse(last_doc["decision_date"]):
+        fallback_date = date_parse(last_doc["decision_date"])
         sorted_docs = OrderedDict(
             sorted(data.items(), key=doc_ordering(fallback_date))
         )
+
+    events = EventsBuilder(fallback_date)
 
     for doc_type, doc in sorted_docs.items():
         try:
@@ -126,8 +128,8 @@ def events_from_outcome(outcome):
                 case DocumentType.application_withdrawn:
                     # This is a workaround until proper withdrawal data is used
                     if events.labelled_state() is OutcomeState.Initial:
-                        events.add_event(EventType.ApplicationReceived, fallback_date)
-                    events.add_event(EventType.ApplicationWithdrawn, fallback_date)
+                        events.add_event(EventType.ApplicationReceived)
+                    events.add_event(EventType.ApplicationWithdrawn)
                 case DocumentType.bargaining_unit_decision:
                     new_bargaining_unit = doc["new_bargaining_unit_description"]
                     events.add_event(EventType.BargainingUnitDecided, doc["decision_date"], new_bargaining_unit)
@@ -172,9 +174,9 @@ def events_from_outcome(outcome):
                 case DocumentType.method_agreed:
                     # These sometimes come after a method decision, in which case we ignore them
                     if events.labelled_state() is not OutcomeState.MethodAgreed:
-                        events.add_event(EventType.MethodAgreed, fallback_date)
+                        events.add_event(EventType.MethodAgreed, doc["decision_date"])
                 case DocumentType.nullification_decision:
-                    events.add_event(EventType.ApplicationRejected, fallback_date)
+                    events.add_event(EventType.ApplicationRejected)
                 case _:
                     print(f"Non-event document encountered ({doc_type} for {ref})")
         except (MachineError, ValueError) as e:

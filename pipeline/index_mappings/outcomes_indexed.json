@@ -83,7 +83,7 @@
         "acceptance_decision": {
           "properties": {
             "decision_date": {
-              "type": "date"
+              "type": "keyword"
             },
             "union_name": {
               "type": "text",
@@ -111,10 +111,10 @@
               "type": "keyword"
             },
             "application_date": {
-              "type": "date"
+              "type": "keyword"
             },
             "end_of_acceptance_period": {
-              "type": "date"
+              "type": "keyword"
             },
             "bargaining_unit": {
               "properties": {
@@ -143,10 +143,14 @@
         "access_decision_or_dispute": {
           "properties": {
             "decision_date": {
-              "type": "date"
+              "type": "keyword"
             },
             "details": {
               "properties": {
+                "decision_type": {
+                  "type": "keyword",
+                  "index": false
+                },
                 "favors": {
                   "type": "keyword"
                 },
@@ -166,7 +170,7 @@
         "bargaining_unit_decision": {
           "properties": {
             "decision_date": {
-              "type": "date"
+              "type": "keyword"
             },
             "appropriate_unit_differs": {
               "type": "boolean"
@@ -179,17 +183,17 @@
         "bargaining_decision": {
           "properties": {
             "decision_date": {
-              "type": "date"
+              "type": "keyword"
             },
             "cac_involvement_date": {
-              "type": "date"
+              "type": "keyword"
             }
           }
         },
         "form_of_ballot_decision": {
           "properties": {
             "decision_date": {
-              "type": "date"
+              "type": "keyword"
             },
             "form_of_ballot": {
               "type": "keyword"
@@ -205,7 +209,7 @@
         "whether_to_ballot_decision": {
           "properties": {
             "decision_date": {
-              "type": "date"
+              "type": "keyword"
             },
             "decision_to_ballot": {
               "type": "boolean"
@@ -221,7 +225,7 @@
         "validity_decision": {
           "properties": {
             "decision_date": {
-              "type": "date"
+              "type": "keyword"
             },
             "valid": {
               "type": "boolean"
@@ -253,7 +257,7 @@
         "case_closure": {
           "properties": {
             "decision_date": {
-              "type": "date"
+              "type": "keyword"
             }
           }
         },
@@ -263,7 +267,7 @@
         "recognition_decision": {
           "properties": {
             "decision_date": {
-              "type": "date"
+              "type": "keyword"
             },
             "union_recognized": {
               "type": "boolean"
@@ -286,10 +290,10 @@
                   "type": "integer"
                 },
                 "start_ballot_period": {
-                  "type": "date"
+                  "type": "keyword"
                 },
                 "end_ballot_period": {
-                  "type": "date"
+                  "type": "keyword"
                 }
               }
             },
@@ -301,12 +305,16 @@
         "application_received": {
           "properties": {
             "decision_date": {
-              "type": "date"
+              "type": "keyword"
             }
           }
         },
         "method_agreed": {
-          "type": "keyword"
+          "properties": {
+            "decision_date": {
+              "type": "keyword"
+            }
+          }
         },
         "application_withdrawn": {
           "type": "keyword"

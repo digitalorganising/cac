@@ -20,6 +20,6 @@ function ExtractAcceptanceDecision(decision_document: string) -> AcceptanceDecis
 
     {{ ctx.output_format }}
 
-    Before you answer, outline everything you know about the composition of the bargaining unit.
+    Before you answer, outline everything you know about the composition of the bargaining unit, then answer as above.
   "#
 }
