@@ -1,9 +1,9 @@
 class BargainingUnit {
   description string @description("The defined bargaining unit exactly as written but excluding any address")
   size int? @description("Size determined after all checks, but before any new hires added.")
-  claimed_membership int @alias("claimed_union_membership") @description("Number of union members in the bargaining unit stated by the union, before verification.")
-  membership int? @description("Union members in the bargaining unit as determined by the case manager, might differ from the above")
-  supporters int? @description("Number of workers likely to favour union recognition")
+  claimed_membership int? @alias("stated_union_membership") @description("Number of union members in the bargaining unit stated by the union, or size of membership list provided, before verification.")
+  membership int? @alias("verified_union_membership") @description("Union members in the bargaining unit as determined by the case manager")
+  supporters int? @description("Number of workers likely to favour union recognition, possibly based on petitions etc")
 }
 
 enum Party {

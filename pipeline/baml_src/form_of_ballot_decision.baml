@@ -1,5 +1,5 @@
 class FormOfBallotDecision {
-    decision_date string @description("ISO8601 date")
+    decision_date string
     form_of_ballot FormOfBallot
     employer_preferred FormOfBallot
     union_preferred FormOfBallot

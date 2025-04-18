@@ -3,12 +3,12 @@ class BallotResult {
     spoiled_ballots int
     votes_in_favor int
     votes_against int
-    start_ballot_period string @description("ISO8601 date string")
-    end_ballot_period string @description("ISO8601 date string")
+    start_ballot_period string @description("ballot start date - date of ballot paper dispatch if postal")
+    end_ballot_period string @description("ballot end date")
 }
 
 class RecognitionDecision {
-    decision_date string @description("ISO8601 date")
+    decision_date string
     union_recognized bool
     form_of_ballot FormOfBallot? @description("Null if there was no ballot")
     ballot BallotResult? @description("Null if there was no ballot")

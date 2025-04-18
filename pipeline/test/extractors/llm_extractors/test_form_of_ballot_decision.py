@@ -3,7 +3,7 @@ from pipeline.baml_client.async_client import b
 from pipeline.baml_client.types import FormOfBallot
 from pipeline.services import anthropic_rate_limit
 from tenacity import retry
-
+from . import date_eq
 
 @retry(**anthropic_rate_limit)
 async def ExtractFormOfBallotDecision(content):
@@ -19,7 +19,7 @@ async def ExtractFormOfBallotDecision(content):
 async def test_uvw_sage(cac_document_contents):
     fbd = await ExtractFormOfBallotDecision(cac_document_contents)
 
-    assert fbd.decision_date == "2021-02-16"
+    assert date_eq(fbd.decision_date, "16 February 2021")
     assert fbd.form_of_ballot == FormOfBallot.Postal
     assert fbd.employer_preferred == FormOfBallot.Combination
     assert fbd.union_preferred == FormOfBallot.Postal
@@ -34,7 +34,7 @@ async def test_uvw_sage(cac_document_contents):
 async def test_nuj_buzzfeed(cac_document_contents):
     fbd = await ExtractFormOfBallotDecision(cac_document_contents)
 
-    assert fbd.decision_date == "2018-04-30"
+    assert date_eq(fbd.decision_date, "30 April 2018")
     assert fbd.form_of_ballot == FormOfBallot.Postal
     assert fbd.employer_preferred == FormOfBallot.Workplace
     assert fbd.union_preferred == FormOfBallot.Postal
@@ -49,7 +49,7 @@ async def test_nuj_buzzfeed(cac_document_contents):
 async def test_gmb_grissan_carrick(cac_document_contents):
     fbd = await ExtractFormOfBallotDecision(cac_document_contents)
 
-    assert fbd.decision_date == "2021-05-07"
+    assert date_eq(fbd.decision_date, "7 May 2021")
     assert fbd.form_of_ballot == FormOfBallot.Postal
     assert fbd.employer_preferred == FormOfBallot.Postal
     assert fbd.union_preferred == FormOfBallot.Workplace
@@ -64,7 +64,7 @@ async def test_gmb_grissan_carrick(cac_document_contents):
 async def test_rmt_interserve(cac_document_contents):
     fbd = await ExtractFormOfBallotDecision(cac_document_contents)
 
-    assert fbd.decision_date == "2015-03-26"
+    assert date_eq(fbd.decision_date, "26 March 2015")
     assert fbd.form_of_ballot == FormOfBallot.Postal
     assert fbd.employer_preferred == FormOfBallot.Postal
     assert fbd.union_preferred == FormOfBallot.Workplace
@@ -79,7 +79,22 @@ async def test_rmt_interserve(cac_document_contents):
 async def test_bfawu_wealmoor(cac_document_contents):
     fbd = await ExtractFormOfBallotDecision(cac_document_contents)
 
-    assert fbd.decision_date == "2018-02-14"
+    assert date_eq(fbd.decision_date, "14 February 2018")
     assert fbd.form_of_ballot == FormOfBallot.Postal
     assert fbd.employer_preferred == FormOfBallot.Workplace
     assert fbd.union_preferred == FormOfBallot.Postal
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.gov.uk/government/publications/cac-outcome-unite-the-union-moog-controls-limited/form-of-ballot-decision"
+    ],
+)
+async def test_unite_moog(cac_document_contents):
+    fbd = await ExtractFormOfBallotDecision(cac_document_contents)
+
+    assert date_eq(fbd.decision_date, "7 June 2023")
+    assert fbd.form_of_ballot == FormOfBallot.Workplace
+    assert fbd.employer_preferred == FormOfBallot.Postal
+    assert fbd.union_preferred == FormOfBallot.Workplace

@@ -1,5 +1,5 @@
 class AccessArrangementDecision {
-  decision_type "a decision on access arrangements in advance of a ballot"
+  decision_type "a decision on access arrangements in advance of a ballot, or during it with a pause"
   favors Party? @description("Will the union or the employer be happier with the decision? Null if mixed")
   description string @description("1-sentence description of the decided access arrangement")
 }
@@ -11,7 +11,7 @@ class UnfairPracticeDisputeDecision {
 }
 
 class AccessDecisionOrDispute {
-    decision_date string @description("ISO8601 date")
+    decision_date string
     details UnfairPracticeDisputeDecision | AccessArrangementDecision @alias("decision") @description("details of the decision")
 }
 

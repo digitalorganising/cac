@@ -4,6 +4,7 @@ import pytest
 from pipeline.baml_client.async_client import b
 from pipeline.services import anthropic_rate_limit
 from tenacity import retry
+from . import date_eq
 
 
 @retry(**anthropic_rate_limit)
@@ -20,7 +21,7 @@ async def ExtractBargainingUnitDecision(content):
 async def test_nuj_press_association(cac_document_contents):
     bud = await ExtractBargainingUnitDecision(cac_document_contents)
 
-    assert bud.decision_date == "2024-04-17"
+    assert date_eq(bud.decision_date, "17 April 2024")
     assert bud.appropriate_unit_differs
     assert (
         SM(None,
@@ -47,7 +48,7 @@ async def test_nuj_press_association(cac_document_contents):
 async def test_gmb_eddie_stobart(cac_document_contents):
     bud = await ExtractBargainingUnitDecision(cac_document_contents)
 
-    assert bud.decision_date == "2021-10-29"
+    assert date_eq(bud.decision_date, "29 October 2021")
     assert bud.appropriate_unit_differs
     assert (
         SM(
@@ -72,7 +73,7 @@ async def test_gmb_eddie_stobart(cac_document_contents):
 async def test_rmt_city_cruises(cac_document_contents):
     bud = await ExtractBargainingUnitDecision(cac_document_contents)
 
-    assert bud.decision_date == "2015-07-20"
+    assert date_eq(bud.decision_date, "20 July 2015")
     assert not bud.appropriate_unit_differs
     assert not bud.new_bargaining_unit_description
 
@@ -86,7 +87,7 @@ async def test_rmt_city_cruises(cac_document_contents):
 async def test_pcs_mitie_group(cac_document_contents):
     bud = await ExtractBargainingUnitDecision(cac_document_contents)
 
-    assert bud.decision_date == "2023-02-14"
+    assert date_eq(bud.decision_date, "14 February 2023")
     assert bud.appropriate_unit_differs
     assert (
         SM(
@@ -124,6 +125,6 @@ async def test_pcs_mitie_group(cac_document_contents):
 async def test_unison_addaction(cac_document_contents):
     bud = await ExtractBargainingUnitDecision(cac_document_contents)
 
-    assert bud.decision_date == "2020-08-21"
+    assert date_eq(bud.decision_date, "21 August 2020")
     assert not bud.appropriate_unit_differs
     assert not bud.new_bargaining_unit_description

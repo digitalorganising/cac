@@ -12,7 +12,7 @@ function ExtractBargainingDecision(decision_document: string) -> BargainingDecis
     {{ decision_document }}
     </doc>
 
-    Give all these dates in ISO8601 format. Ignore information related to the history of the case and find the date at which any party requested the CAC to assist in determining the method of bargaining.
+    Ignore information related to the history of the case and find the date at which any party requested the CAC to assist in determining the method of bargaining.
 
     {{ ctx.output_format }}
   "#

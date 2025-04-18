@@ -5,6 +5,7 @@ from pipeline.baml_client.async_client import b
 from pipeline.baml_client.types import BargainingUnit, RejectionReason
 from pipeline.services import anthropic_rate_limit
 from tenacity import retry
+from . import date_eq
 
 
 @retry(**anthropic_rate_limit)
@@ -21,7 +22,7 @@ async def ExtractValidityDecision(content):
 async def test_unite_primopost(cac_document_contents):
     vd = await ExtractValidityDecision(cac_document_contents)
 
-    assert vd.decision_date == "2014-06-25"
+    assert date_eq(vd.decision_date, "25 June 2014")
     assert vd.valid
     assert (
         SM(
@@ -59,7 +60,7 @@ Management""",
 async def test_rmt_cwind(cac_document_contents):
     vd = await ExtractValidityDecision(cac_document_contents)
 
-    assert vd.decision_date == "2019-11-14"
+    assert date_eq(vd.decision_date, "14 November 2019")
     assert not vd.valid
     assert vd.new_bargaining_unit == BargainingUnit(
         description="All Skippers and Crew employed by CWind except those based at "
@@ -80,7 +81,7 @@ async def test_rmt_cwind(cac_document_contents):
 async def test_gmb_noble_collection(cac_document_contents):
     vd = await ExtractValidityDecision(cac_document_contents)
 
-    assert vd.decision_date == "2022-11-02"
+    assert date_eq(vd.decision_date, "2 November 2022")
     assert vd.valid
     assert not vd.rejection_reasons
     assert vd.new_bargaining_unit == BargainingUnit(
@@ -104,7 +105,7 @@ async def test_gmb_noble_collection(cac_document_contents):
 async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
     vd = await ExtractValidityDecision(cac_document_contents)
 
-    assert vd.decision_date == "2019-03-04"
+    assert date_eq(vd.decision_date, "4 March 2019")
     assert vd.valid
     assert not vd.rejection_reasons
     assert vd.new_bargaining_unit == BargainingUnit(
@@ -130,7 +131,7 @@ async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
 async def test_gmb_metallink(cac_document_contents):
     vd = await ExtractValidityDecision(cac_document_contents)
 
-    assert vd.decision_date == "2016-04-05"
+    assert date_eq(vd.decision_date, "5 April 2016")
     assert not vd.valid
     assert vd.rejection_reasons == [RejectionReason.NoMajoritySupportLikely]
     assert vd.new_bargaining_unit == BargainingUnit(

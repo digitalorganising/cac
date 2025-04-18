@@ -3,6 +3,7 @@ from pipeline.baml_client.async_client import b
 from pipeline.baml_client.types import BallotResult, FormOfBallot
 from pipeline.services import anthropic_rate_limit
 from tenacity import retry
+from . import date_eq
 
 
 @retry(**anthropic_rate_limit)
@@ -19,7 +20,7 @@ async def ExtractRecognitionDecision(content):
 async def test_gmb_apcoa_parking(cac_document_contents):
     rd = await ExtractRecognitionDecision(cac_document_contents)
 
-    assert rd.decision_date == "2023-06-02"
+    assert date_eq(rd.decision_date, "2 June 2023")
     assert rd.union_recognized
     assert not rd.good_relations_contested
     assert not rd.ballot
@@ -35,7 +36,7 @@ async def test_gmb_apcoa_parking(cac_document_contents):
 async def test_unite_mitie_property_services(cac_document_contents):
     rd = await ExtractRecognitionDecision(cac_document_contents)
 
-    assert rd.decision_date == "2018-06-15"
+    assert date_eq(rd.decision_date, "15 June 2018")
     assert rd.union_recognized
     assert rd.good_relations_contested
     assert not rd.ballot
@@ -51,7 +52,7 @@ async def test_unite_mitie_property_services(cac_document_contents):
 async def test_gmb_sgl_carbon_fibres(cac_document_contents):
     rd = await ExtractRecognitionDecision(cac_document_contents)
 
-    assert rd.decision_date == "2022-05-24"
+    assert date_eq(rd.decision_date, "24 May 2022")
     assert rd.union_recognized
     assert not rd.good_relations_contested
     assert rd.form_of_ballot == FormOfBallot.Postal
@@ -60,8 +61,8 @@ async def test_gmb_sgl_carbon_fibres(cac_document_contents):
         spoiled_ballots=0,
         votes_in_favor=16,
         votes_against=8,
-        start_ballot_period="2022-04-27",
-        end_ballot_period="2022-05-11",
+        start_ballot_period="27 April 2022",
+        end_ballot_period="11 May 2022",
     )
 
 
@@ -74,7 +75,7 @@ async def test_gmb_sgl_carbon_fibres(cac_document_contents):
 async def test_unite_international_baccalaureate(cac_document_contents):
     rd = await ExtractRecognitionDecision(cac_document_contents)
 
-    assert rd.decision_date == "2019-07-17"
+    assert date_eq(rd.decision_date, "17 July 2019")
     assert rd.union_recognized
     assert not rd.good_relations_contested
     assert rd.form_of_ballot == FormOfBallot.Combination
@@ -83,8 +84,8 @@ async def test_unite_international_baccalaureate(cac_document_contents):
         spoiled_ballots=1,
         votes_in_favor=156,
         votes_against=13,
-        start_ballot_period="2019-07-03",
-        end_ballot_period="2019-07-15",
+        start_ballot_period="3 July 2019",
+        end_ballot_period="15 July 2019",
     )
 
 
@@ -97,7 +98,7 @@ async def test_unite_international_baccalaureate(cac_document_contents):
 async def test_nasuwt_radley_college(cac_document_contents):
     rd = await ExtractRecognitionDecision(cac_document_contents)
 
-    assert rd.decision_date == "2023-10-23"
+    assert date_eq(rd.decision_date, "23 October 2023")
     assert not rd.union_recognized
     assert rd.good_relations_contested
     assert rd.form_of_ballot == FormOfBallot.Postal
@@ -106,6 +107,6 @@ async def test_nasuwt_radley_college(cac_document_contents):
         spoiled_ballots=1,
         votes_in_favor=33,
         votes_against=60,
-        start_ballot_period="2023-09-26",
-        end_ballot_period="2023-10-09",
+        start_ballot_period="26 September 2023",
+        end_ballot_period="9 October 2023",
     )
