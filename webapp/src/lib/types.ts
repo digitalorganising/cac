@@ -23,7 +23,7 @@ export type OutcomeEvent = {
   description?: string;
 };
 
-type OutcomeState = {
+export type OutcomeState = {
   value:
     | "withdrawn"
     | "pending_application_decision"

@@ -5,7 +5,7 @@ import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Timeline } from "@/components/timeline/timeline";
 import DecisionTimelineItem from "@/components/DecisionTimelineItem";
-import { Outcome } from "@/lib/types";
+import { Outcome, OutcomeState } from "@/lib/types";
 import { formatDuration } from "@/lib/duration";
 import BallotResults from "@/components/BallotResults";
 import { cn } from "@/lib/utils";
@@ -15,15 +15,42 @@ type Props = {
   className?: string;
 };
 
+const classForState = (outcomeState: OutcomeState): string => {
+  switch (outcomeState.value) {
+    case "withdrawn":
+    case "closed":
+      return "bg-slate-200";
+    case "pending_application_decision":
+    case "pending_recognition_decision":
+    case "balloting":
+      return "bg-amber-200";
+    case "recognized":
+    case "method_agreed":
+      return "bg-green-200";
+    case "not_recognized":
+    case "application_rejected":
+      return "bg-red-200";
+  }
+};
+
 const OutcomeDetails = ({ outcome, className }: Props) => (
   <dl
     className={cn(
-      "p-2 max-sm:pt-0 md:p-4 grid auto-cols auto-rows-min xs:gap-x-2 md:gap-x-4 xs:gap-y-1 md:gap-y-2 [&>dt]:font-bold xs:[&>dd]:col-start-2 max-sm:[&>dt]:mt-2",
+      "m-2 max-sm:mt-0 md:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] md:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min xs:gap-x-2 md:gap-x-4 xs:gap-y-0.5 md:gap-y-1 [&>dt]:font-bold [&>dt]:col-start-1 [&>dd]:col-start-1 sm:[&>dd]:col-start-2 max-sm:[&>dt]:mt-2",
       className,
     )}
   >
     <dt>Status</dt>
-    <dd>{outcome.state.label}</dd>
+    <dd className="whitespace-nowrap">
+      <span
+        className={cn(
+          "rounded-md xs:rounded-full px-2.5 py-0.5 text-sm inline-block overflow-hidden text-ellipsis max-w-full",
+          classForState(outcome.state),
+        )}
+      >
+        {outcome.state.label}
+      </span>
+    </dd>
 
     <dt>Duration</dt>
     <dd>
@@ -42,7 +69,7 @@ const OutcomeDetails = ({ outcome, className }: Props) => (
         <Fragment key={unionName}>
           <Link
             href={`/?parties.unions=${encodeURIComponent(unionName)}`}
-            className="font-medium text-primary underline underline-offset-4"
+            className="text-primary underline underline-offset-4 hover:font-medium"
           >
             {unionName}
           </Link>
@@ -55,7 +82,7 @@ const OutcomeDetails = ({ outcome, className }: Props) => (
     <dd>
       <Link
         href={`/?parties.employer=${encodeURIComponent(outcome.parties.employer)}`}
-        className="font-medium text-primary underline underline-offset-4"
+        className="text-primary underline underline-offset-4 hover:font-medium"
       >
         {outcome.parties.employer}
       </Link>
@@ -97,7 +124,7 @@ const OutcomeCard = ({ outcome }: Props) => (
       </a>
       <CardTitle className="text-md xs:text-xl">{outcome.title}</CardTitle>
     </CardHeader>
-    <CardContent className="flex flex-col md:flex-row md:justify-between sm:gap-4">
+    <CardContent className="flex flex-col md:flex-row sm:space-4 w-full">
       <Timeline className="ml-2 md:w-1/2">
         {outcome.events.map((e) => (
           <DecisionTimelineItem key={e.type.value} event={e} />
