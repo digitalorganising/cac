@@ -333,15 +333,10 @@
         "parties": {
           "properties": {
             "unions": {
-              "properties": {
-                "id": {
+              "type": "text",
+              "fields": {
+                "keyword": {
                   "type": "keyword"
-                },
-                "name": {
-                  "type": "text"
-                },
-                "canonicalName": {
-                  "type": "text"
                 }
               }
             },

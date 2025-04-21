@@ -38,7 +38,7 @@ type OutcomeState = {
 };
 
 type OutcomeParties = {
-  union: string;
+  unions: string[];
   employer: string;
 };
 

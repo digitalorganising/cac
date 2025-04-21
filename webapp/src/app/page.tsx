@@ -11,12 +11,16 @@ type GetOutcomesOptions = {
   from: number;
   size: number;
   query?: string;
+  "parties.unions"?: string;
+  "parties.employer"?: string;
 };
 
 const getOutcomes = async ({
   from,
   size,
   query,
+  "parties.unions": unions,
+  "parties.employer": employer,
 }: GetOutcomesOptions): Promise<{ size: number; docs: Outcome[] }> => {
   const res = await fetch("http://localhost:9200/outcomes-indexed/_search", {
     method: "POST",
@@ -27,13 +31,23 @@ const getOutcomes = async ({
       from,
       size,
       track_total_hits: true,
-      query: query
-        ? {
-            match: {
-              all_decisions: query,
-            },
-          }
-        : undefined,
+      query: {
+        bool: {
+          should: query
+            ? [
+                {
+                  match: {
+                    all_decisions: query,
+                  },
+                },
+              ]
+            : [{ match_all: {} }],
+          filter: [
+            unions && { match: { "filter.parties.unions": unions } },
+            employer && { match: { "filter.parties.employer": employer } },
+          ].filter(Boolean),
+        },
+      },
       sort: [
         { _score: { order: "desc" } },
         { last_updated: { order: "desc" } },
@@ -49,17 +63,24 @@ const getOutcomes = async ({
   };
 };
 
+type QueryParams = {
+  query?: string;
+  page?: number;
+  "parties.unions"?: string;
+  "parties.employer"?: string;
+};
+
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ query?: string; page?: number }>;
+  searchParams: Promise<QueryParams>;
 }) {
   const pageSize = 15;
-  const params = await searchParams;
+  const { page, ...params } = await searchParams;
   const outcomes = await getOutcomes({
-    from: pageSize * ((params.page ?? 1) - 1),
+    from: pageSize * ((page ?? 1) - 1),
     size: pageSize,
-    query: params.query,
+    ...params,
   });
   return (
     <main className="container max-w-(--breakpoint-lg) px-5 xs:px-8">

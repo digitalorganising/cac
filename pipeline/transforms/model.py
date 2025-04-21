@@ -52,14 +52,3 @@ class Event(BaseModel):
             "value": type.value,
             "label": type.label
         }
-
-
-class CertifiedUnion(BaseModel):
-    id: str
-    name: str
-
-
-class Union(BaseModel):
-    id: str
-    label: str
-    canonical_label: Optional[str]

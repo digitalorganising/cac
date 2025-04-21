@@ -1,4 +1,6 @@
 import dayjs from "dayjs";
+import Link from "next/link";
+import { Fragment } from "react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Timeline } from "@/components/timeline/timeline";
@@ -35,10 +37,29 @@ const OutcomeDetails = ({ outcome, className }: Props) => (
     </dd>
 
     <dt>Union</dt>
-    <dd>{outcome.parties.union}</dd>
+    <dd>
+      {outcome.parties.unions.map((unionName, i) => (
+        <Fragment key={unionName}>
+          <Link
+            href={`/?parties.unions=${encodeURIComponent(unionName)}`}
+            className="font-medium text-primary underline underline-offset-4"
+          >
+            {unionName}
+          </Link>
+          {i !== outcome.parties.unions.length - 1 ? ", " : null}
+        </Fragment>
+      ))}
+    </dd>
 
     <dt>Employer</dt>
-    <dd>{outcome.parties.employer}</dd>
+    <dd>
+      <Link
+        href={`/?parties.employer=${encodeURIComponent(outcome.parties.employer)}`}
+        className="font-medium text-primary underline underline-offset-4"
+      >
+        {outcome.parties.employer}
+      </Link>
+    </dd>
 
     {outcome.bargainingUnit?.size ? (
       <>

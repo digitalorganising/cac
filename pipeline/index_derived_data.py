@@ -14,7 +14,7 @@ def get_parties(outcome):
     union, employer = re.split(r"\s+(?:&|and)\s+", title, maxsplit=1)
 
     return {
-        "unions": union,
+        "unions": union.split(", "),
         "employer": employer
     }
 
