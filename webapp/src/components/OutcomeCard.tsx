@@ -26,7 +26,12 @@ const OutcomeDetails = ({ outcome, className }: Props) => (
     <dt>Duration</dt>
     <dd>
       {formatDuration(outcome.keyDates)}
-      {outcome.keyDates.outcomeConcluded ? null : <span>(ongoing)</span>}
+      {outcome.keyDates.outcomeConcluded ? null : (
+        <>
+          {" "}
+          <i className="italic text-muted-foreground">(ongoing)</i>
+        </>
+      )}
     </dd>
 
     <dt>Union</dt>

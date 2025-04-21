@@ -332,11 +332,16 @@
       "properties": {
         "parties": {
           "properties": {
-            "union": {
-              "type": "text",
-              "fields": {
-                "keyword": {
+            "unions": {
+              "properties": {
+                "id": {
                   "type": "keyword"
+                },
+                "name": {
+                  "type": "text"
+                },
+                "canonicalName": {
+                  "type": "text"
                 }
               }
             },
