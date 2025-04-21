@@ -21,7 +21,7 @@ transitions = [
     [EventType.UnionRecognized, OutcomeState.PendingRecognitionDecision, OutcomeState.Recognized],
     [EventType.BallotHeld, OutcomeState.PendingRecognitionDecision, OutcomeState.Balloting],
     [EventType.UnionRecognized, OutcomeState.Balloting, OutcomeState.Recognized],
-    [EventType.UnionNotRecognized, OutcomeState.Balloting, OutcomeState.NotRecognised],
+    [EventType.UnionNotRecognized, OutcomeState.Balloting, OutcomeState.NotRecognized],
     [EventType.MethodDecision, OutcomeState.Recognized, OutcomeState.MethodAgreed],
     [EventType.MethodAgreed, OutcomeState.Recognized, OutcomeState.MethodAgreed],
     [EventType.CaseClosed, OutcomeState.Recognized, OutcomeState.Closed],
@@ -58,7 +58,7 @@ class InvalidEventError(Exception):
 
 class EventsBuilder(Machine):
     def __init__(self, fallback_date):
-        self.event_list = []
+        self.event_list: list[Event] = []
         self.fallback_date = fallback_date
         Machine.__init__(self, **EventsBuilder.get_machine_params())
 
@@ -77,6 +77,7 @@ class EventsBuilder(Machine):
             self.trigger(event_type.value)
 
         prev_event = self.event_list[-1] if self.event_list else None
+        self.event_list.append(Event(type=event_type, date=d.date(), description=description))
         if prev_event and \
                 is_state_changing(event_type) and \
                 is_state_changing(prev_event.type) and \
@@ -84,10 +85,11 @@ class EventsBuilder(Machine):
             raise ValueError(f"Event out of order: {event_type.value} is before ({d}) previous "
                              f"event {prev_event.type.value} ({prev_event.date})")
 
-        self.event_list.append(Event(type=event_type, date=d.date(), description=description))
-
     def dump_events(self):
         return [e.model_dump(exclude_none=True) for e in self.event_list]
+
+    def get_event(self, event_type: EventType):
+        return next((e for e in self.event_list if e.type == event_type), None)
 
     def labelled_state(self):
         return OutcomeState(self.state)

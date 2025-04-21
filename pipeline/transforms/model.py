@@ -32,7 +32,7 @@ class OutcomeState(LabelledEnum):
     PendingRecognitionDecision = "pending_recognition_decision", "Pending recognition decision"
     Balloting = "balloting", "Balloting"
     Recognized = "recognized", "Recognised"
-    NotRecognised = "not_recognized", "Not recognised"
+    NotRecognized = "not_recognized", "Not recognised"
     MethodAgreed = "method_agreed", "Bargaining method agreed"
     Closed = "closed", "Closed / in liquidation"
 

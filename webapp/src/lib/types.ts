@@ -1,4 +1,4 @@
-export type EventTypeValue =
+export type EventType =
   | "application_received"
   | "application_withdrawn"
   | "application_accepted"
@@ -14,20 +14,58 @@ export type EventTypeValue =
   | "method_agreed"
   | "case_closed";
 
-type EventType = {
-  value: EventTypeValue;
-  label: string;
-};
-
 export type OutcomeEvent = {
-  type: EventType;
+  type: {
+    value: EventType;
+    label: string;
+  };
   date: string;
   description?: string;
 };
 
-type OutcomeStatus = {
-  value: string;
+type OutcomeState = {
+  value:
+    | "withdrawn"
+    | "pending_application_decision"
+    | "application_rejected"
+    | "pending_recognition_decision"
+    | "balloting"
+    | "recognized"
+    | "not_recognized"
+    | "method_agreed"
+    | "closed";
   label: string;
+};
+
+type OutcomeParties = {
+  union: string;
+  employer: string;
+};
+
+type OutcomeBargainingUnit = {
+  size: number;
+  membership?: number;
+  description: string;
+};
+
+type BallotStats = {
+  n: number;
+  percentVotes: number;
+  percentBU: number;
+};
+
+export type OutcomeBallot = {
+  turnoutPercent: number;
+  eligible: number;
+  inFavor: BallotStats;
+  against: BallotStats;
+  spoiled: BallotStats;
+};
+
+export type OutcomeKeyDates = {
+  applicationReceived: string;
+  outcomeConcluded?: string;
+  methodAgreed?: string;
 };
 
 export type Outcome = {
@@ -35,10 +73,10 @@ export type Outcome = {
   reference: string;
   cacUrl: string;
   lastUpdated: string;
-  status: OutcomeStatus;
-  parties: {
-    union: string;
-    employer: string;
-  };
+  state: OutcomeState;
+  parties: OutcomeParties;
+  bargainingUnit?: OutcomeBargainingUnit;
+  ballot?: OutcomeBallot;
   events: OutcomeEvent[];
+  keyDates: OutcomeKeyDates;
 };

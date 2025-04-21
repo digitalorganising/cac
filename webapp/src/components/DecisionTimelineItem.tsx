@@ -17,13 +17,13 @@ import {
 } from "lucide-react";
 
 import { TimelineItem, TimelineItemProps } from "./timeline/timeline";
-import { EventTypeValue, OutcomeEvent } from "@/lib/types";
+import { EventType, OutcomeEvent } from "@/lib/types";
 
 type Props = {
   event: OutcomeEvent;
 } & TimelineItemProps;
 
-const getIcon = (eventType: EventTypeValue): ReactNode => {
+const getIcon = (eventType: EventType): ReactNode => {
   switch (eventType) {
     case "application_received":
       return <Inbox />;
@@ -56,7 +56,7 @@ const getIcon = (eventType: EventTypeValue): ReactNode => {
   }
 };
 
-const getColor = (eventType: EventTypeValue): string => {
+const getColor = (eventType: EventType): string => {
   switch (eventType) {
     case "case_closed":
     case "method_decision":

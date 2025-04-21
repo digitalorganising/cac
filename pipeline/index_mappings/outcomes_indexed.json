@@ -352,6 +352,81 @@
         },
         "state": {
           "type": "keyword"
+        },
+        "bargainingUnit": {
+          "properties": {
+            "size": {
+              "type": "integer"
+            },
+            "membership": {
+              "type": "integer"
+            },
+            "description": {
+              "type": "text"
+            }
+          }
+        },
+        "ballot": {
+          "properties": {
+            "turnoutPercent": {
+              "type": "float"
+            },
+            "eligible": {
+              "type": "integer"
+            },
+            "inFavor": {
+              "properties": {
+                "n": {
+                  "type": "integer"
+                },
+                "percentVotes": {
+                  "type": "float"
+                },
+                "percentBU": {
+                  "type": "float"
+                }
+              }
+            },
+            "against": {
+              "properties": {
+                "n": {
+                  "type": "integer"
+                },
+                "percentVotes": {
+                  "type": "float"
+                },
+                "percentBU": {
+                  "type": "float"
+                }
+              }
+            },
+            "spoiled": {
+              "properties": {
+                "n": {
+                  "type": "integer"
+                },
+                "percentVotes": {
+                  "type": "float"
+                },
+                "percentBU": {
+                  "type": "float"
+                }
+              }
+            }
+          }
+        },
+        "keyDates": {
+          "properties": {
+            "applicationReceived": {
+              "type": "date"
+            },
+            "outcomeConcluded": {
+              "type": "date"
+            },
+            "methodAgreed": {
+              "type": "date"
+            }
+          }
         }
       }
     }
