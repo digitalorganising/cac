@@ -36,7 +36,7 @@ const classForState = (outcomeState: OutcomeState): string => {
 const OutcomeDetails = ({ outcome, className }: Props) => (
   <dl
     className={cn(
-      "m-2 max-sm:mt-0 md:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] md:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min xs:gap-x-2 md:gap-x-4 xs:gap-y-0.5 md:gap-y-2 [&>dt]:font-bold [&>dt]:col-start-1 [&>dd]:col-start-1 sm:[&>dd]:col-start-2 max-sm:[&>dt]:mt-2",
+      "m-2 max-sm:mt-0 md:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] md:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min xs:gap-x-2 md:gap-x-4 xs:gap-y-0.5 md:gap-y-2 [&>dt]:font-medium [&>dt]:col-start-1 [&>dd]:col-start-1 sm:[&>dd]:col-start-2 max-sm:[&>dt]:mt-2",
       className,
     )}
   >
