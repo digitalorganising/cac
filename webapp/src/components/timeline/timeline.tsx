@@ -273,7 +273,7 @@ const TimelineDescription = React.forwardRef<
   <p
     ref={ref}
     className={cn(
-      "max-w-sm text-sm text-muted-foreground capitalize max-sm:line-clamp-5",
+      "max-w-sm text-sm text-muted-foreground first-letter:capitalize max-sm:line-clamp-5",
       className,
     )}
     {...props}

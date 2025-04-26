@@ -26,17 +26,17 @@ const classForState = (outcomeState: OutcomeState): string => {
       return "bg-amber-200";
     case "recognized":
     case "method_agreed":
-      return "bg-green-200";
+      return "bg-green-300";
     case "not_recognized":
     case "application_rejected":
-      return "bg-red-200";
+      return "bg-red-300";
   }
 };
 
 const OutcomeDetails = ({ outcome, className }: Props) => (
   <dl
     className={cn(
-      "m-2 max-sm:mt-0 md:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] md:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min xs:gap-x-2 md:gap-x-4 xs:gap-y-0.5 md:gap-y-1 [&>dt]:font-bold [&>dt]:col-start-1 [&>dd]:col-start-1 sm:[&>dd]:col-start-2 max-sm:[&>dt]:mt-2",
+      "m-2 max-sm:mt-0 md:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] md:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min xs:gap-x-2 md:gap-x-4 xs:gap-y-0.5 md:gap-y-2 [&>dt]:font-bold [&>dt]:col-start-1 [&>dd]:col-start-1 sm:[&>dd]:col-start-2 max-sm:[&>dt]:mt-2",
       className,
     )}
   >
@@ -44,7 +44,7 @@ const OutcomeDetails = ({ outcome, className }: Props) => (
     <dd className="whitespace-nowrap">
       <span
         className={cn(
-          "rounded-md xs:rounded-full px-2.5 py-0.5 text-sm inline-block overflow-hidden text-ellipsis max-w-full",
+          "rounded-md xs:rounded-full px-2.5 py-0.5 text-sm inline-block overflow-hidden align-top text-ellipsis max-w-full",
           classForState(outcome.state),
         )}
       >
@@ -124,7 +124,7 @@ const OutcomeCard = ({ outcome }: Props) => (
       </a>
       <CardTitle className="text-md xs:text-xl">{outcome.title}</CardTitle>
     </CardHeader>
-    <CardContent className="flex flex-col md:flex-row sm:space-4 w-full">
+    <CardContent className="flex flex-col md:flex-row sm:space-x-4 w-full">
       <Timeline className="ml-2 md:w-1/2">
         {outcome.events.map((e) => (
           <DecisionTimelineItem key={e.type.value} event={e} />
