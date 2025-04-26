@@ -1,4 +1,4 @@
-name: Deploy to vercel on merge
+name: Deploy to vercel on push to main
 on:
   push:
     branches:
