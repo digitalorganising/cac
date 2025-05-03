@@ -1,5 +1,5 @@
 from datetime import date
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, field_serializer, HttpUrl, Field
 from typing import Optional
 
 from .labelled_enum import LabelledEnum
@@ -12,7 +12,10 @@ class EventType(LabelledEnum):
     ApplicationAccepted = "application_accepted", "Application accepted"
     ApplicationRejected = "application_rejected", "Application rejected"
     BargainingUnitDecided = "bargaining_unit_decided", "Bargaining unit decided"
-    BallotRequirementDecided = "ballot_requirement_decided", "Ballot requirement decided"
+    BallotRequirementDecided = (
+        "ballot_requirement_decided",
+        "Ballot requirement decided",
+    )
     BallotFormDecided = "ballot_form_decided", "Form of ballot decided"
     BallotHeld = "ballot_held", "Ballot held"
     AccessDisputed = "access_disputed", "Access disputed"
@@ -27,9 +30,15 @@ class EventType(LabelledEnum):
 class OutcomeState(LabelledEnum):
     Initial = "initial", None
     Withdrawn = "withdrawn", "Withdrawn"
-    PendingApplicationDecision = "pending_application_decision", "Pending application decision"
+    PendingApplicationDecision = (
+        "pending_application_decision",
+        "Pending application decision",
+    )
     ApplicationRejected = "application_rejected", "Application rejected"
-    PendingRecognitionDecision = "pending_recognition_decision", "Pending recognition decision"
+    PendingRecognitionDecision = (
+        "pending_recognition_decision",
+        "Pending recognition decision",
+    )
     Balloting = "balloting", "Balloting"
     Recognized = "recognized", "Recognised"
     NotRecognized = "not_recognized", "Not recognised"
@@ -41,6 +50,7 @@ class Event(BaseModel):
     type: EventType
     date: date
     description: Optional[str] = None
+    source_document_url: HttpUrl = Field(serialization_alias="sourceDocumentUrl")
 
     @field_serializer("date")
     def serialize_date(self, date: date, _info):
@@ -48,7 +58,8 @@ class Event(BaseModel):
 
     @field_serializer("type")
     def serialize_event_type(self, type: EventType, _info):
-        return {
-            "value": type.value,
-            "label": type.label
-        }
+        return {"value": type.value, "label": type.label}
+
+    @field_serializer("source_document_url")
+    def serialize_source_document_url(self, url: HttpUrl, _info):
+        return str(url)

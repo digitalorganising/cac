@@ -3,7 +3,12 @@ import re
 import bytewax.operators as op
 from bytewax.dataflow import Dataflow
 
-from .transforms.events import events_from_outcome, EventsBuilder, EventType, OutcomeState
+from .transforms.events import (
+    events_from_outcome,
+    EventsBuilder,
+    EventType,
+    OutcomeState,
+)
 from .services.opensearch_connectors import OpensearchSink, OpensearchSource
 from .baml_client import types as baml_types
 
@@ -13,10 +18,7 @@ def get_parties(outcome):
     title = re.sub(r"\s+\(\d+\)$", "", title)  # Remove any trailing ordinal
     union, employer = re.split(r"\s+(?:&|and)\s+", title, maxsplit=1)
 
-    return {
-        "unions": union.split(", "),
-        "employer": employer
-    }
+    return {"unions": union.split(", "), "employer": employer}
 
 
 def get_bargaining_unit(outcome):
@@ -26,7 +28,7 @@ def get_bargaining_unit(outcome):
         return {
             "size": d.new_bargaining_unit.size,
             "membership": d.new_bargaining_unit.membership,
-            "description": d.new_bargaining_unit.description
+            "description": d.new_bargaining_unit.description,
         }
 
     if "acceptance_decision" in data:
@@ -34,7 +36,7 @@ def get_bargaining_unit(outcome):
         return {
             "size": d.bargaining_unit.size,
             "membership": d.bargaining_unit.membership,
-            "description": d.bargaining_unit.description
+            "description": d.bargaining_unit.description,
         }
 
     return None
@@ -50,7 +52,7 @@ def get_key_dates(events: EventsBuilder):
         OutcomeState.Recognized,
         OutcomeState.NotRecognized,
         OutcomeState.ApplicationRejected,
-        OutcomeState.Closed
+        OutcomeState.Closed,
     ]:
         last_event = events.event_list[-1]
         concluded = last_event.date
@@ -71,24 +73,34 @@ def get_ballot_result(outcome):
     if "recognition_decision" in d:
         d = baml_types.RecognitionDecision.model_validate(d["recognition_decision"])
         if d.ballot:
-            votes = d.ballot.votes_in_favor + d.ballot.votes_against + d.ballot.spoiled_ballots
+            votes = (
+                d.ballot.votes_in_favor
+                + d.ballot.votes_against
+                + d.ballot.spoiled_ballots
+            )
             return {
                 "turnoutPercent": 100 * votes / d.ballot.eligible_workers,
                 "eligible": d.ballot.eligible_workers,
                 "inFavor": {
                     "n": d.ballot.votes_in_favor,
                     "percentVotes": 100 * d.ballot.votes_in_favor / votes,
-                    "percentBU": 100 * d.ballot.votes_in_favor / d.ballot.eligible_workers
+                    "percentBU": 100
+                    * d.ballot.votes_in_favor
+                    / d.ballot.eligible_workers,
                 },
                 "against": {
                     "n": d.ballot.votes_against,
                     "percentVotes": 100 * d.ballot.votes_against / votes,
-                    "percentBU": 100 * d.ballot.votes_against / d.ballot.eligible_workers
+                    "percentBU": 100
+                    * d.ballot.votes_against
+                    / d.ballot.eligible_workers,
                 },
                 "spoiled": {
                     "n": d.ballot.spoiled_ballots,
                     "percentVotes": 100 * d.ballot.spoiled_ballots / votes,
-                    "percentBU": 100 * d.ballot.spoiled_ballots / d.ballot.eligible_workers
+                    "percentBU": 100
+                    * d.ballot.spoiled_ballots
+                    / d.ballot.eligible_workers,
                 },
             }
 
@@ -102,10 +114,7 @@ def transform_for_index(outcome):
     bu = get_bargaining_unit(outcome)
     ballot = get_ballot_result(outcome)
     state = events.labelled_state()
-    json_state = {
-        "value": state.value,
-        "label": state.label
-    }
+    json_state = {"value": state.value, "label": state.label}
 
     return {
         **outcome,
@@ -119,14 +128,14 @@ def transform_for_index(outcome):
             "bargainingUnit": bu,
             "ballot": ballot,
             "events": events.dump_events(),
-            "keyDates": key_dates
+            "keyDates": key_dates,
         },
         "filter": {
             "state": state.value,
             "parties": parties,
             "bargainingUnit": bu,
             "ballot": ballot,
-            "keyDates": key_dates
+            "keyDates": key_dates,
         },
     }
 

@@ -51,11 +51,11 @@ Timeline.displayName = "Timeline";
  * @extends {Omit<HTMLProps<"li">, "ref">}
  */
 export interface TimelineItemProps
-  extends Omit<HTMLProps<HTMLLIElement>, "ref"> {
+  extends Omit<HTMLProps<HTMLLIElement>, "ref" | "title"> {
   /** Date string for the timeline item */
   date?: string;
   /** Title of the timeline item */
-  title?: string;
+  title?: React.ReactNode;
   /** Description text */
   description?: string;
   /** Custom icon element */
@@ -197,7 +197,9 @@ TimelineHeader.displayName = "TimelineHeader";
 
 const TimelineTitle = React.forwardRef<
   HTMLHeadingElement,
-  React.HTMLAttributes<HTMLHeadingElement>
+  React.HTMLAttributes<HTMLHeadingElement> & {
+    children?: React.ReactNode;
+  }
 >(({ className, children, ...props }, ref) => (
   <h3
     ref={ref}

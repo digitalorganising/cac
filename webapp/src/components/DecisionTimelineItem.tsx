@@ -15,6 +15,7 @@ import {
   ScrollText,
   Trophy,
 } from "lucide-react";
+import Link from "next/link";
 
 import { TimelineItem, TimelineItemProps } from "./timeline/timeline";
 import { EventType, OutcomeEvent } from "@/lib/types";
@@ -84,7 +85,15 @@ export default function DecisionTimelineItem({ event, ...otherProps }: Props) {
   return (
     <TimelineItem
       date={event.date}
-      title={event.type.label}
+      title={
+        <Link
+          href={event.sourceDocumentUrl}
+          target="_blank"
+          className="text-primary hover:underline underline-offset-4"
+        >
+          {event.type.label}
+        </Link>
+      }
       description={event.description}
       icon={getIcon(event.type.value)}
       iconColor={getColor(event.type.value)}

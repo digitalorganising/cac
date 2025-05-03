@@ -23,34 +23,77 @@
           "type": "text"
         },
         "access_decision_or_dispute": {
-          "type":  "text"
+          "type": "text"
         },
         "bargaining_unit_decision": {
-          "type":  "text"
+          "type": "text"
         },
         "bargaining_decision": {
-          "type":  "text"
+          "type": "text"
         },
         "form_of_ballot_decision": {
-          "type":  "text"
+          "type": "text"
         },
         "whether_to_ballot_decision": {
-          "type":  "text"
+          "type": "text"
         },
         "validity_decision": {
-          "type":  "text"
+          "type": "text"
         },
         "case_closure": {
-          "type":  "text"
+          "type": "text"
         },
         "nullification_decision": {
-          "type":  "text"
+          "type": "text"
         },
         "recognition_decision": {
-          "type":  "text"
+          "type": "text"
         },
         "application_received": {
-          "type":  "text"
+          "type": "text"
+        },
+        "method_agreed": {
+          "type": "keyword"
+        },
+        "application_withdrawn": {
+          "type": "keyword"
+        }
+      }
+    },
+    "document_urls": {
+      "properties": {
+        "acceptance_decision": {
+          "type": "keyword"
+        },
+        "access_decision_or_dispute": {
+          "type": "keyword"
+        },
+        "bargaining_unit_decision": {
+          "type": "keyword"
+        },
+        "bargaining_decision": {
+          "type": "keyword"
+        },
+        "form_of_ballot_decision": {
+          "type": "keyword"
+        },
+        "whether_to_ballot_decision": {
+          "type": "keyword"
+        },
+        "validity_decision": {
+          "type": "keyword"
+        },
+        "case_closure": {
+          "type": "keyword"
+        },
+        "nullification_decision": {
+          "type": "keyword"
+        },
+        "recognition_decision": {
+          "type": "keyword"
+        },
+        "application_received": {
+          "type": "keyword"
         },
         "method_agreed": {
           "type": "keyword"

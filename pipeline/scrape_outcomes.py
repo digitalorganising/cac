@@ -26,8 +26,13 @@ class CacOutcomeOpensearchPipeline(OpensearchPipeline):
     def doc(self, item):
         data = ItemAdapter(item).asdict()
         document_content = data.pop("document_content", None)
+        document_url = data.pop("document_url", None)
         document_type = data.pop("document_type")
-        return {**data, "documents": {document_type: document_content}}
+        return {
+            **data,
+            "documents": {document_type: document_content},
+            "document_urls": {document_type: document_url},
+        }
 
 
 class CacOutcomeSpider(scrapy.Spider):
@@ -93,7 +98,10 @@ class CacOutcomeSpider(scrapy.Spider):
             }
 
             if not should_get_content(document_type):
-                yield common_fields
+                yield {
+                    **common_fields,
+                    "document_url": response.urljoin(outcome_link.attrib["href"]),
+                }
             else:
                 yield from response.follow_all(
                     urls=outcome_link,
@@ -106,14 +114,20 @@ class CacOutcomeSpider(scrapy.Spider):
             content = self.html_content(response)
             # Bit of a hack, oops :)
             if kwargs["document_type"] == DocumentType.method_agreed:
-                published_date = response.css("meta[name='govuk:first-published-at']::attr(content)").get()
+                published_date = response.css(
+                    "meta[name='govuk:first-published-at']::attr(content)"
+                ).get()
                 content = f"First published at: {published_date}"
         except NotSupported:
             if response.headers.get("Content-Type").decode() == "application/pdf":
                 content = self.pdf_content(response)
             else:
                 content = ""
-        yield {**kwargs, "document_content": content.strip()}
+        yield {
+            **kwargs,
+            "document_content": content.strip(),
+            "document_url": response.url,
+        }
 
     def html_content(self, response):
         content = response.css("main#content div#contents div.govspeak").get().strip()

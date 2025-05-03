@@ -21,6 +21,7 @@ export type OutcomeEvent = {
   };
   date: string;
   description?: string;
+  sourceDocumentUrl: string;
 };
 
 export type OutcomeState = {
