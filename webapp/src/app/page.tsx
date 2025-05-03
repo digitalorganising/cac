@@ -82,7 +82,6 @@ export default async function Home({
     size: pageSize,
     ...params,
   });
-  console.log(outcomes);
   return (
     <main className="container max-w-(--breakpoint-lg) px-5 xs:px-8">
       <h1 className="text-5xl font-extrabold text-center mt-12">

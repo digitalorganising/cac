@@ -25,13 +25,39 @@ export default function OutcomePagination({
     return `${pathname}?${p.toString()}`;
   };
 
-  const pages = (
-    currentPage === 1
-      ? [1, 2, 3]
-      : currentPage === totalPages
-        ? [totalPages - 2, totalPages - 1, totalPages]
-        : [currentPage - 1, currentPage, currentPage + 1]
-  ).filter((p) => p <= totalPages);
+  const pageNumbers = () => {
+    const maxDisplayed = 7;
+    const pages: (number | "...")[] = [1];
+
+    const startEllipsis =
+      totalPages > maxDisplayed && currentPage > maxDisplayed - 3;
+    const endEllipsis =
+      totalPages > maxDisplayed && currentPage < totalPages - maxDisplayed + 3;
+
+    if (startEllipsis) {
+      pages.push("...");
+    }
+
+    const startIndex = startEllipsis
+      ? Math.max(2, Math.min(currentPage - 1, totalPages - maxDisplayed + 2))
+      : 2;
+    const endIndex = endEllipsis
+      ? Math.min(totalPages - 2, Math.max(currentPage + 1, maxDisplayed - 2))
+      : totalPages - 2;
+    for (let i = startIndex; i <= endIndex; i++) {
+      pages.push(i);
+    }
+
+    if (endEllipsis) {
+      pages.push("...");
+    }
+
+    // Always end with the last page
+    pages.push(totalPages - 1);
+    return pages;
+  };
+
+  const pages = pageNumbers();
 
   return (
     <Pagination>
@@ -44,30 +70,17 @@ export default function OutcomePagination({
             href={currentPage === 1 ? "" : pageUrl(currentPage - 1)}
           />
         </PaginationItem>
-        {pages.map((p) => (
-          <PaginationItem
-            key={p}
-            className={
-              pages.length === 1 ? "pointer-events-none opacity-30" : undefined
-            }
-          >
-            <PaginationLink href={pageUrl(p)} isActive={p === currentPage}>
-              {p}
-            </PaginationLink>
-          </PaginationItem>
-        ))}
-        {pages[pages.length - 1] !== totalPages ? (
-          <>
-            <PaginationItem>
-              <PaginationEllipsis />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationLink href={pageUrl(totalPages)}>
-                {totalPages}
+        {pages.map((p, index) =>
+          p === "..." ? (
+            <PaginationEllipsis key={`ellipsis-${index}`} />
+          ) : (
+            <PaginationItem key={p}>
+              <PaginationLink href={pageUrl(p)} isActive={p === currentPage}>
+                {p}
               </PaginationLink>
             </PaginationItem>
-          </>
-        ) : null}
+          ),
+        )}
         <PaginationItem
           className={
             currentPage === totalPages
