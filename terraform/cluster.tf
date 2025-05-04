@@ -16,7 +16,7 @@ resource "aws_ecs_capacity_provider" "search" {
   name = "search-capacity-provider"
 
   auto_scaling_group_provider {
-    auto_scaling_group_arn = aws_autoscaling_group.asg.arn
+    auto_scaling_group_arn = aws_autoscaling_group.search.arn
 
     managed_scaling {
       status                    = "ENABLED"
@@ -26,7 +26,7 @@ resource "aws_ecs_capacity_provider" "search" {
   }
 }
 
-resource "aws_autoscaling_group" "asg" {
+resource "aws_autoscaling_group" "search" {
   name                = "search-cluster-asg"
   max_size            = 1
   default_cooldown    = 180
