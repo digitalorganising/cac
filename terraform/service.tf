@@ -18,21 +18,68 @@ resource "aws_cloudwatch_log_group" "opensearch" {
   name = "awslogs-opensearch"
 }
 
+resource "aws_cloudwatch_log_group" "cert_fetcher" {
+  name = "awslogs-cert-fetcher"
+}
+
+locals {
+  cert_domain = aws_route53_record.digitalorganising_cac_api.name
+
+  cert_fetcher_container = {
+    name              = "cert-fetcher"
+    image             = "${aws_ecrpublic_repository.cert_fetcher.repository_uri}:latest"
+    essential         = false
+    memoryReservation = 128
+    environment = [
+      {
+        name  = "DOMAIN_NAME"
+        value = local.cert_domain
+      }
+    ]
+    mountPoints = [
+      {
+        sourceVolume  = "certificates"
+        containerPath = "/etc/letsencrypt"
+      }
+    ]
+    logConfiguration = {
+      logDriver = "awslogs"
+      options = {
+        awslogs-group         = aws_cloudwatch_log_group.cert_fetcher.name
+        awslogs-region        = "eu-west-1"
+        awslogs-stream-prefix = "ecs"
+      }
+    }
+  }
+}
+
 resource "aws_ecs_task_definition" "search" {
   family             = "search-task-definition"
   network_mode       = "host"
   execution_role_arn = aws_iam_role.search_service_execution_role.arn
+  task_role_arn      = aws_iam_role.search_service_role.arn
 
   container_definitions = jsonencode([
+    local.cert_fetcher_container,
     {
-      name              = "opensearch"
-      image             = "${aws_ecrpublic_repository.opensearch.repository_uri}:latest",
-      essential         = true,
+      name      = "opensearch"
+      image     = "${aws_ecrpublic_repository.opensearch.repository_uri}:latest",
+      essential = true,
+      dependsOn = [
+        {
+          containerName = local.cert_fetcher_container.name,
+          condition     = "SUCCESS"
+        }
+      ],
       memoryReservation = 768,
       mountPoints = [
         {
           sourceVolume  = "opensearch-data"
           containerPath = "/usr/share/opensearch/data"
+        },
+        {
+          sourceVolume  = "certificates",
+          containerPath = "/etc/letsencrypt"
         }
       ],
       portMappings = [
@@ -56,20 +103,8 @@ resource "aws_ecs_task_definition" "search" {
       ],
       environment = [
         {
-          name  = "discovery.type"
-          value = "single-node"
-        },
-        {
-          name  = "bootstrap.memory_lock"
-          value = "true"
-        },
-        {
-          name  = "http.compression"
-          value = "true"
-        },
-        {
           name  = "OPENSEARCH_JAVA_OPTS"
-          value = "-Xms512m -Xmx512m"
+          value = "-Xms1024m -Xmx1024m"
         }
       ],
       secrets = [
@@ -90,7 +125,11 @@ resource "aws_ecs_task_definition" "search" {
   ])
 
   volume {
-    configure_at_launch = false
-    name                = "opensearch-data"
+    name = "opensearch-data"
+  }
+
+  volume {
+    name      = "certificates"
+    host_path = "/etc/letsencrypt"
   }
 }

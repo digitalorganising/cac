@@ -1,0 +1,9 @@
+cluster.name: cac-search
+discovery.type: single-node
+bootstrap.memory_lock: true
+http.compression: true
+
+plugins.security.ssl.http.enabled: true
+plugins.security.ssl.http.pemcert_filepath: /etc/letsencrypt/live/search.cac.digitalorganis.ing/cert.pem
+plugins.security.ssl.http.pemkey_filepath: /etc/letsencrypt/live/search.cac.digitalorganis.ing/privkey.pem
+plugins.security.ssl.http.pemtrustedcas_filepath: /etc/letsencrypt/live/search.cac.digitalorganis.ing/chain.pem
