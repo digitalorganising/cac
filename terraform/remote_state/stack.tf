@@ -1,31 +1,11 @@
-locals {
-  region = "eu-west-1"
-}
-
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.97.0"
-    }
-  }
-
-  required_version = ">= 1.2.0"
-}
-
-provider "aws" {
-  region = local.region
-  profile = "do-cac-admin"
+resource "aws_s3_bucket" "terraform_state" {
+  bucket = "digitalorganising-cac-terraform-state-delta"
 }
 
 data "aws_caller_identity" "current" {}
 
-resource "aws_s3_bucket" "terraform_state_bucket" {
-  bucket = "digitalorganising-cac-terraform-state"  
-}
-
 resource "aws_s3_bucket_public_access_block" "terraform_state_bucket_public_access_block" {
-  bucket = aws_s3_bucket.terraform_state_bucket.id
+  bucket = aws_s3_bucket.terraform_state.id
 
   block_public_acls       = true
   block_public_policy     = true
@@ -59,3 +39,19 @@ resource "aws_iam_role_policy_attachment" "terraform_role_policy_attachment" {
 output "admin_role_arn" {
   value = aws_iam_role.admin_role.arn
 }
+
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+    }
+  }
+}
+
+provider "aws" {
+  region  = "eu-west-1"
+  profile = "do-cac-admin"
+}
+
+
+

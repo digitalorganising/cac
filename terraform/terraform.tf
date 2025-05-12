@@ -11,14 +11,14 @@ terraform {
   }
 
   backend "s3" {
-    bucket       = "digitalorganising-cac-terraform-state"
+    bucket       = "digitalorganising-cac-terraform-state-delta"
     key          = "terraform.tfstate"
     region       = "eu-west-1"
     encrypt      = true
     use_lockfile = true
     profile      = "do-cac-admin"
     assume_role = {
-      role_arn = "arn:aws:iam::627738371162:role/digitalorganising-cac-admin"
+      role_arn = "arn:aws:iam::510900713680:role/digitalorganising-cac-admin"
     }
   }
 
@@ -27,11 +27,5 @@ terraform {
 
 provider "aws" {
   region  = local.region
-  profile = "do-cac-admin"
-}
-
-provider "aws" {
-  region  = "us-east-1"
-  alias   = "us_east_1"
   profile = "do-cac-admin"
 }
