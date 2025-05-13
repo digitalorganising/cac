@@ -16,7 +16,7 @@ terraform {
     region       = "eu-west-1"
     encrypt      = true
     use_lockfile = true
-    profile      = "do-cac-admin"
+    profile      = "sso-profile"
     assume_role = {
       role_arn = "arn:aws:iam::510900713680:role/digitalorganising-cac-admin"
     }
@@ -27,5 +27,5 @@ terraform {
 
 provider "aws" {
   region  = local.region
-  profile = "do-cac-admin"
+  profile = "sso-profile"
 }

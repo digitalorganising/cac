@@ -27,10 +27,17 @@ resource "aws_opensearch_domain" "cac_search" {
   advanced_security_options {
     enabled                        = true
     internal_user_database_enabled = false
-    anonymous_auth_enabled         = true
+    anonymous_auth_enabled         = false
     master_user_options {
       master_user_arn = aws_iam_role.opensearch_master_user.arn
     }
+  }
+
+  cognito_options {
+    enabled          = true
+    user_pool_id     = aws_cognito_user_pool.digitalorganising_users.id
+    identity_pool_id = aws_cognito_identity_pool.opensearch_identity_pool.id
+    role_arn         = aws_iam_role.opensearch_cognito_role.arn
   }
 
   domain_endpoint_options {
@@ -56,12 +63,4 @@ resource "aws_acm_certificate" "cac_search" {
 resource "aws_acm_certificate_validation" "cac_search" {
   certificate_arn         = aws_acm_certificate.cac_search.arn
   validation_record_fqdns = [for record in aws_route53_record.cac_search_validation : record.fqdn]
-}
-
-resource "aws_opensearch_saml_options" "cac_search" {
-  domain_name = aws_opensearch_domain.cac_search.domain_name
-
-  saml_options {
-    enabled = true
-  }
 }
