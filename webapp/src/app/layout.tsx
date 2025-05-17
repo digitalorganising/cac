@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import NextTopLoader from "nextjs-toploader";
 
 export const metadata: Metadata = {
   title: "CAC Outcomes",
@@ -21,7 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <NextTopLoader shadow={false} height={2} color="hsl(222.2 84% 4.9%)" />
+        {children}
+      </body>
     </html>
   );
 }
