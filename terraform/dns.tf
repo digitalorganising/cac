@@ -42,27 +42,3 @@ resource "aws_route53_record" "digitalorganising_githubpages_challenge" {
   records = ["2acdd2a9081e8e711cc2417cdd90ae"]
 }
 
-resource "aws_route53_record" "cac_search" {
-  zone_id = aws_route53_zone.digitalorganising.zone_id
-  name    = local.endpoint
-  type    = "CNAME"
-  ttl     = "600"
-  records = [aws_opensearch_domain.cac_search.endpoint_v2]
-}
-
-resource "aws_route53_record" "cac_search_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.cac_search.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
-
-  allow_overwrite = true
-  name            = each.value.name
-  records         = [each.value.record]
-  ttl             = 60
-  type            = each.value.type
-  zone_id         = aws_route53_zone.digitalorganising.zone_id
-}

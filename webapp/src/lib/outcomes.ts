@@ -1,9 +1,9 @@
 import "server-only";
-import { cache } from "react";
 import { Client } from "@opensearch-project/opensearch";
 import { awsCredentialsProvider } from "@vercel/functions/oidc";
 import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
 import { Outcome } from "@/lib/types";
+import { unstable_cache } from "next/cache";
 
 const client = new Client({
   ...AwsSigv4Signer({
@@ -24,7 +24,7 @@ type GetOutcomesOptions = {
   "parties.employer"?: string;
 };
 
-export const getOutcomes = cache(
+export const getOutcomes = unstable_cache(
   async ({
     from,
     size,
@@ -77,4 +77,5 @@ export const getOutcomes = cache(
       docs: response.body.hits.hits.map((hit: any) => hit._source.display),
     };
   },
+  ["client"],
 );

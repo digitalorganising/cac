@@ -59,7 +59,6 @@ outcomes_source = OpensearchSource(
     cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
     index="outcomes-raw-2025",
     page_size=5,
-    query={"term": {"reference": "TUR1/1194(2020)"}},
 )
 opensearch_sink = OutcomeSink(
     cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
