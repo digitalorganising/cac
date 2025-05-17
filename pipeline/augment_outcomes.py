@@ -8,6 +8,7 @@ from .services.opensearch_connectors import OpensearchSink, OpensearchSource
 
 fast_forward = bool(os.getenv("FAST_FORWARD"))
 
+
 class OutcomeSink(OpensearchSink):
     def doc(self, item):
         document_type = item.pop("document_type")
@@ -19,7 +20,7 @@ class OutcomeSink(OpensearchSink):
                 "documents": {document_type: content},
                 "document_urls": {document_type: url},
             }
-        
+
         extracted_data = item.pop("extracted_data")
         return {
             **item,
@@ -41,7 +42,7 @@ def flat_map_outcome(outcome):
             **outcome_doc,
             "document_type": document_type,
             "content": content,
-            "document_url": document_urls.get(document_type)
+            "document_url": document_urls.get(document_type),
         }
 
 
@@ -55,17 +56,15 @@ def augment_doc(doc):
 
 
 outcomes_source = OpensearchSource(
-    cluster_host="http://127.0.0.1",
-    cluster_user=None,
-    cluster_pass=None,
+    cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
     index="outcomes-raw-2025",
-    page_size=25,
+    page_size=5,
+    query={"term": {"reference": "TUR1/1194(2020)"}},
 )
 opensearch_sink = OutcomeSink(
-    cluster_host="http://127.0.0.1",
-    cluster_user=None,
-    cluster_pass=None,
+    cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
     index="outcomes-augmented",
+    mapping_path="./pipeline/index_mappings/outcomes_augmented.json",
 )
 
 

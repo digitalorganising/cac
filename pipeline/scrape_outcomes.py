@@ -145,7 +145,10 @@ def scrape():
             "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
             "LOG_LEVEL": "INFO",
             "ITEM_PIPELINES": {CacOutcomeOpensearchPipeline: 100},
-            "OPENSEARCH": {"HOST": "http://127.0.0.1", "INDEX": "outcomes-raw-2025"},
+            "OPENSEARCH": {
+                "INDEX": "outcomes-raw-2025",
+                "MAPPING_PATH": "./pipeline/index_mappings/outcomes_raw.json",
+            },
         }
     )
     process.crawl(CacOutcomeSpider)

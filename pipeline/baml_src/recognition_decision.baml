@@ -1,6 +1,6 @@
 class BallotResult {
     eligible_workers int
-    spoiled_ballots int
+    spoiled_ballots int @description("0 if no spoiled ballots")
     votes_in_favor int
     votes_against int
     start_ballot_period string @description("ballot start date - date of ballot paper dispatch if postal")

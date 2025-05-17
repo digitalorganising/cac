@@ -1,4 +1,5 @@
 import re
+import os
 
 import bytewax.operators as op
 from bytewax.dataflow import Dataflow
@@ -146,17 +147,14 @@ class OutcomeSink(OpensearchSink):
 
 
 outcomes_source = OpensearchSource(
-    cluster_host="http://127.0.0.1",
-    cluster_user=None,
-    cluster_pass=None,
+    cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
     index="outcomes-augmented",
     page_size=25,
 )
 opensearch_sink = OutcomeSink(
-    cluster_host="http://127.0.0.1",
-    cluster_user=None,
-    cluster_pass=None,
+    cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
     index="outcomes-indexed",
+    mapping_path="pipeline/index_mappings/outcomes_indexed.json",
 )
 
 flow = Dataflow("final_index_derived")

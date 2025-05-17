@@ -4,7 +4,9 @@ from typing import Any, AsyncIterator, Iterable, List, Optional
 
 from bytewax.inputs import FixedPartitionedSource, StatefulSourcePartition, batch_async
 from bytewax.outputs import DynamicSink, StatelessSinkPartition
-from opensearchpy import AsyncOpenSearch, OpenSearch, exceptions, helpers
+from opensearchpy import exceptions, helpers
+
+from .opensearch_utils import get_auth, create_client, ensure_index_mapping
 
 
 class OpensearchStatefulSourcePartition(
@@ -13,13 +15,13 @@ class OpensearchStatefulSourcePartition(
     def __init__(
         self,
         cluster_host,
-        cluster_user,
-        cluster_pass,
         index,
         page_size,
         query,
         sort,
         search_after,
+        cluster_user=None,
+        cluster_pass=None,
     ):
         self.search_after = search_after
         async_generator = self._opensearch_source(
@@ -45,20 +47,15 @@ class OpensearchStatefulSourcePartition(
     async def _opensearch_source(
         self,
         cluster_host,
-        cluster_user,
-        cluster_pass,
         index,
         page_size,
         query,
         sort,
+        cluster_user=None,
+        cluster_pass=None,
     ) -> AsyncIterator[Any]:
-        http_auth = (cluster_user, cluster_pass)
-        client = AsyncOpenSearch(
-            hosts=[cluster_host],
-            use_ssl=("https" in cluster_host),
-            http_auth=http_auth if all(http_auth) else None,
-            http_compress=True,
-        )
+        auth = get_auth(user=cluster_user, password=cluster_pass)
+        client = create_client(cluster_host=cluster_host, auth=auth, async_client=True)
 
         async def do_search():
             try:
@@ -91,12 +88,12 @@ class OpensearchSource(FixedPartitionedSource[Any, List[str]]):
     def __init__(
         self,
         cluster_host,
-        cluster_user,
-        cluster_pass,
         index,
         page_size=25,
         query={"match_all": {}},
         sort=[{"_id": "asc"}],
+        cluster_user=None,
+        cluster_pass=None,
     ):
         self.cluster_host = cluster_host
         self.cluster_user = cluster_user
@@ -129,18 +126,21 @@ class OpensearchSource(FixedPartitionedSource[Any, List[str]]):
 
 class OpensearchStatelessSinkPartition(StatelessSinkPartition[Any]):
     def __init__(
-        self, cluster_host, cluster_user, cluster_pass, index, get_doc, get_id
+        self,
+        cluster_host,
+        index,
+        get_doc,
+        get_id,
+        cluster_user=None,
+        cluster_pass=None,
     ):
         self.index = index
         self.get_doc = get_doc
         self.get_id = get_id
 
-        http_auth = (cluster_user, cluster_pass)
-        self._client = OpenSearch(
-            hosts=[cluster_host],
-            use_ssl=("https" in cluster_host),
-            http_auth=http_auth if all(http_auth) else None,
-            http_compress=True,
+        auth = get_auth(user=cluster_user, password=cluster_pass)
+        self._client = create_client(
+            cluster_host=cluster_host, auth=auth, async_client=False
         )
 
     def to_action(self, item):
@@ -169,14 +169,16 @@ class OpensearchSink(DynamicSink[Any], ABC):
     def __init__(
         self,
         cluster_host,
-        cluster_user,
-        cluster_pass,
         index,
+        mapping_path=None,
+        cluster_user=None,
+        cluster_pass=None,
     ):
         self.cluster_host = cluster_host
         self.cluster_user = cluster_user
         self.cluster_pass = cluster_pass
         self.index = index
+        self.mapping_path = mapping_path
 
     def doc(self, item) -> Any:
         return item
@@ -185,7 +187,25 @@ class OpensearchSink(DynamicSink[Any], ABC):
     def id(self, item) -> str:
         pass
 
+    async def _ensure_mapping(self):
+        """Ensure the index exists with the correct mapping before starting ingestion."""
+        auth = get_auth(user=self.cluster_user, password=self.cluster_pass)
+        client = create_client(
+            cluster_host=self.cluster_host, auth=auth, async_client=True
+        )
+        try:
+            await ensure_index_mapping(
+                client=client, index=self.index, mapping_path=self.mapping_path
+            )
+        finally:
+            await client.close()
+
     def build(self, step_id: str, worker_index: int, worker_count: int):
+        # Ensure mapping is set up before creating the sink partition
+        import asyncio
+
+        asyncio.run(self._ensure_mapping())
+
         return OpensearchStatelessSinkPartition(
             cluster_host=self.cluster_host,
             cluster_user=self.cluster_user,

@@ -1,9 +1,12 @@
 import asyncio
 from abc import ABC, abstractmethod
+import os
 
 import scrapy
-from opensearchpy import AsyncOpenSearch, helpers
+from opensearchpy import helpers
 from twisted.internet.defer import Deferred
+
+from .opensearch_utils import get_auth, create_client, ensure_index_mapping
 
 
 def deferred(coroutine):
@@ -29,40 +32,49 @@ class OpensearchPipeline(ABC):
     def __init__(
         self,
         cluster_host,
-        cluster_user,
-        cluster_pass,
+        auth,
         index,
-        batch_size=10,
-        concurrency=3,
+        batch_size=5,
+        concurrency=1,
+        mapping_path=None,
     ):
         self.cluster_host = cluster_host
-        self.cluster_user = cluster_user
-        self.cluster_pass = cluster_pass
+        self.auth = auth
         self.index = index
         self.batch_size = batch_size
         self.concurrency = concurrency
+        self.mapping_path = mapping_path
 
     @classmethod
     def from_crawler(cls, crawler):
         settings = crawler.settings.get("OPENSEARCH")
+        auth = get_auth(user=settings.get("USER"), password=settings.get("PASS"))
         return cls(
-            cluster_host=settings.get("HOST"),
+            cluster_host=settings.get("HOST", os.getenv("OPENSEARCH_ENDPOINT")),
             index=settings.get("INDEX"),
-            cluster_user=settings.get("USER", None),
-            cluster_pass=settings.get("PASS", None),
+            auth=auth,
+            mapping_path=settings.get("MAPPING_PATH"),
         )
 
     def open_spider(self, spider):
-        http_auth = (self.cluster_user, self.cluster_pass)
-        self.client = AsyncOpenSearch(
-            hosts=[self.cluster_host],
-            use_ssl=("https" in self.cluster_host),
-            http_auth=http_auth if all(http_auth) else None,
-            http_compress=True,
+        self.client = create_client(
+            cluster_host=self.cluster_host,
+            auth=self.auth,
+            async_client=True,
         )
-        for _ in range(self.concurrency):
-            self.start_worker(spider)
-        return deferred(self.client.ping())
+
+        async def setup():
+            await self.client.ping()
+            await ensure_index_mapping(
+                client=self.client,
+                index=self.index,
+                mapping_path=self.mapping_path,
+                logger=spider.logger,
+            )
+            for _ in range(self.concurrency):
+                self.start_worker(spider)
+
+        return deferred(setup())
 
     def close_spider(self, spider):
         async def shutdown():
