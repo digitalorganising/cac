@@ -32,18 +32,18 @@ export default function OutcomePagination({
     const startEllipsis =
       totalPages > maxDisplayed && currentPage > maxDisplayed - 3;
     const endEllipsis =
-      totalPages > maxDisplayed && currentPage < totalPages - maxDisplayed + 3;
+      totalPages > maxDisplayed && currentPage < totalPages - maxDisplayed + 4;
 
     if (startEllipsis) {
       pages.push("...");
     }
 
     const startIndex = startEllipsis
-      ? Math.max(2, Math.min(currentPage - 1, totalPages - maxDisplayed + 2))
+      ? Math.max(2, Math.min(currentPage - 1, totalPages - maxDisplayed + 3))
       : 2;
     const endIndex = endEllipsis
-      ? Math.min(totalPages - 2, Math.max(currentPage + 1, maxDisplayed - 2))
-      : totalPages - 2;
+      ? Math.min(totalPages - 1, Math.max(currentPage + 1, maxDisplayed - 2))
+      : totalPages - 1;
     for (let i = startIndex; i <= endIndex; i++) {
       pages.push(i);
     }
@@ -53,7 +53,10 @@ export default function OutcomePagination({
     }
 
     // Always end with the last page
-    pages.push(totalPages - 1);
+    if (pages[pages.length - 1] !== totalPages) {
+      pages.push(totalPages);
+    }
+
     return pages;
   };
 
