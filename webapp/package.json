@@ -10,15 +10,18 @@
     "prepare": "cd .. && husky webapp/.husky"
   },
   "dependencies": {
+    "@aws-sdk/credential-provider-node": "^3.812.0",
+    "@opensearch-project/opensearch": "^3.5.1",
     "@radix-ui/react-icons": "^1.3.2",
     "@radix-ui/react-slot": "^1.1.0",
+    "@vercel/functions": "^2.1.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
     "lucide-react": "^0.428.0",
-    "next": "15.0.3",
-    "react": "19.0.0-rc-66855b96-20241106",
-    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "next": "^15.3.2",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
   },

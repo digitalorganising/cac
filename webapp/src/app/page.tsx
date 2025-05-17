@@ -6,62 +6,7 @@ import OutcomeCard from "@/components/OutcomeCard";
 import OutcomePagination from "@/components/OutcomePagination";
 import ResetButton from "@/components/ResetButton";
 import { Outcome } from "@/lib/types";
-
-type GetOutcomesOptions = {
-  from: number;
-  size: number;
-  query?: string;
-  "parties.unions"?: string;
-  "parties.employer"?: string;
-};
-
-const getOutcomes = async ({
-  from,
-  size,
-  query,
-  "parties.unions": unions,
-  "parties.employer": employer,
-}: GetOutcomesOptions): Promise<{ size: number; docs: Outcome[] }> => {
-  const res = await fetch("http://localhost:9200/outcomes-indexed/_search", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      size,
-      track_total_hits: true,
-      query: {
-        bool: {
-          should: query
-            ? [
-                {
-                  match: {
-                    all_decisions: query,
-                  },
-                },
-              ]
-            : [{ match_all: {} }],
-          filter: [
-            unions && { match: { "filter.parties.unions": unions } },
-            employer && { match: { "filter.parties.employer": employer } },
-          ].filter(Boolean),
-        },
-      },
-      sort: [
-        { _score: { order: "desc" } },
-        { last_updated: { order: "desc" } },
-      ],
-      _source: ["display"],
-    }),
-  });
-  const data = await res.json();
-  const totalHits = data.hits.total.value;
-  return {
-    size: totalHits,
-    docs: data.hits.hits.map((hit: any) => hit._source.display),
-  };
-};
+import { getOutcomes } from "@/lib/outcomes";
 
 type QueryParams = {
   query?: string;
