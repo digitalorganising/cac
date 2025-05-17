@@ -33,6 +33,9 @@ resource "aws_opensearch_domain" "cac_search" {
     }
   }
 
+  # TODO: Replace with Identity Center trusted identity propagation once available in tf
+  # https://docs.aws.amazon.com/opensearch-service/latest/developerguide/idc-aos.html
+  # https://github.com/hashicorp/terraform-provider-aws/issues/41026
   cognito_options {
     enabled          = true
     user_pool_id     = aws_cognito_user_pool.digitalorganising_users.id
@@ -63,4 +66,79 @@ resource "aws_acm_certificate" "cac_search" {
 resource "aws_acm_certificate_validation" "cac_search" {
   certificate_arn         = aws_acm_certificate.cac_search.arn
   validation_record_fqdns = [for record in aws_route53_record.cac_search_validation : record.fqdn]
+}
+
+resource "opensearch_role" "indexed_reader" {
+  role_name   = "indexed_reader"
+  description = "Read any documents in indices ending with 'indexed'"
+
+  index_permissions {
+    index_patterns  = ["*indexed"]
+    allowed_actions = ["read"]
+  }
+}
+
+resource "opensearch_role" "ingest_writer" {
+  role_name   = "ingest_writer"
+  description = "Write to 'raw' indices"
+
+  index_permissions {
+    index_patterns  = ["*raw"]
+    allowed_actions = ["write"]
+  }
+}
+
+resource "opensearch_role" "augmented_writer" {
+  role_name   = "ingest_writer"
+  description = "Read from 'raw' and write to 'augmented' indices"
+
+  index_permissions {
+    index_patterns  = ["*raw"]
+    allowed_actions = ["read"]
+  }
+
+  index_permissions {
+    index_patterns  = ["*augmented"]
+    allowed_actions = ["write"]
+  }
+}
+
+resource "opensearch_role" "indexed_writer" {
+  role_name   = "indexed_writer"
+  description = "Read from 'augmented' and write to 'indexed' indices"
+
+  index_permissions {
+    index_patterns  = ["*augmented"]
+    allowed_actions = ["read"]
+  }
+
+  index_permissions {
+    index_patterns  = ["*indexed"]
+    allowed_actions = ["write"]
+  }
+}
+
+resource "opensearch_roles_mapping" "cac_webapp_vercel" {
+  role_name   = opensearch_role.indexed_reader.role_name
+  description = "Mapping Vercel role to OpenSearch role"
+  backend_roles = [
+    aws_iam_role.cac_webapp_vercel.arn
+  ]
+}
+
+locals {
+  pipeline_role_mappings = {
+    scraper   = opensearch_role.ingest_writer.role_name
+    augmenter = opensearch_role.augmented_writer.role_name
+    indexer   = opensearch_role.indexed_writer.role_name
+  }
+}
+
+resource "opensearch_roles_mapping" "pipeline_role_mappings" {
+  for_each    = local.pipeline_role_mappings
+  role_name   = each.value
+  description = "Mapping ${each.key} pipeline role to OpenSearch role"
+  backend_roles = [
+    aws_iam_role.pipeline_role[each.key].arn
+  ]
 }

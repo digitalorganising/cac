@@ -1,19 +1,4 @@
-resource "aws_iam_role" "opensearch_master_user" {
-  name               = "opensearch-master-user"
-  assume_role_policy = data.aws_iam_policy_document.opensearch_master_user_assume_role_policy.json
-}
-
 data "aws_caller_identity" "current" {}
-
-data "aws_iam_policy_document" "opensearch_master_user_assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "AWS"
-      identifiers = [data.aws_caller_identity.current.arn]
-    }
-  }
-}
 
 data "aws_iam_policy_document" "opensearch_domain_access_policy" {
   statement {
@@ -32,6 +17,10 @@ resource "aws_opensearch_domain_policy" "opensearch_domain_policy" {
   access_policies = data.aws_iam_policy_document.opensearch_domain_access_policy.json
 }
 
+resource "aws_iam_role" "opensearch_master_user" {
+  name               = "opensearch-master-user"
+  assume_role_policy = data.aws_iam_policy_document.opensearch_master_user_trust_policy.json
+}
 
 data "aws_iam_policy_document" "opensearch_master_user_trust_policy" {
   statement {
@@ -52,29 +41,17 @@ data "aws_iam_policy_document" "opensearch_master_user_trust_policy" {
       values   = ["authenticated"]
     }
   }
-}
 
-data "aws_iam_policy_document" "opensearch_master_user_policy_doc" {
   statement {
     effect = "Allow"
-    actions = [
-      "es:ESHttp*"
-    ]
-    resources = [
-      "${aws_opensearch_domain.cac_search.arn}/*"
-    ]
+    principals {
+      type = "AWS"
+      identifiers = [
+        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+      ]
+    }
+    actions = ["sts:AssumeRole"]
   }
-}
-
-resource "aws_iam_role" "opensearch_master_user_role" {
-  name               = "opensearch-master-user-role"
-  assume_role_policy = data.aws_iam_policy_document.opensearch_master_user_trust_policy.json
-}
-
-resource "aws_iam_role_policy" "opensearch_master_user_policy" {
-  name   = "opensearch-master-user-policy"
-  role   = aws_iam_role.opensearch_master_user_role.id
-  policy = data.aws_iam_policy_document.opensearch_master_user_policy_doc.json
 }
 
 resource "aws_iam_role" "opensearch_cognito_role" {

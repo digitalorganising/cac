@@ -1,5 +1,6 @@
 locals {
-  region = "eu-west-1"
+  region  = "eu-west-1"
+  profile = "sso-profile"
 }
 
 terraform {
@@ -7,6 +8,14 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.97.0"
+    }
+    vercel = {
+      source  = "vercel/vercel"
+      version = "~> 3.2.0"
+    }
+    opensearch = {
+      source  = "opensearch-project/opensearch"
+      version = "~> 2.3.1"
     }
   }
 
@@ -27,5 +36,16 @@ terraform {
 
 provider "aws" {
   region  = local.region
-  profile = "sso-profile"
+  profile = local.profile
+}
+
+provider "vercel" {
+  team = "digital-organising"
+}
+
+provider "opensearch" {
+  url                 = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
+  aws_assume_role_arn = aws_iam_role.opensearch_master_user.arn
+  aws_profile         = local.profile
+  aws_region          = local.region
 }
