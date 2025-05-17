@@ -24,6 +24,20 @@ type GetOutcomesOptions = {
   "parties.employer"?: string;
 };
 
+const filterText = (field: string, query?: string) =>
+  query
+    ? [
+        {
+          match: {
+            [field]: {
+              query,
+              minimum_should_match: "3<-25%",
+            },
+          },
+        },
+      ]
+    : [];
+
 export const getOutcomes = unstable_cache(
   async ({
     from,
@@ -50,12 +64,8 @@ export const getOutcomes = unstable_cache(
                 ]
               : [{ match_all: {} }],
             filter: [
-              ...(unions
-                ? [{ match: { "filter.parties.unions": unions } }]
-                : []),
-              ...(employer
-                ? [{ match: { "filter.parties.employer": employer } }]
-                : []),
+              ...filterText("filter.parties.unions", unions),
+              ...filterText("filter.parties.employer", employer),
             ],
           },
         },
