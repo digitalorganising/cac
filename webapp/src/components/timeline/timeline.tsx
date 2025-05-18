@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { TimelineColor } from "./types";
 import { HTMLProps } from "react";
 import dayjs from "dayjs";
+import ShowMore from "../ShowMore";
 
 /**
  * Timeline component props interface
@@ -268,19 +269,18 @@ const TimelineIcon = ({
   );
 };
 
-const TimelineDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <p
-    ref={ref}
+const TimelineDescription = (
+  props: React.HTMLAttributes<HTMLParagraphElement>,
+) => (
+  <ShowMore
+    lineClampClassName="max-sm:line-clamp-5"
     className={cn(
-      "max-w-sm text-sm text-muted-foreground first-letter:capitalize max-sm:line-clamp-5",
-      className,
+      "max-w-sm text-sm text-muted-foreground first-letter:capitalize",
+      props.className,
     )}
     {...props}
   />
-));
+);
 TimelineDescription.displayName = "TimelineDescription";
 
 const TimelineContent = React.forwardRef<
