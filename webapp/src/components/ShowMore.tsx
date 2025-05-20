@@ -67,6 +67,8 @@ export default function ShowMore({
       {truncated || expanded ? (
         <a
           onClick={() => setExpanded((e) => !e)}
+          role="button"
+          aria-expanded={expanded}
           className="text-sm text-slate-700 font-medium hover:underline underline-offset-4 hover:font-semibold"
         >
           {expanded ? "Show less" : "Show more"}

@@ -49,7 +49,7 @@ type OutcomeBargainingUnit = {
   description: string;
 };
 
-type BallotStats = {
+export type BallotStats = {
   n: number;
   percentVotes: number;
   percentBU: number;

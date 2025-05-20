@@ -53,6 +53,7 @@ Timeline.displayName = "Timeline";
  */
 export interface TimelineItemProps
   extends Omit<HTMLProps<HTMLLIElement>, "ref" | "title"> {
+  timelineId: string;
   /** Date string for the timeline item */
   date?: string;
   /** Title of the timeline item */
@@ -79,6 +80,7 @@ const TimelineItem = React.forwardRef<HTMLLIElement, TimelineItemProps>(
       className,
       date,
       title,
+      timelineId,
       description,
       icon,
       iconColor,

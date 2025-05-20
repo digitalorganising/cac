@@ -37,30 +37,25 @@ const BargainingUnit = ({
   membership,
   size,
 }: Required<Outcome>["bargainingUnit"]) => (
-  <>
-    <dt>Bargaining unit size</dt>
-    <dd>
+  <span
+    className={cn(
+      "rounded-md inline-block bg-slate-200",
+      membership ? "pl-2 xs:pl-2.5" : "px-2 xs:px-2.5 py-0.5 xs:py-1",
+    )}
+  >
+    {size} workers
+    {membership ? (
       <span
         className={cn(
-          "rounded-md inline-block bg-slate-200",
-          membership ? "pl-2 xs:pl-2.5" : "px-2 xs:px-2.5 py-0.5 xs:py-1",
+          "inline-block pr-2 xs:pr-2.5 pl-1 xs:pl-1.5 ml-3 xs:ml-3.5 py-0.5 xs:py-1 bg-slate-300 rounded-r-md relative z-20",
+          "after:content-['_'] after:-skew-x-12 xs:after:-skew-x-16 after:origin-top-right after:absolute after:top-0 after:left-0",
+          "after:bg-slate-300 after:w-[16px] after:h-full after:-z-10",
         )}
       >
-        {size} workers
-        {membership ? (
-          <span
-            className={cn(
-              "inline-block pr-2 xs:pr-2.5 pl-1 xs:pl-1.5 ml-3 xs:ml-3.5 py-0.5 xs:py-1 bg-slate-300 rounded-r-md relative z-20",
-              "after:content-['_'] after:-skew-x-12 xs:after:-skew-x-16 after:origin-top-right after:absolute after:top-0 after:left-0",
-              "after:bg-slate-300 after:w-[16px] after:h-full after:-z-10",
-            )}
-          >
-            {membership} union members
-          </span>
-        ) : null}
+        {membership} union members
       </span>
-    </dd>
-  </>
+    ) : null}
+  </span>
 );
 
 const OutcomeDetails = ({ outcome, className }: Props) => (
@@ -121,16 +116,28 @@ const OutcomeDetails = ({ outcome, className }: Props) => (
     </dd>
 
     {outcome.bargainingUnit ? (
-      <BargainingUnit {...outcome.bargainingUnit} />
+      <>
+        <dt>Bargaining unit</dt>
+        <dd>
+          <BargainingUnit {...outcome.bargainingUnit} />
+        </dd>
+      </>
     ) : null}
 
-    {outcome.ballot ? <BallotResults {...outcome.ballot} /> : null}
+    {outcome.ballot ? (
+      <>
+        <dt>Ballot results:</dt>
+        <dd className="col-start-1! col-span-2">
+          <BallotResults {...outcome.ballot} />
+        </dd>
+      </>
+    ) : null}
   </dl>
 );
 
 const OutcomeCard = ({ outcome }: Props) => (
   <Card>
-    <CardHeader className="space-y-0 xs:space-x-2 block xs:flex flex-row-reverse items-center justify-between">
+    <CardHeader className="space-y-0 xs:space-x-2 block xs:flex flex-row-reverse items-center justify-between mb-2">
       <a
         href={outcome.cacUrl}
         target="_blank"
@@ -149,7 +156,11 @@ const OutcomeCard = ({ outcome }: Props) => (
     <CardContent className="flex flex-col md:flex-row sm:space-x-4 w-full">
       <Timeline className="ml-2 md:w-1/2">
         {outcome.events.map((e) => (
-          <DecisionTimelineItem key={e.type.value} event={e} />
+          <DecisionTimelineItem
+            key={e.type.value}
+            event={e}
+            timelineId={outcome.reference}
+          />
         ))}
       </Timeline>
       <OutcomeDetails outcome={outcome} className="md:w-1/2" />
