@@ -1,12 +1,14 @@
 class AcceptanceDecision {
   decision_date string
-  employer_hostility int @description("A number between 0 and 100 reflecting the level of employer hostility and opposition to union recognition, where 1.0 is the most hostile")
   success bool @description("Whether the application was successful")
   rejection_reasons RejectionReason[] @description("If the application was not successful, why was it rejected by the CAC? Empty if application was successful")
   application_date string @description("The date the application was received - not the date it was submitted, if these differ")
   end_of_acceptance_period string? @description("The date for the end of the acceptance period after any extensions")
   bargaining_unit BargainingUnit
   bargaining_unit_agreed bool @description("Whether the employer agreed with the bargaining unit")
+  petition_signatures int? @description("The number of names/signatures on the petition/survey, before any verification or cross-checking or other removal/redaction, if the union used one (null if no petition)")
+
+  @@assert(consistent_rejection_reasons, {{ this.success != this.rejection_reasons|length|bool }})
 }
 
 function ExtractAcceptanceDecision(decision_document: string) -> AcceptanceDecision {
@@ -20,6 +22,6 @@ function ExtractAcceptanceDecision(decision_document: string) -> AcceptanceDecis
 
     {{ ctx.output_format }}
 
-    Before you answer, outline everything you know about the composition of the bargaining unit, then answer as above.
+    {{ BargainingUnitThinkingPrompt() }}
   "#
 }

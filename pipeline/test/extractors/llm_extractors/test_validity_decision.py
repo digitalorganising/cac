@@ -24,6 +24,7 @@ async def test_unite_primopost(cac_document_contents):
 
     assert date_eq(vd.decision_date, "25 June 2014")
     assert vd.valid
+    assert vd.petition_signatures == 62
     assert (
         SM(
             None,
@@ -48,7 +49,6 @@ Management""",
     assert vd.new_bargaining_unit.size == 69
     assert vd.new_bargaining_unit.claimed_membership is 35
     assert vd.new_bargaining_unit.membership == 35
-    assert vd.new_bargaining_unit.supporters == 51
 
 
 @pytest.mark.parametrize(
@@ -62,13 +62,13 @@ async def test_rmt_cwind(cac_document_contents):
 
     assert date_eq(vd.decision_date, "14 November 2019")
     assert not vd.valid
+    assert vd.petition_signatures == 1
     assert vd.new_bargaining_unit == BargainingUnit(
-        description="All Skippers and Crew employed by CWind except those based at "
-        "the Ramsgate site",
+        description="all Skippers and Crew employed by CWind except those based at the Ramsgate site "
+        "that were subject to the existing bargaining arrangements",
         size=16,
         claimed_membership=7,
         membership=5,
-        supporters=None,
     )
 
 
@@ -84,6 +84,7 @@ async def test_gmb_noble_collection(cac_document_contents):
     assert date_eq(vd.decision_date, "2 November 2022")
     assert vd.valid
     assert not vd.rejection_reasons
+    assert vd.petition_signatures == 16
     assert vd.new_bargaining_unit == BargainingUnit(
         description="all retail staff employed by the Noble Collection UK "
         "Ltd at 26-28 Neal Street, "
@@ -92,7 +93,6 @@ async def test_gmb_noble_collection(cac_document_contents):
         size=15,
         claimed_membership=7,
         membership=7,
-        supporters=7,
     )
 
 
@@ -108,6 +108,7 @@ async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
     assert date_eq(vd.decision_date, "4 March 2019")
     assert vd.valid
     assert not vd.rejection_reasons
+    assert vd.petition_signatures == 218
     assert vd.new_bargaining_unit == BargainingUnit(
         description="All staff employed by the Corporation of the Hall of Arts and "
         "Sciences (commonly known as the Royal Albert Hall) at the "
@@ -118,7 +119,6 @@ async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
         size=448,
         claimed_membership=58,
         membership=58,
-        supporters=199,
     )
 
 
@@ -134,10 +134,10 @@ async def test_gmb_metallink(cac_document_contents):
     assert date_eq(vd.decision_date, "5 April 2016")
     assert not vd.valid
     assert vd.rejection_reasons == [RejectionReason.NoMajoritySupportLikely]
+    assert vd.petition_signatures == 11
     assert vd.new_bargaining_unit == BargainingUnit(
         description="All employees excluding management",
         size=38,
         claimed_membership=11,
         membership=11,
-        supporters=14,
     )

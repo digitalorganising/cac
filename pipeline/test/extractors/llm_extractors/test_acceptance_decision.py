@@ -23,7 +23,7 @@ async def test_prospect_british_academy(cac_document_contents):
     assert date_eq(ad.decision_date, "17 April 2024")
     assert ad.success
     assert not ad.rejection_reasons
-    assert 0 <= ad.employer_hostility <= 100
+    assert ad.petition_signatures == 106
     assert ad.application_date == "8 March 2024"
     assert ad.end_of_acceptance_period == "19 April 2024"
     assert ad.bargaining_unit_agreed
@@ -33,7 +33,6 @@ async def test_prospect_british_academy(cac_document_contents):
         size=147,
         claimed_membership=50,
         membership=47,
-        supporters=95,
     )
 
 
@@ -48,9 +47,9 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
     ad = await ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "19 June 2019")
-    assert 0 <= ad.employer_hostility <= 100
     assert ad.success
     assert not ad.rejection_reasons
+    assert ad.petition_signatures == 257
     assert ad.application_date == "30 April 2019"
     assert ad.end_of_acceptance_period == "21 June 2019"
     assert not ad.bargaining_unit_agreed
@@ -60,7 +59,6 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
         size=368,
         claimed_membership=100,
         membership=77,
-        supporters=147,
     )
 
 
@@ -75,9 +73,9 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
     ad = await ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "8 September 2022")
-    assert 0 <= ad.employer_hostility <= 100
     assert ad.success
     assert not ad.rejection_reasons
+    assert ad.petition_signatures is None
     assert ad.application_date == "11 August 2022"
     assert ad.end_of_acceptance_period == "14 September 2022"
     assert not ad.bargaining_unit_agreed
@@ -87,7 +85,6 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
         size=12,
         claimed_membership=11,
         membership=10,
-        supporters=10,
     )
 
 
@@ -102,9 +99,9 @@ async def test_gmb_mitie_services(cac_document_contents):
     ad = await ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "23 October 2014")
-    assert 0 <= ad.employer_hostility <= 100
     assert ad.success
     assert not ad.rejection_reasons
+    assert ad.petition_signatures == 21
     assert ad.application_date == "22 September 2014"
     assert ad.end_of_acceptance_period == "24 October 2014"
     assert ad.bargaining_unit_agreed
@@ -113,7 +110,6 @@ async def test_gmb_mitie_services(cac_document_contents):
         size=42,
         claimed_membership=19,
         membership=17,
-        supporters=20,
     )
 
 
@@ -128,9 +124,9 @@ async def test_community_coilcolor(cac_document_contents):
     ad = await ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "17 May 2017")
-    assert 0 <= ad.employer_hostility <= 100
     assert not ad.success
     assert ad.rejection_reasons == [RejectionReason.NoMajoritySupportLikely]
+    assert ad.petition_signatures == 23
     assert ad.application_date == "2 August 2016"
     assert ad.end_of_acceptance_period == "17 May 2017"
     assert not ad.bargaining_unit_agreed
@@ -140,7 +136,6 @@ async def test_community_coilcolor(cac_document_contents):
         size=27,
         claimed_membership=12,
         membership=9,
-        supporters=None,
     )
 
 
@@ -155,9 +150,9 @@ async def test_iwgb_university_of_london(cac_document_contents):
     ad = await ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "10 January 2018")
-    assert 0 <= ad.employer_hostility <= 100
     assert not ad.success
     assert ad.rejection_reasons == [RejectionReason.SomeOtherReason]
+    assert ad.petition_signatures is None
     assert ad.application_date == "20 November 2017"
     assert not ad.end_of_acceptance_period
     assert not ad.bargaining_unit_agreed
@@ -167,5 +162,4 @@ async def test_iwgb_university_of_london(cac_document_contents):
         size=69,
         claimed_membership=61,
         membership=None,
-        supporters=None,
     )

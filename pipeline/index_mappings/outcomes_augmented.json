@@ -132,9 +132,6 @@
                 }
               }
             },
-            "employer_hostility": {
-              "type": "byte"
-            },
             "success": {
               "type": "boolean"
             },
@@ -146,6 +143,9 @@
             },
             "end_of_acceptance_period": {
               "type": "keyword"
+            },
+            "petition_signatures": {
+              "type": "integer"
             },
             "bargaining_unit": {
               "properties": {
@@ -159,9 +159,6 @@
                   "type": "integer"
                 },
                 "membership": {
-                  "type": "integer"
-                },
-                "supporters": {
                   "type": "integer"
                 }
               }
@@ -208,6 +205,9 @@
             },
             "new_bargaining_unit_description": {
               "type": "text"
+            },
+            "lawyer_present": {
+              "type": "boolean"
             }
           }
         },
@@ -264,6 +264,9 @@
             "rejection_reasons": {
               "type": "keyword"
             },
+            "petition_signatures": {
+              "type": "integer"
+            },
             "new_bargaining_unit": {
               "properties": {
                 "description": {
@@ -276,9 +279,6 @@
                   "type": "integer"
                 },
                 "membership": {
-                  "type": "integer"
-                },
-                "supporters": {
                   "type": "integer"
                 }
               }

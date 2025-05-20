@@ -23,19 +23,23 @@ async def test_nuj_press_association(cac_document_contents):
 
     assert date_eq(bud.decision_date, "17 April 2024")
     assert bud.appropriate_unit_differs
+    assert bud.lawyer_present
     assert (
-        SM(None,
-        bud.new_bargaining_unit_description,
-        "editorial roles which ultimately report "
-        "to the Editor in Chief, barring the senior management roles and the following "
-        "positions (the Deputies positions): "
-        "Deputy Chief News Editor, Deputy Real Life and "
-        "Social Media Editor, "
-        "Lifestyle Editor, Puzzles Deputy, Deputy Editor Entertainment, Deputy "
-        "Sports Editor, Scotland "
-        "Deputy Editor, Group Picture Editor, Deputy Head of Video, Deputy "
-        "Business Editor, Deputy Head "
-        "of Production, Head of Features, Deputy Picture Editor, Page Production Editor").ratio() > 0.9
+        SM(
+            None,
+            bud.new_bargaining_unit_description,
+            "editorial roles which ultimately report "
+            "to the Editor in Chief, barring the senior management roles and the following "
+            "positions (the Deputies positions): "
+            "Deputy Chief News Editor, Deputy Real Life and "
+            "Social Media Editor, "
+            "Lifestyle Editor, Puzzles Deputy, Deputy Editor Entertainment, Deputy "
+            "Sports Editor, Scotland "
+            "Deputy Editor, Group Picture Editor, Deputy Head of Video, Deputy "
+            "Business Editor, Deputy Head "
+            "of Production, Head of Features, Deputy Picture Editor, Page Production Editor",
+        ).ratio()
+        > 0.9
     )
 
 
@@ -50,6 +54,7 @@ async def test_gmb_eddie_stobart(cac_document_contents):
 
     assert date_eq(bud.decision_date, "29 October 2021")
     assert bud.appropriate_unit_differs
+    assert bud.lawyer_present
     assert (
         SM(
             None,
@@ -75,6 +80,7 @@ async def test_rmt_city_cruises(cac_document_contents):
 
     assert date_eq(bud.decision_date, "20 July 2015")
     assert not bud.appropriate_unit_differs
+    assert bud.lawyer_present
     assert not bud.new_bargaining_unit_description
 
 
@@ -89,6 +95,7 @@ async def test_pcs_mitie_group(cac_document_contents):
 
     assert date_eq(bud.decision_date, "14 February 2023")
     assert bud.appropriate_unit_differs
+    assert bud.lawyer_present
     assert (
         SM(
             None,
@@ -127,4 +134,5 @@ async def test_unison_addaction(cac_document_contents):
 
     assert date_eq(bud.decision_date, "21 August 2020")
     assert not bud.appropriate_unit_differs
+    assert not bud.lawyer_present
     assert not bud.new_bargaining_unit_description
