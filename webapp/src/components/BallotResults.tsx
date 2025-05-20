@@ -72,11 +72,8 @@ export default function BallotResults({
 }: OutcomeBallot) {
   return (
     <div>
-      <div className="w-full relative">
-        <span className="relative inline-block left-[40%] -translate-x-1/2 text-xs text-slate-700 border-b border-slate-700 border-dotted mb-[4px]">
-          Required turnout in favour
-        </span>
-        <div className="w-full h-[25px] lg:h-[35px] bg-slate-200 flex rounded-md overflow-x-hidden relative">
+      <div className="w-full relative py-5.5">
+        <div className="w-full h-8 lg:h-10 bg-slate-200 flex rounded-md overflow-hidden relative">
           <TooltipProvider delayDuration={0}>
             <VoteBar
               colorClassName="bg-green-400"
@@ -104,39 +101,47 @@ export default function BallotResults({
             />
           </TooltipProvider>
         </div>
+        <div className="absolute h-9.5 lg:h-11.5 border-l border-slate-600 left-[40%] top-4" />
+        <div
+          className="absolute h-9.5 lg:h-11.5 border-l border-slate-600 bottom-4"
+          style={{ left: `${turnoutPercent / 2}%` }}
+        />
+
+        <span className="absolute bg-white text-nowrap top-0 inline-block left-[40%] -translate-x-1/2 text-xs text-slate-600 border-b border-slate-600">
+          Required turnout in favour (40%)
+        </span>
         <span
-          className="relative inline-block text-xs text-slate-700 -translate-x-1/2 border-t border-slate-700 border-dotted mt-[4px]"
+          className="absolute bg-white text-nowrap bottom-0 inline-block text-xs text-slate-600 -translate-x-1/2 border-t border-slate-600"
           style={{ left: `${turnoutPercent / 2}%` }}
         >
           Majority
         </span>
-
-        <div className="absolute top-[22px] left-[40%] h-[29px] lg:h-[39px] border-l border-slate-700 border-dotted" />
-        <div
-          className="absolute top-[28px] h-[29px] lg:h-[39px] border-l border-slate-700 border-dotted"
-          style={{ left: `${turnoutPercent / 2}%` }}
-        />
       </div>
       <ul className="border-slate-200 border rounded-md mt-2 xs:mt-4 p-2 xs:p-3 text-sm xs:text-base space-y-3">
         <VoteListItem colorClassName="bg-slate-200">
           Of <Strong>{eligible}</Strong> eligible workers,{" "}
-          <Strong>{turnoutPercent.toFixed(1)}%</Strong>voted. Of those votes:
+          <Strong>{turnoutPercent.toFixed(1)}%</Strong> (
+          {inFavor.n + against.n + spoiled.n}) voted.
         </VoteListItem>
         <VoteListItem colorClassName="bg-green-400">
-          <Strong>{inFavor.percentVotes.toFixed(1)}%</Strong> ({inFavor.n}) were
+          <Strong>{inFavor.percentBU.toFixed(1)}%</Strong> ({inFavor.n}) voted
           in favour of recognition (
-          <Strong>{inFavor.percentBU.toFixed(1)}%</Strong> of those eligible,{" "}
-          <Strong>{inFavor.percentBU >= 40 ? "more" : "less"}</Strong> than the{" "}
-          <Strong>40%</Strong> requirement)
+          <Strong>{inFavor.percentVotes.toFixed(1)}%</Strong> of all votes)
+          {inFavor.percentVotes > 50 ? (
+            <>
+              , <Strong>{inFavor.percentBU >= 40 ? "more" : "less"}</Strong>{" "}
+              than the required 40%.
+            </>
+          ) : null}
         </VoteListItem>
         <VoteListItem colorClassName="bg-red-400">
-          <Strong>{against.percentVotes.toFixed(1)}%</Strong> ({against.n}) were
-          against recognition (<Strong>{against.percentBU.toFixed(1)}%</Strong>{" "}
-          of those eligible)
+          <Strong>{against.percentBU.toFixed(1)}%</Strong> ({against.n}) voted
+          against recognition (
+          <Strong>{against.percentVotes.toFixed(1)}%</Strong> of all votes)
         </VoteListItem>
         <VoteListItem colorClassName="bg-gray-400">
-          <Strong>{spoiled.percentVotes.toFixed(1)}%</Strong> ({spoiled.n}) were
-          spoiled
+          <Strong>{spoiled.percentVotes.toFixed(1)}%</Strong> ({spoiled.n}) of
+          ballots were spoiled.
         </VoteListItem>
       </ul>
     </div>
