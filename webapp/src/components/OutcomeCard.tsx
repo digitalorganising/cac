@@ -33,10 +33,42 @@ const classForState = (outcomeState: OutcomeState): string => {
   }
 };
 
+const BargainingUnit = ({
+  membership,
+  size,
+}: Required<Outcome>["bargainingUnit"]) => (
+  <>
+    <dt>Bargaining unit size</dt>
+    <dd>
+      <span
+        className={cn(
+          "rounded-md inline-block bg-slate-200",
+          membership ? "pl-2 xs:pl-2.5" : "px-2 xs:px-2.5 py-0.5 xs:py-1",
+        )}
+      >
+        {size} workers
+        {membership ? (
+          <span
+            className={cn(
+              "inline-block pr-2 xs:pr-2.5 pl-1 xs:pl-1.5 ml-3 xs:ml-3.5 py-0.5 xs:py-1 bg-slate-300 rounded-r-md relative z-20",
+              "after:content-['_'] after:-skew-x-12 xs:after:-skew-x-16 after:origin-top-right after:absolute after:top-0 after:left-0",
+              "after:bg-slate-300 after:w-[16px] after:h-full after:-z-10",
+            )}
+          >
+            {membership} union members
+          </span>
+        ) : null}
+      </span>
+    </dd>
+  </>
+);
+
 const OutcomeDetails = ({ outcome, className }: Props) => (
   <dl
     className={cn(
-      "m-2 max-sm:mt-0 md:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] md:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min xs:gap-x-2 md:gap-x-4 xs:gap-y-0.5 md:gap-y-2 [&>dt]:font-medium [&>dt]:col-start-1 [&>dd]:col-start-1 sm:[&>dd]:col-start-2 max-sm:[&>dt]:mt-2",
+      "m-2 max-md:mt-0 lg:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] lg:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min items-baseline",
+      "xs:gap-x-2 md:gap-x-4 xs:gap-y-0.5 lg:gap-y-3",
+      "[&>dt]:font-medium [&>dt]:col-start-1 [&>dd]:col-start-1 lg:[&>dd]:col-start-2 max-lg:[&>dt]:mt-2.5",
       className,
     )}
   >
@@ -44,7 +76,7 @@ const OutcomeDetails = ({ outcome, className }: Props) => (
     <dd className="whitespace-nowrap">
       <span
         className={cn(
-          "rounded-md xs:rounded-full px-2.5 py-0.5 text-sm inline-block overflow-hidden align-top text-ellipsis max-w-full",
+          "rounded-md px-2.5 py-0.5 inline-block overflow-hidden align-top text-ellipsis max-w-full",
           classForState(outcome.state),
         )}
       >
@@ -88,18 +120,8 @@ const OutcomeDetails = ({ outcome, className }: Props) => (
       </Link>
     </dd>
 
-    {outcome.bargainingUnit?.size ? (
-      <>
-        <dt>Bargaining unit size</dt>
-        <dd>{outcome.bargainingUnit.size}</dd>
-      </>
-    ) : null}
-
-    {outcome.bargainingUnit?.membership ? (
-      <>
-        <dt>Union membership</dt>
-        <dd>{outcome.bargainingUnit.membership}</dd>
-      </>
+    {outcome.bargainingUnit ? (
+      <BargainingUnit {...outcome.bargainingUnit} />
     ) : null}
 
     {outcome.ballot ? <BallotResults {...outcome.ballot} /> : null}

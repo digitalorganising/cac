@@ -1,8 +1,16 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import useResizeObserver from "@react-hook/resize-observer";
+import useResizeObserver, {
+  UseResizeObserverCallback,
+} from "@react-hook/resize-observer";
 import { useLayoutEffect, useRef, useState } from "react";
+
+class ServerSideResizeObserverPolyfill {
+  constructor(callback: ResizeObserverCallback) {}
+  observe(target: Element, options?: ResizeObserverOptions) {}
+  unobserve(target: Element) {}
+}
 
 type Props = {
   lineClampClassName: string;
@@ -28,13 +36,20 @@ export default function ShowMore({
     }
   }, [ref, expanded]);
 
-  useResizeObserver(ref, (e) => {
-    if (e.target.scrollHeight > e.target.clientHeight) {
-      setTruncated(true);
-    } else {
-      setTruncated(false);
-    }
-  });
+  useResizeObserver(
+    ref,
+    (e) => {
+      if (e.target.scrollHeight > e.target.clientHeight) {
+        setTruncated(true);
+      } else {
+        setTruncated(false);
+      }
+    },
+    {
+      polyfill:
+        typeof window === "undefined" ? ServerSideResizeObserverPolyfill : null,
+    },
+  );
 
   return (
     <>
@@ -52,7 +67,7 @@ export default function ShowMore({
       {truncated || expanded ? (
         <a
           onClick={() => setExpanded((e) => !e)}
-          className="text-sm text-slate-200 font-medium hover:underline underline-offset-4 hover:font-semibold"
+          className="text-sm text-slate-700 font-medium hover:underline underline-offset-4 hover:font-semibold"
         >
           {expanded ? "Show less" : "Show more"}
         </a>

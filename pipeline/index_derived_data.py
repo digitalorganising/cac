@@ -28,7 +28,8 @@ def get_bargaining_unit(outcome):
         d = baml_types.ValidityDecision.model_validate(data["validity_decision"])
         return {
             "size": d.new_bargaining_unit.size,
-            "membership": d.new_bargaining_unit.membership,
+            "membership": d.new_bargaining_unit.membership
+            or d.new_bargaining_unit.claimed_membership,
             "description": d.new_bargaining_unit.description,
         }
 
@@ -36,7 +37,8 @@ def get_bargaining_unit(outcome):
         d = baml_types.AcceptanceDecision.model_validate(data["acceptance_decision"])
         return {
             "size": d.bargaining_unit.size,
-            "membership": d.bargaining_unit.membership,
+            "membership": d.bargaining_unit.membership
+            or d.bargaining_unit.claimed_membership,
             "description": d.bargaining_unit.description,
         }
 

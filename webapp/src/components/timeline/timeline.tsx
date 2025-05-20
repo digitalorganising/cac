@@ -273,7 +273,7 @@ const TimelineDescription = (
   props: React.HTMLAttributes<HTMLParagraphElement>,
 ) => (
   <ShowMore
-    lineClampClassName="max-sm:line-clamp-5"
+    lineClampClassName="line-clamp-5 sm:line-clamp-8"
     className={cn(
       "max-w-sm text-sm text-muted-foreground first-letter:capitalize",
       props.className,
