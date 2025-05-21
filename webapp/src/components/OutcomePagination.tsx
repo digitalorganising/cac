@@ -26,6 +26,10 @@ export default function OutcomePagination({
   };
 
   const pageNumbers = () => {
+    if (totalPages <= 1) {
+      return [1];
+    }
+
     const maxDisplayed = 7;
     const pages: (number | "...")[] = [1];
 
