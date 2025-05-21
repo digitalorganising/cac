@@ -63,6 +63,39 @@ const Strong = ({ children }: { children: React.ReactNode }) => (
   <strong className="font-semibold">{children}</strong>
 );
 
+const ChartLabel = ({
+  className,
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => (
+  <span
+    className={cn(
+      "absolute text-nowrap inline-block -translate-x-1/2 text-xs text-slate-800 ",
+      className,
+    )}
+    {...props}
+  >
+    {children}
+  </span>
+);
+
+const Arrow = ({
+  direction,
+  className,
+  ...props
+}: { direction: "up" | "down" } & React.HTMLAttributes<HTMLSpanElement>) => (
+  <span
+    className={cn(
+      "absolute h-0 w-0 border-transparent border-l-6 border-r-6 -translate-x-1/2",
+      direction === "up"
+        ? "border-b-slate-800 border-b-6"
+        : "border-t-slate-800 border-t-6",
+      className,
+    )}
+    {...props}
+  />
+);
+
 export default function BallotResults({
   turnoutPercent,
   eligible,
@@ -72,7 +105,7 @@ export default function BallotResults({
 }: OutcomeBallot) {
   return (
     <div>
-      <div className="w-full relative py-5.5">
+      <div className="w-full relative py-6 my-2 xs:my-1">
         <div className="w-full h-8 lg:h-10 bg-slate-200 flex rounded-md overflow-hidden relative">
           <TooltipProvider delayDuration={0}>
             <VoteBar
@@ -101,21 +134,21 @@ export default function BallotResults({
             />
           </TooltipProvider>
         </div>
-        <div className="absolute h-9.5 lg:h-11.5 border-l border-slate-600 left-[40%] top-4" />
-        <div
-          className="absolute h-9.5 lg:h-11.5 border-l border-slate-600 bottom-4"
+        <Arrow direction="down" className="left-[40%] top-4.5" />
+        <Arrow
+          direction="up"
+          className="bottom-4.5"
           style={{ left: `${turnoutPercent / 2}%` }}
         />
-
-        <span className="absolute bg-white text-nowrap top-0 inline-block left-[40%] -translate-x-1/2 text-xs text-slate-600 border-b border-slate-600">
+        <ChartLabel className="top-0 left-[40%]">
           Required turnout in favour (40%)
-        </span>
-        <span
-          className="absolute bg-white text-nowrap bottom-0 inline-block text-xs text-slate-600 -translate-x-1/2 border-t border-slate-600"
+        </ChartLabel>
+        <ChartLabel
+          className="bottom-0"
           style={{ left: `${turnoutPercent / 2}%` }}
         >
-          Majority
-        </span>
+          Vote majority
+        </ChartLabel>
       </div>
       <ul className="border-slate-200 border rounded-md mt-2 xs:mt-4 p-2 xs:p-3 text-sm xs:text-base space-y-3">
         <VoteListItem colorClassName="bg-slate-200">

@@ -28,8 +28,8 @@ export default async function Home({
     ...params,
   });
   return (
-    <main className="container max-w-(--breakpoint-xl) px-5 xs:px-8 pb-6">
-      <h1 className="text-5xl font-extrabold text-center mt-12">
+    <main className="container max-w-(--breakpoint-xl) px-4 xs:px-5 sm:px-6 pb-6">
+      <h1 className="text-5xl font-extrabold text-center mt-8 xs:mt-10 sm:mt-12">
         CAC Outcomes
       </h1>
       <Form
@@ -48,7 +48,7 @@ export default async function Home({
         </Button>
       </Form>
       <OutcomePagination totalPages={Math.ceil(outcomes.size / pageSize)} />
-      <section className="container space-y-6 my-8 xs:my-16 px-0">
+      <section className="container space-y-4 xs:space-y-5 sm:space-y-6 my-6 xs:my-7 sm:my-8 xs:my-16 px-0">
         {outcomes.docs.map((outcome) => (
           <OutcomeCard key={outcome.reference} outcome={outcome} />
         ))}
