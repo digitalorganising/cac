@@ -22,6 +22,7 @@ type GetOutcomesOptions = {
   query?: string;
   "parties.unions"?: string;
   "parties.employer"?: string;
+  reference?: string;
 };
 
 const filterText = (field: string, query?: string) =>
@@ -45,6 +46,7 @@ export const getOutcomes = unstable_cache(
     query,
     "parties.unions": unions,
     "parties.employer": employer,
+    reference,
   }: GetOutcomesOptions): Promise<{ size: number; docs: Outcome[] }> => {
     const response = await client.search({
       index: "outcomes-indexed",
@@ -54,6 +56,13 @@ export const getOutcomes = unstable_cache(
         track_total_hits: true,
         query: {
           bool: {
+            must: reference
+              ? [
+                  {
+                    term: { reference },
+                  },
+                ]
+              : [],
             should: query
               ? [
                   {
