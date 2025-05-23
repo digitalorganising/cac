@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { TimelineItem, TimelineItemProps } from "./timeline/timeline";
+import { TimelineItem, TimelineItemProps } from "../timeline/timeline";
 import { EventType, OutcomeEvent } from "@/lib/types";
 
 type Props = {

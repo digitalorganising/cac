@@ -4,15 +4,16 @@ import { Fragment } from "react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Timeline } from "@/components/timeline/timeline";
-import DecisionTimelineItem from "@/components/DecisionTimelineItem";
+import DecisionTimelineItem from "@/components/outcome-card/DecisionTimelineItem";
 import { Outcome, OutcomeState } from "@/lib/types";
 import { formatDuration } from "@/lib/duration";
-import BallotResults from "@/components/BallotResults";
-import { cn } from "@/lib/utils";
+import BallotResults from "@/components/outcome-card/BallotResults";
+import { cn, addQueryParam } from "@/lib/utils";
 
 type Props = {
   outcome: Outcome;
   className?: string;
+  searchParams: { [key: string]: string | string[] | undefined };
 };
 
 const classForState = (outcomeState: OutcomeState): string => {
@@ -58,7 +59,13 @@ const BargainingUnit = ({
   </span>
 );
 
-const OutcomeDetails = ({ outcome, className }: Props) => (
+const OutcomeDetails = ({
+  outcome,
+  className,
+  // We are happy to lose references when linking, because they aren't proper filters
+  // but rather a lazy way of linking to a single outcome
+  searchParams: { reference, ...searchParams },
+}: Props) => (
   <dl
     className={cn(
       "m-2 max-md:mt-0 lg:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] lg:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min items-baseline",
@@ -95,7 +102,10 @@ const OutcomeDetails = ({ outcome, className }: Props) => (
       {outcome.parties.unions.map((unionName, i) => (
         <Fragment key={unionName}>
           <Link
-            href={`/?parties.unions=${encodeURIComponent(unionName)}`}
+            href={{
+              pathname: "/",
+              query: addQueryParam(searchParams, "parties.unions", unionName),
+            }}
             className="text-primary underline underline-offset-4 hover:font-medium"
           >
             {unionName}
@@ -108,7 +118,14 @@ const OutcomeDetails = ({ outcome, className }: Props) => (
     <dt>Employer</dt>
     <dd>
       <Link
-        href={`/?parties.employer=${encodeURIComponent(outcome.parties.employer)}`}
+        href={{
+          pathname: "/",
+          query: addQueryParam(
+            searchParams,
+            "parties.employer",
+            outcome.parties.employer,
+          ),
+        }}
         className="text-primary underline underline-offset-4 hover:font-medium"
       >
         {outcome.parties.employer}
@@ -135,7 +152,7 @@ const OutcomeDetails = ({ outcome, className }: Props) => (
   </dl>
 );
 
-const OutcomeCard = ({ outcome }: Props) => (
+const OutcomeCard = ({ outcome, searchParams }: Props) => (
   <Card>
     <CardHeader className="space-y-0 xs:space-x-2 block xs:flex flex-row-reverse items-center justify-between mb-2">
       <Link
@@ -152,7 +169,11 @@ const OutcomeCard = ({ outcome }: Props) => (
         <ExternalLinkIcon className="size-3" />
       </Link>
       <Link
-        href={{ query: { reference: outcome.reference } }}
+        href={{
+          pathname: "/",
+          // Don't want to merge this one as it's really a lazy way of linking to a single outcome
+          query: { reference: outcome.reference },
+        }}
         className="flex items-center gap-x-2 group"
       >
         <CardTitle className="text-md xs:text-xl group-hover:underline">
@@ -170,7 +191,11 @@ const OutcomeCard = ({ outcome }: Props) => (
           />
         ))}
       </Timeline>
-      <OutcomeDetails outcome={outcome} className="md:w-1/2" />
+      <OutcomeDetails
+        outcome={outcome}
+        className="md:w-1/2"
+        searchParams={searchParams}
+      />
     </CardContent>
   </Card>
 );

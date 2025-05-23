@@ -4,7 +4,7 @@ import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from "./ui/tooltip";
+} from "../ui/tooltip";
 import { cn } from "@/lib/utils";
 
 const VoteBar = ({

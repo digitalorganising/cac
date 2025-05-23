@@ -4,6 +4,7 @@ import { awsCredentialsProvider } from "@vercel/functions/oidc";
 import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
 import { Outcome } from "@/lib/types";
 import { unstable_cache } from "next/cache";
+import { MatchQuery } from "@opensearch-project/opensearch/api/_types/_common.query_dsl.js";
 
 const client = new Client({
   ...AwsSigv4Signer({
@@ -16,27 +17,25 @@ const client = new Client({
   node: process.env.OPENSEARCH_ENDPOINT!,
 });
 
-type GetOutcomesOptions = {
+export type GetOutcomesOptions = {
   from: number;
   size: number;
   query?: string;
-  "parties.unions"?: string;
-  "parties.employer"?: string;
-  reference?: string;
+  "parties.unions"?: string[];
+  "parties.employer"?: string[];
+  reference?: string[];
 };
 
-const filterText = (field: string, query?: string) =>
+const filterText = (field: string, query?: string[]) =>
   query
-    ? [
-        {
-          match: {
-            [field]: {
-              query,
-              minimum_should_match: "3<-25%",
-            },
+    ? query.map((q) => ({
+        match: {
+          [field]: {
+            query: q,
+            minimum_should_match: "3<-25%",
           },
         },
-      ]
+      }))
     : [];
 
 export const getOutcomes = unstable_cache(
@@ -59,7 +58,7 @@ export const getOutcomes = unstable_cache(
             must: reference
               ? [
                   {
-                    term: { reference },
+                    terms: { reference },
                   },
                 ]
               : [],
