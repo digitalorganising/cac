@@ -9,21 +9,19 @@ export type AppQueryParams = Record<
   | "parties.unions"
   | "parties.employer"
   | "reference"
-  | "sort"
-  | "sortOrder",
+  | "sort",
   Param
 >;
 
-type ParamKey = keyof AppQueryParams;
+export type SortKey =
+  | "relevance"
+  | "lastUpdated"
+  | "applicationDate"
+  | "concludedDate"
+  | "bargainingUnitSize";
+export type SortOrder = "asc" | "desc";
 
-export const sortKeys = [
-  "relevance",
-  "lastUpdated",
-  "applicationDate",
-  "concludedDate",
-  "bargainingUnitSize",
-] as const;
-export type SortKey = (typeof sortKeys)[number];
+type ParamKey = keyof AppQueryParams;
 
 const singleValue = <T extends string = string>(value: Param): T | undefined =>
   (Array.isArray(value) ? value[value.length - 1] : value) as T | undefined;
@@ -39,15 +37,20 @@ export function appQueryParamsToOutcomesOptions(
   pageSize: number,
   params: AppQueryParams,
 ): GetOutcomesOptions {
+  const [sortKey, sortOrder]: [SortKey | undefined, SortOrder | undefined] =
+    (singleValue(params.sort)?.split("-") as [SortKey, SortOrder]) ?? [
+      undefined,
+      undefined,
+    ];
   return {
     from: pageSize * (parseInt(singleValue(params.page) ?? "1") - 1),
     size: pageSize,
-    sortKey: singleValue<SortKey>(params.sort),
-    sortOrder: singleValue<"asc" | "desc">(params.sortOrder),
     query: singleValue(params.query),
     "parties.unions": multiValue(params["parties.unions"]),
     "parties.employer": multiValue(params["parties.employer"]),
     reference: multiValue(params.reference),
+    sortKey,
+    sortOrder,
   };
 }
 

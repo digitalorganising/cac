@@ -30,8 +30,13 @@ export default async function Home({
         className="my-4"
         filterHref={filterHref}
       />
-      <ResultListControls nResults={outcomes.size} pageSize={pageSize} />
-      <section className="container space-y-4 xs:space-y-5 sm:space-y-6 my-6 md:my-3 px-0">
+      <ResultListControls
+        nResults={outcomes.size}
+        pageSize={pageSize}
+        sortKey={options.sortKey}
+        sortOrder={options.sortOrder}
+      />
+      <section className="container space-y-4 xs:space-y-5 sm:space-y-6 my-3 px-0">
         {outcomes.docs.map((outcome) => (
           <OutcomeCard
             key={outcome.reference}

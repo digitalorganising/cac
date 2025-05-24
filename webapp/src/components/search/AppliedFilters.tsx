@@ -5,7 +5,7 @@ import { Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { AppQueryParams, FilterHref } from "@/lib/filtering";
 
-type Filters = Except<AppQueryParams, "query" | "sort" | "sortOrder" | "page">;
+type Filters = Except<AppQueryParams, "query" | "sort" | "page">;
 
 const singularFilterLabels: Record<keyof Filters, string> = {
   "parties.unions": "Union",
