@@ -5,7 +5,7 @@ import Form from "next/form";
 import NextTopLoader from "nextjs-toploader";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
-import SearchInput from "@/components/SearchInput";
+import SearchInputs from "@/components/SearchInputs";
 
 export const metadata: Metadata = {
   title: "CAC Outcomes",
@@ -39,11 +39,7 @@ export default function RootLayout({
           </h1>
           <Form action="" className="my-8 xs:my-12 max-w-2xl mx-auto">
             <div className="flex flex-col max-xs:space-y-2 xs:flex-row xs:space-x-2 ">
-              <SearchInput />
-              <Button type="submit" className="cursor-pointer">
-                <MagnifyingGlassIcon />
-                Search outcomes
-              </Button>
+              <SearchInputs />
             </div>
           </Form>
           {children}

@@ -5,9 +5,14 @@ import { Input } from "./ui/input";
 import { useSearchParams } from "next/navigation";
 import ResetButton from "./ResetButton";
 import { Button } from "./ui/button";
-import { Cross2Icon } from "@radix-ui/react-icons";
+import {
+  Cross2Icon,
+  MagnifyingGlassIcon,
+  UpdateIcon,
+} from "@radix-ui/react-icons";
+import { useFormStatus } from "react-dom";
 
-function SuspendedSearchInput() {
+function SearchInput() {
   const params = useSearchParams();
 
   return (
@@ -19,7 +24,21 @@ function SuspendedSearchInput() {
   );
 }
 
-export default function SearchInput() {
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button type="submit" className="cursor-pointer" disabled={pending}>
+      {pending ? (
+        <UpdateIcon className="animate-spin" />
+      ) : (
+        <MagnifyingGlassIcon />
+      )}
+      Search outcomes
+    </Button>
+  );
+}
+
+export default function SearchInputs() {
   return (
     <Suspense
       fallback={
@@ -36,11 +55,16 @@ export default function SearchInput() {
           >
             <Cross2Icon />
           </Button>
+          <Button type="submit" className="cursor-pointer">
+            <MagnifyingGlassIcon />
+            Search outcomes
+          </Button>
         </>
       }
     >
-      <SuspendedSearchInput />
+      <SearchInput />
       <ResetButton forInput="query" />
+      <SubmitButton />
     </Suspense>
   );
 }
