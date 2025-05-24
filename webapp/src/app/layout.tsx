@@ -1,14 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import Form from "next/form";
 import NextTopLoader from "nextjs-toploader";
 import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
-import Form from "next/form";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import ResetButton from "@/components/ResetButton";
 import SearchInput from "@/components/SearchInput";
-import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "CAC Outcomes",
@@ -42,17 +39,7 @@ export default function RootLayout({
           </h1>
           <Form action="" className="my-8 xs:my-12 max-w-2xl mx-auto">
             <div className="flex flex-col max-xs:space-y-2 xs:flex-row xs:space-x-2 ">
-              <Suspense
-                fallback={
-                  <Input
-                    placeholder="Search outcomes and decision documents..."
-                    name="query"
-                  />
-                }
-              >
-                <SearchInput />
-              </Suspense>
-              <ResetButton forInput="query" />
+              <SearchInput />
               <Button type="submit" className="cursor-pointer">
                 <MagnifyingGlassIcon />
                 Search outcomes
