@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+
 import NextTopLoader from "nextjs-toploader";
+import SearchForm from "@/components/SearchForm";
 
 export const metadata: Metadata = {
   title: "CAC Outcomes",
@@ -29,7 +31,13 @@ export default function RootLayout({
           color="hsl(222.2 84% 4.9%)"
           showSpinner={false}
         />
-        {children}
+        <main className="container max-w-(--breakpoint-xl) px-4 xs:px-5 sm:px-6 pb-6">
+          <h1 className="text-5xl font-extrabold text-center mt-8 xs:mt-10 sm:mt-12">
+            CAC Outcomes
+          </h1>
+          <SearchForm />
+          {children}
+        </main>
       </body>
     </html>
   );

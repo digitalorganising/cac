@@ -48,18 +48,24 @@ export default function AppliedFilters({
   filters: Filters;
   filterHref: FilterHref;
 } & React.HTMLAttributes<HTMLDivElement>) {
+  const appliedFilters = Object.entries(filters).filter(
+    (kv): kv is [keyof Filters, string[]] => kv[1] !== undefined,
+  );
+
+  if (appliedFilters.length === 0) {
+    return null;
+  }
+
   return (
     <div className={cn("flex flex-wrap gap-2", className)} {...otherProps}>
-      {(Object.entries(filters) as Entries<Filters>)
-        .filter((kv): kv is [keyof Filters, string[]] => kv[1] !== undefined)
-        .map(([key, value]) => (
-          <Filter
-            key={key}
-            filterKey={key}
-            value={value}
-            filterHref={filterHref}
-          />
-        ))}
+      {appliedFilters.map(([key, value]) => (
+        <Filter
+          key={key}
+          filterKey={key}
+          value={value}
+          filterHref={filterHref}
+        />
+      ))}
     </div>
   );
 }
