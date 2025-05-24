@@ -7,6 +7,7 @@ import OutcomePagination from "@/components/OutcomePagination";
 import ResetButton from "@/components/ResetButton";
 import { getOutcomes } from "@/lib/outcomes";
 import AppliedFilters from "@/components/filters/AppliedFilters";
+import { createFilterHref } from "@/lib/filtering";
 
 type Param = string | string[] | undefined;
 
@@ -28,6 +29,10 @@ export default async function Home({
 }) {
   const pageSize = 15;
   const params = await searchParams;
+  const filterHref = createFilterHref({
+    searchParams: params,
+    resetOnNavigate: new Set(["query", "page", "reference"]),
+  });
   const options = {
     from: pageSize * (parseInt(singleValue(params.page) ?? "1") - 1),
     size: pageSize,
@@ -60,7 +65,7 @@ export default async function Home({
         <AppliedFilters
           className="my-4"
           filters={filters}
-          searchParams={params}
+          filterHref={filterHref}
         />
       </Form>
       <OutcomePagination totalPages={Math.ceil(outcomes.size / pageSize)} />
@@ -69,7 +74,7 @@ export default async function Home({
           <OutcomeCard
             key={outcome.reference}
             outcome={outcome}
-            searchParams={params}
+            filterHref={filterHref}
           />
         ))}
       </section>

@@ -1,9 +1,10 @@
 import type { Entries, Except } from "type-fest";
 import { GetOutcomesOptions } from "@/lib/outcomes";
 import React from "react";
-import { cn, deleteQueryParam } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
+import { FilterHref } from "@/lib/filtering";
 
 type Filters = Except<GetOutcomesOptions, "from" | "size" | "query">;
 
@@ -13,51 +14,39 @@ const singularFilterLabels: Record<keyof Filters, string> = {
   reference: "Reference",
 };
 
-const pluralFilterLabels: Record<keyof Filters, string> = {
-  "parties.unions": "Unions",
-  "parties.employer": "Employers",
-  reference: "References",
-};
-
 const Filter = <F extends keyof Filters>({
   filterKey,
   value,
-  searchParams,
+  filterHref,
 }: {
   filterKey: F;
   value: NonNullable<Filters[F]>;
-  searchParams: { [key: string]: string | string[] | undefined };
-}) => (
-  <Link
-    href={{
-      pathname: "/",
-      query: deleteQueryParam(searchParams, filterKey, value),
-    }}
-    className="flex gap-x-2 items-center bg-slate-100 rounded-md px-3 py-2 border border-slate-200 group"
-  >
-    <span className="text-sm text-nowrap">
-      <strong className="font-semibold">
-        {value.length > 1
-          ? pluralFilterLabels[filterKey]
-          : singularFilterLabels[filterKey]}
-      </strong>
-      :{" "}
-      <span className="no-underline group-hover:underline">
-        {value.join(", ")}
+  filterHref: FilterHref;
+}) =>
+  (Array.isArray(value) ? value : [value]).map((v) => (
+    <Link
+      key={`filter-${filterKey}-${v}`}
+      href={filterHref.delete(filterKey, value)}
+      className="flex gap-x-2 items-center bg-slate-100 rounded-md px-3 py-2 border border-slate-200 group"
+    >
+      <span className="text-sm text-nowrap">
+        <strong className="font-semibold">
+          {singularFilterLabels[filterKey]}
+        </strong>
+        : <span className="no-underline group-hover:underline">{v}</span>
       </span>
-    </span>
-    <Cross2Icon className="size-3 text-slate-500 group-hover:text-slate-700" />
-  </Link>
-);
+      <Cross2Icon className="size-3 text-slate-500 group-hover:text-slate-700" />
+    </Link>
+  ));
 
 export default function AppliedFilters({
   filters,
   className,
-  searchParams,
+  filterHref,
   ...otherProps
 }: {
   filters: Filters;
-  searchParams: { [key: string]: string | string[] | undefined };
+  filterHref: FilterHref;
 } & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div className={cn("flex flex-wrap gap-2", className)} {...otherProps}>
@@ -68,7 +57,7 @@ export default function AppliedFilters({
             key={key}
             filterKey={key}
             value={value}
-            searchParams={searchParams}
+            filterHref={filterHref}
           />
         ))}
     </div>

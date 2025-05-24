@@ -8,12 +8,13 @@ import DecisionTimelineItem from "@/components/outcome-card/DecisionTimelineItem
 import { Outcome, OutcomeState } from "@/lib/types";
 import { formatDuration } from "@/lib/duration";
 import BallotResults from "@/components/outcome-card/BallotResults";
-import { cn, addQueryParam } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { FilterHref } from "@/lib/filtering";
 
 type Props = {
   outcome: Outcome;
   className?: string;
-  searchParams: { [key: string]: string | string[] | undefined };
+  filterHref: FilterHref;
 };
 
 const classForState = (outcomeState: OutcomeState): string => {
@@ -59,13 +60,7 @@ const BargainingUnit = ({
   </span>
 );
 
-const OutcomeDetails = ({
-  outcome,
-  className,
-  // We are happy to lose references when linking, because they aren't proper filters
-  // but rather a lazy way of linking to a single outcome
-  searchParams: { reference, ...searchParams },
-}: Props) => (
+const OutcomeDetails = ({ outcome, className, filterHref }: Props) => (
   <dl
     className={cn(
       "m-2 max-md:mt-0 lg:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] lg:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min items-baseline",
@@ -102,10 +97,7 @@ const OutcomeDetails = ({
       {outcome.parties.unions.map((unionName, i) => (
         <Fragment key={unionName}>
           <Link
-            href={{
-              pathname: "/",
-              query: addQueryParam(searchParams, "parties.unions", unionName),
-            }}
+            href={filterHref.add("parties.unions", unionName)}
             className="text-primary underline underline-offset-4 hover:font-medium"
           >
             {unionName}
@@ -118,14 +110,7 @@ const OutcomeDetails = ({
     <dt>Employer</dt>
     <dd>
       <Link
-        href={{
-          pathname: "/",
-          query: addQueryParam(
-            searchParams,
-            "parties.employer",
-            outcome.parties.employer,
-          ),
-        }}
+        href={filterHref.add("parties.employer", outcome.parties.employer)}
         className="text-primary underline underline-offset-4 hover:font-medium"
       >
         {outcome.parties.employer}
@@ -152,7 +137,7 @@ const OutcomeDetails = ({
   </dl>
 );
 
-const OutcomeCard = ({ outcome, searchParams }: Props) => (
+const OutcomeCard = ({ outcome, filterHref }: Props) => (
   <Card>
     <CardHeader className="space-y-0 xs:space-x-2 block xs:flex flex-row-reverse items-center justify-between mb-2">
       <Link
@@ -169,11 +154,7 @@ const OutcomeCard = ({ outcome, searchParams }: Props) => (
         <ExternalLinkIcon className="size-3" />
       </Link>
       <Link
-        href={{
-          pathname: "/",
-          // Don't want to merge this one as it's really a lazy way of linking to a single outcome
-          query: { reference: outcome.reference },
-        }}
+        href={filterHref.replace("reference", outcome.reference)}
         className="flex items-center gap-x-2 group"
       >
         <CardTitle className="text-md xs:text-xl group-hover:underline">
@@ -194,7 +175,7 @@ const OutcomeCard = ({ outcome, searchParams }: Props) => (
       <OutcomeDetails
         outcome={outcome}
         className="md:w-1/2"
-        searchParams={searchParams}
+        filterHref={filterHref}
       />
     </CardContent>
   </Card>
