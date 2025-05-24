@@ -1,43 +1,111 @@
-import { UrlObject } from "node:url";
+import type { UrlObject } from "node:url";
+import { GetOutcomesOptions } from "./outcomes";
 
-type QueryParams = Record<string, string | string[] | undefined>;
+type Param = string | string[] | undefined;
 
-export type FilterHref = {
-  replace: (key: string, value: string | string[]) => UrlObject;
-  add: (key: string, value: string | string[]) => UrlObject;
-  delete: (key: string, value?: string | string[]) => UrlObject;
+export type AppQueryParams = Record<
+  | "query"
+  | "page"
+  | "parties.unions"
+  | "parties.employer"
+  | "reference"
+  | "sort"
+  | "sortOrder",
+  Param
+>;
+
+type ParamKey = keyof AppQueryParams;
+
+export const sortKeys = [
+  "relevance",
+  "lastUpdated",
+  "applicationDate",
+  "concludedDate",
+  "bargainingUnitSize",
+] as const;
+export type SortKey = (typeof sortKeys)[number];
+
+const singleValue = <T extends string = string>(value: Param): T | undefined =>
+  (Array.isArray(value) ? value[value.length - 1] : value) as T | undefined;
+
+const multiValue = <T extends string = string>(
+  value: Param,
+): T[] | undefined =>
+  value !== undefined
+    ? ((Array.isArray(value) ? value : [value]) as T[])
+    : undefined;
+
+export function appQueryParamsToOutcomesOptions(
+  pageSize: number,
+  params: AppQueryParams,
+): GetOutcomesOptions {
+  return {
+    from: pageSize * (parseInt(singleValue(params.page) ?? "1") - 1),
+    size: pageSize,
+    sortKey: singleValue<SortKey>(params.sort),
+    sortOrder: singleValue<"asc" | "desc">(params.sortOrder),
+    query: singleValue(params.query),
+    "parties.unions": multiValue(params["parties.unions"]),
+    "parties.employer": multiValue(params["parties.employer"]),
+    reference: multiValue(params.reference),
+  };
+}
+
+type Href = {
+  urlObject: UrlObject;
+  urlString: string;
 };
 
-export function createFilterHref<
-  P extends QueryParams,
-  F extends Extract<keyof P, string>,
->({
+export type FilterHref = {
+  replace: (key: ParamKey, value: string | string[]) => Href;
+  add: (key: ParamKey, value: string | string[]) => Href;
+  delete: (key: ParamKey, value?: string | string[]) => Href;
+};
+
+export function createFilterHref({
   searchParams,
   resetOnNavigate,
+  pathname = "/",
 }: {
-  searchParams: P;
-  resetOnNavigate: Set<F>;
+  searchParams: AppQueryParams;
+  resetOnNavigate: Set<ParamKey>;
+  pathname?: string;
 }): FilterHref {
-  const href = (params: P) => ({ pathname: "/", query: params });
+  const href = (params: AppQueryParams) => ({
+    urlObject: { pathname, query: params },
+    urlString:
+      pathname +
+      "?" +
+      new URLSearchParams(
+        Object.entries(params).flatMap(([key, value]) =>
+          Array.isArray(value)
+            ? value.map((v) => [key, v])
+            : value === undefined
+              ? []
+              : [[key, value]],
+        ),
+      ).toString(),
+  });
+
   const baseParams = Object.fromEntries(
     Object.entries(searchParams).filter(
-      ([key]) => !resetOnNavigate.has(key as F),
+      ([key]) => !resetOnNavigate.has(key as ParamKey),
     ),
-  ) as P;
+  ) as AppQueryParams;
 
   return {
-    replace: (key: string, value: string | string[]) =>
-      href({ [key]: value } as P),
-    add: (key: string, value: string | string[]) =>
+    replace: (key: ParamKey, value: string | string[]) =>
+      href({ [key]: value } as AppQueryParams),
+    add: (key: ParamKey, value: string | string[]) =>
       href(addQueryParam(baseParams, key, value)),
-    delete: (key: string, value?: string | string[]) =>
+    delete: (key: ParamKey, value?: string | string[]) =>
       href(deleteQueryParam(searchParams, key, value)),
   };
 }
 
-function addQueryParam<P extends QueryParams>(
-  base: P,
-  key: keyof P,
+function addQueryParam(
+  base: AppQueryParams,
+  key: ParamKey,
   value: string | string[],
 ) {
   if (Array.isArray(base[key]) && Array.isArray(value)) {
@@ -63,9 +131,9 @@ function addQueryParam<P extends QueryParams>(
   return { ...base, [key]: value };
 }
 
-function deleteQueryParam<P extends QueryParams>(
-  base: P,
-  key: keyof P,
+function deleteQueryParam(
+  base: AppQueryParams,
+  key: ParamKey,
   value?: string | string[],
 ) {
   if (value === undefined) {

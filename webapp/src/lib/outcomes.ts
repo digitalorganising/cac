@@ -4,7 +4,7 @@ import { awsCredentialsProvider } from "@vercel/functions/oidc";
 import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
 import { Outcome } from "@/lib/types";
 import { unstable_cache } from "next/cache";
-import { MatchQuery } from "@opensearch-project/opensearch/api/_types/_common.query_dsl.js";
+import { SortKey } from "./filtering";
 
 const client = new Client({
   ...AwsSigv4Signer({
@@ -20,10 +20,34 @@ const client = new Client({
 export type GetOutcomesOptions = {
   from: number;
   size: number;
+  sortKey?: SortKey;
+  sortOrder?: "asc" | "desc";
   query?: string;
   "parties.unions"?: string[];
   "parties.employer"?: string[];
   reference?: string[];
+};
+
+const getSort = (sortKey?: SortKey, sortOrder?: "asc" | "desc") => {
+  const documentKeys = {
+    lastUpdated: "last_updated",
+    applicationDate: "filter.keyDates.applicationReceived",
+    concludedDate: "filter.keyDates.outcomeConcluded",
+    bargainingUnitSize: "filter.bargainingUnit.size",
+  } as const;
+  const tieBreak = { reference: { order: "asc" as const } };
+
+  const documentKey =
+    sortKey && sortKey !== "relevance" ? documentKeys[sortKey] : undefined;
+  if (sortKey && documentKey) {
+    return [{ [documentKey]: { order: sortOrder ?? "desc" } }, tieBreak];
+  }
+
+  return [
+    { _score: { order: "desc" as const } },
+    { last_updated: { order: "desc" as const } },
+    tieBreak,
+  ];
 };
 
 const filterText = (field: string, query?: string[]) =>
@@ -43,6 +67,8 @@ export const getOutcomes = unstable_cache(
     from,
     size,
     query,
+    sortKey,
+    sortOrder,
     "parties.unions": unions,
     "parties.employer": employer,
     reference,
@@ -77,10 +103,7 @@ export const getOutcomes = unstable_cache(
             ],
           },
         },
-        sort: [
-          { _score: { order: "desc" } },
-          { last_updated: { order: "desc" } },
-        ],
+        sort: getSort(sortKey, sortOrder),
         _source: ["display"],
       },
     });

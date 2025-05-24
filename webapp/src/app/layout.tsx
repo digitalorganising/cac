@@ -37,7 +37,11 @@ export default function RootLayout({
           <h1 className="text-5xl font-extrabold text-center mt-8 xs:mt-10 sm:mt-12">
             CAC Outcomes
           </h1>
-          <Form action="" className="my-8 xs:my-12 max-w-2xl mx-auto">
+          <Form
+            action=""
+            className="my-8 xs:my-12 max-w-2xl mx-auto"
+            id="outcomes-search-form"
+          >
             <div className="flex flex-col max-xs:space-y-2 xs:flex-row xs:space-x-2 ">
               <SearchInputs />
             </div>

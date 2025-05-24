@@ -13,6 +13,7 @@
     "@aws-sdk/credential-provider-node": "^3.812.0",
     "@opensearch-project/opensearch": "^3.5.1",
     "@radix-ui/react-icons": "^1.3.2",
+    "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@react-hook/resize-observer": "^2.0.2",

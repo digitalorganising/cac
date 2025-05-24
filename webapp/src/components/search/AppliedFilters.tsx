@@ -1,12 +1,11 @@
 import type { Entries, Except } from "type-fest";
-import { GetOutcomesOptions } from "@/lib/outcomes";
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { FilterHref } from "@/lib/filtering";
+import { AppQueryParams, FilterHref } from "@/lib/filtering";
 
-type Filters = Except<GetOutcomesOptions, "from" | "size" | "query">;
+type Filters = Except<AppQueryParams, "query" | "sort" | "sortOrder" | "page">;
 
 const singularFilterLabels: Record<keyof Filters, string> = {
   "parties.unions": "Union",
@@ -26,7 +25,7 @@ const Filter = <F extends keyof Filters>({
   (Array.isArray(value) ? value : [value]).map((v) => (
     <Link
       key={`filter-${filterKey}-${v}`}
-      href={filterHref.delete(filterKey, value)}
+      href={filterHref.delete(filterKey, value).urlObject}
       className="flex gap-x-2 items-center bg-slate-100 rounded-md px-3 py-2 border border-slate-200 group"
     >
       <span className="text-sm text-nowrap">
@@ -40,16 +39,17 @@ const Filter = <F extends keyof Filters>({
   ));
 
 export default function AppliedFilters({
-  filters,
+  params,
   className,
   filterHref,
   ...otherProps
 }: {
-  filters: Filters;
+  params: AppQueryParams;
   filterHref: FilterHref;
 } & React.HTMLAttributes<HTMLDivElement>) {
-  const appliedFilters = Object.entries(filters).filter(
-    (kv): kv is [keyof Filters, string[]] => kv[1] !== undefined,
+  const appliedFilters = Object.entries(params).filter(
+    (kv): kv is [keyof Filters, string[]] =>
+      kv[0] in singularFilterLabels && kv[1] !== undefined,
   );
 
   if (appliedFilters.length === 0) {

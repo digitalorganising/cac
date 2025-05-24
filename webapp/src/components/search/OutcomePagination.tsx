@@ -10,12 +10,14 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { usePathname, useSearchParams } from "next/navigation";
+import React from "react";
 
 export default function OutcomePagination({
   totalPages,
+  ...props
 }: {
   totalPages: number;
-}) {
+} & React.ComponentProps<typeof Pagination>) {
   const pathname = usePathname();
   const params = useSearchParams();
   const currentPage = Number(params.get("page") ?? 1);
@@ -67,7 +69,7 @@ export default function OutcomePagination({
   const pages = pageNumbers();
 
   return (
-    <Pagination>
+    <Pagination {...props}>
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious

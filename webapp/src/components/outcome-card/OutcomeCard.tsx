@@ -97,7 +97,7 @@ const OutcomeDetails = ({ outcome, className, filterHref }: Props) => (
       {outcome.parties.unions.map((unionName, i) => (
         <Fragment key={unionName}>
           <Link
-            href={filterHref.add("parties.unions", unionName)}
+            href={filterHref.add("parties.unions", unionName).urlObject}
             className="text-primary underline underline-offset-4 hover:font-medium"
           >
             {unionName}
@@ -110,7 +110,9 @@ const OutcomeDetails = ({ outcome, className, filterHref }: Props) => (
     <dt>Employer</dt>
     <dd>
       <Link
-        href={filterHref.add("parties.employer", outcome.parties.employer)}
+        href={
+          filterHref.add("parties.employer", outcome.parties.employer).urlObject
+        }
         className="text-primary underline underline-offset-4 hover:font-medium"
       >
         {outcome.parties.employer}
@@ -154,7 +156,7 @@ const OutcomeCard = ({ outcome, filterHref }: Props) => (
         <ExternalLinkIcon className="size-3" />
       </Link>
       <Link
-        href={filterHref.replace("reference", outcome.reference)}
+        href={filterHref.replace("reference", outcome.reference).urlObject}
         className="flex items-center gap-x-2 group"
       >
         <CardTitle className="text-md xs:text-xl group-hover:underline">

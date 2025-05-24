@@ -2,41 +2,18 @@
 
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { createFilterHref } from "@/lib/filtering";
-import { useMemo } from "react";
+import { useRouter } from "nextjs-toploader/app";
+import { useFilterHref } from "@/lib/useFilterHref";
 
 type Props = {
   forInput: string;
 };
 export default function ResetButton({ forInput }: Props) {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const filterHref = useMemo(
-    () =>
-      createFilterHref({
-        searchParams: Object.fromEntries(searchParams.entries()),
-        resetOnNavigate: new Set(["page"]),
-      }),
-    [searchParams],
-  );
+  const filterHref = useFilterHref({ resetOnNavigate: new Set(["page"]) });
   const router = useRouter();
 
   const reset = () => {
-    const urlObject = filterHref.delete("query");
-    const params = new URLSearchParams(
-      Object.entries(
-        urlObject.query as Record<string, string | string[] | undefined>,
-      ).flatMap(([key, value]) =>
-        Array.isArray(value)
-          ? value.map((v) => [key, v])
-          : value === undefined
-            ? []
-            : [[key, value]],
-      ),
-    );
-    const pathname = urlObject.pathname ?? "/";
-    return router.push(`${pathname}?${params.toString()}`);
+    return router.push(filterHref.delete("query").urlString);
   };
 
   return (
