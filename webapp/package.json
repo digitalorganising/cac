@@ -26,6 +26,7 @@
     "nextjs-toploader": "^3.8.16",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react18-json-view": "^0.2.9",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "type-fest": "^4.41.0"

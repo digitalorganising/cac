@@ -9,7 +9,8 @@ export type AppQueryParams = Record<
   | "parties.unions"
   | "parties.employer"
   | "reference"
-  | "sort",
+  | "sort"
+  | "debug",
   Param
 >;
 

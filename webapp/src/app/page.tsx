@@ -42,6 +42,7 @@ export default async function Home({
             key={outcome.reference}
             outcome={outcome}
             filterHref={filterHref}
+            showDebugView={params.debug !== undefined}
           />
         ))}
       </section>

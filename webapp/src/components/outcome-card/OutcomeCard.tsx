@@ -4,7 +4,8 @@ import { Fragment } from "react";
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Timeline } from "@/components/timeline/timeline";
-import DecisionTimelineItem from "@/components/outcome-card/DecisionTimelineItem";
+import DecisionTimelineItem from "./DecisionTimelineItem";
+import DebugView from "./DebugView";
 import { Outcome, OutcomeState } from "@/lib/types";
 import { formatDuration } from "@/lib/duration";
 import BallotResults from "@/components/outcome-card/BallotResults";
@@ -15,6 +16,7 @@ type Props = {
   outcome: Outcome;
   className?: string;
   filterHref: FilterHref;
+  showDebugView?: boolean;
 };
 
 const classForState = (outcomeState: OutcomeState): string => {
@@ -139,7 +141,7 @@ const OutcomeDetails = ({ outcome, className, filterHref }: Props) => (
   </dl>
 );
 
-const OutcomeCard = ({ outcome, filterHref }: Props) => (
+const OutcomeCard = ({ outcome, filterHref, showDebugView = false }: Props) => (
   <Card>
     <CardHeader className="space-y-0 xs:space-x-2 block xs:flex flex-row-reverse items-center justify-between mb-2">
       <Link
@@ -180,6 +182,7 @@ const OutcomeCard = ({ outcome, filterHref }: Props) => (
         filterHref={filterHref}
       />
     </CardContent>
+    {showDebugView ? <DebugView outcome={outcome} /> : null}
   </Card>
 );
 
