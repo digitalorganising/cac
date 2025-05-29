@@ -12,20 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Loading() {
   return (
     <>
-      <Pagination className="my-2">
-        <PaginationContent>
-          <PaginationItem>
-            <PaginationPrevious
-              className="pointer-events-none opacity-30"
-              href="#"
-            />
-          </PaginationItem>
-          <PaginationEllipsis />
-          <PaginationItem className="pointer-events-none opacity-30">
-            <PaginationNext href="#" />
-          </PaginationItem>
-        </PaginationContent>
-      </Pagination>
+      <div className="mt-20 xs:mt-24 sm:mt-25" />
       <section className="container space-y-4 xs:space-y-5 sm:space-y-6 my-6 xs:my-7 sm:my-8 xs:my-16 px-0">
         <Card>
           <Skeleton className="w-2/3 h-4 m-3" />
