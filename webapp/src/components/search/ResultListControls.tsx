@@ -4,31 +4,26 @@ import OutcomePagination from "./OutcomePagination";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRouter } from "nextjs-toploader/app";
-import { useFilterHref } from "@/lib/useFilterHref";
-import { SortKey, SortOrder } from "@/lib/filtering";
+import { useOptimisticFilterRouter } from "@/lib/useOptimisticFilterRouter";
 
 type Props = {
   nResults: number;
   pageSize: number;
-  sortKey?: SortKey;
-  sortOrder?: SortOrder;
+  hasQuery?: boolean;
 };
 
 export default function ResultListControls({
   nResults,
   pageSize,
-  sortKey,
-  sortOrder,
+  hasQuery,
 }: Props) {
-  const router = useRouter();
-  const filterHref = useFilterHref({ resetOnNavigate: new Set(["page"]) });
+  const filterRouter = useOptimisticFilterRouter({
+    resetOnNavigate: new Set(["page"]),
+  });
 
   return (
     <div className="flex justify-center items-center md:justify-end pl-2">
@@ -38,18 +33,21 @@ export default function ResultListControls({
       </div>
 
       <Select
-        defaultValue={`${sortKey ?? "relevance"}-${sortOrder ?? "desc"}`}
         form="outcomes-search-form"
         name="sort"
         onValueChange={(value) => {
           if (value === "relevance-desc") {
-            router.push(filterHref.delete("sort").urlString);
+            filterRouter.delete("sort");
           }
-          router.push(filterHref.replace("sort", value).urlString);
+          filterRouter.replace("sort", value);
         }}
       >
         <SelectTrigger className="w-[180px]">
-          <SelectValue />
+          <SelectValue
+            placeholder={
+              hasQuery ? "Relevance" : "Last updated (newest to oldest)"
+            }
+          />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="relevance-desc">Relevance</SelectItem>

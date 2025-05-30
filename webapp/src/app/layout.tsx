@@ -3,8 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Form from "next/form";
 import NextTopLoader from "nextjs-toploader";
-import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
-import { Button } from "@/components/ui/button";
 import SearchInputs from "@/components/SearchInputs";
 
 export const metadata: Metadata = {

@@ -8,6 +8,7 @@ import {
 } from "@/lib/filtering";
 import AppliedFilters from "@/components/search/AppliedFilters";
 import ResultListControls from "@/components/search/ResultListControls";
+import Facets from "@/components/search/Facets";
 
 export default async function Home({
   searchParams,
@@ -30,11 +31,11 @@ export default async function Home({
         className="my-4"
         filterHref={filterHref}
       />
+      <Facets />
       <ResultListControls
         nResults={outcomes.size}
         pageSize={pageSize}
-        sortKey={options.sortKey}
-        sortOrder={options.sortOrder}
+        hasQuery={options.query !== undefined}
       />
       <section className="container space-y-4 xs:space-y-5 sm:space-y-6 my-3 px-0">
         {outcomes.docs.map((outcome) => (

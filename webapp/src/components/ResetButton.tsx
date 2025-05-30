@@ -3,18 +3,17 @@
 import { Cross2Icon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "nextjs-toploader/app";
-import { useFilterHref } from "@/lib/useFilterHref";
+import { useOptimisticFilterRouter } from "@/lib/useOptimisticFilterRouter";
 
 type Props = {
   forInput: string;
 };
 export default function ResetButton({ forInput }: Props) {
-  const filterHref = useFilterHref({ resetOnNavigate: new Set(["page"]) });
-  const router = useRouter();
+  const filterRouter = useOptimisticFilterRouter({
+    resetOnNavigate: new Set(["page"]),
+  });
 
-  const reset = () => {
-    return router.push(filterHref.delete("query").urlString);
-  };
+  const reset = () => filterRouter.delete("query");
 
   return (
     <Button
