@@ -26,16 +26,20 @@ export type GetOutcomesOptions = {
   "parties.unions"?: string[];
   "parties.employer"?: string[];
   reference?: string[];
+  state?: string[];
+  "events.type"?: string[];
+  "bargainingUnit.size.from"?: string;
+  "bargainingUnit.size.to"?: string;
 };
 
 const getSort = (sortKey?: SortKey, sortOrder?: "asc" | "desc") => {
   const documentKeys = {
-    lastUpdated: "last_updated",
+    lastUpdated: "filter.lastUpdated",
     applicationDate: "filter.keyDates.applicationReceived",
     concludedDate: "filter.keyDates.outcomeConcluded",
     bargainingUnitSize: "filter.bargainingUnit.size",
   } as const;
-  const tieBreak = { reference: { order: "asc" as const } };
+  const tieBreak = { id: { order: "asc" as const } };
 
   const documentKey =
     sortKey && sortKey !== "relevance" ? documentKeys[sortKey] : undefined;
@@ -45,22 +49,37 @@ const getSort = (sortKey?: SortKey, sortOrder?: "asc" | "desc") => {
 
   return [
     { _score: { order: "desc" as const } },
-    { last_updated: { order: "desc" as const } },
+    { "filter.lastUpdated": { order: "desc" as const } },
     tieBreak,
   ];
 };
 
-const filterText = (field: string, query?: string[]) =>
-  query
-    ? query.map((q) => ({
-        match: {
-          [field]: {
-            query: q,
-            minimum_should_match: "3<-25%",
-          },
-        },
-      }))
-    : [];
+const filterMatch = (field: string) => (query: string) => ({
+  match: {
+    [field]: {
+      query,
+      minimum_should_match: "3<-25%",
+    },
+  },
+});
+
+const filterText = (field: string, query?: string[]) => {
+  if (!query) {
+    return [];
+  }
+
+  if (query.length === 1) {
+    return [filterMatch(field)(query[0])];
+  }
+
+  return [
+    {
+      bool: {
+        should: query.map(filterMatch(field)),
+      },
+    },
+  ];
+};
 
 export const getOutcomes = unstable_cache(
   async ({
@@ -74,7 +93,7 @@ export const getOutcomes = unstable_cache(
     reference,
   }: GetOutcomesOptions): Promise<{ size: number; docs: Outcome[] }> => {
     const response = await client.search({
-      index: "outcomes-indexed",
+      index: "outcomes-2025-05-31-indexed",
       body: {
         from,
         size,
@@ -84,7 +103,7 @@ export const getOutcomes = unstable_cache(
             must: reference
               ? [
                   {
-                    terms: { reference },
+                    terms: { "filter.reference": reference },
                   },
                 ]
               : [],
@@ -92,7 +111,7 @@ export const getOutcomes = unstable_cache(
               ? [
                   {
                     match: {
-                      all_decisions: query,
+                      full_text: query,
                     },
                   },
                 ]

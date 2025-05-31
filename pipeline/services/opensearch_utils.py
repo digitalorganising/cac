@@ -108,15 +108,8 @@ async def ensure_index_mapping(
             print(f"Creating index {index} with mapping from {mapping_path}")
             await client.indices.create(index=index, body={"mappings": mapping})
         else:
-            # Verify mapping matches
-            current_mapping = await client.indices.get_mapping(index=index)
-            current_mapping = current_mapping[index]["mappings"]
-
-            if current_mapping != mapping:
-                print(
-                    f"Index {index} exists but has different mapping than {mapping_path}. "
-                    "Please update the index mapping manually if needed."
-                )
+            # Update existing index mapping
+            await client.indices.put_mapping(index=index, body=mapping)
     except exceptions.OpenSearchException as e:
         print(f"Failed to ensure index mapping: {e}")
         raise RuntimeError(f"Failed to ensure index mapping: {e}") from e
