@@ -28,7 +28,7 @@ const Filter = <F extends keyof Filters>({
   (Array.isArray(value) ? value : [value]).map((v) => (
     <Link
       key={`filter-${filterKey}-${v}`}
-      href={filterHref.delete(filterKey, value).urlObject}
+      href={filterHref.delete(filterKey, v).urlObject}
       className="flex gap-x-2 items-center bg-slate-100 rounded-md px-3 py-2 border border-slate-200 group"
     >
       <span className="text-sm text-nowrap">

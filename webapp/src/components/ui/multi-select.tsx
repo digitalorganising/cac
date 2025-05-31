@@ -8,7 +8,7 @@ import { Label } from "./label";
 type Props = {
   label: string;
   name: string;
-  options: string[];
+  options: string[] | { label: string; value: string }[];
   selected: Set<string>;
   onSelect: (value: string, checked: boolean) => void;
   form?: string;
@@ -36,7 +36,7 @@ function SelectTrigger({
 
 function CountBadge({ count }: { count: number }) {
   return (
-    <span className="inline-flex items-center justify-center bg-slate-600 text-white h-4 min-w-4 px-1 rounded-full text- tabular-nums">
+    <span className="inline-flex items-center justify-center bg-slate-600 text-white h-4 min-w-4 px-1 rounded-full text-xs tabular-nums">
       {count}
     </span>
   );
@@ -70,25 +70,29 @@ export default function MultiSelect({
         </SelectTrigger>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-fit p-2">
-        {options.map((value) => (
-          <Label
-            key={value}
-            htmlFor={value}
-            className="flex items-center gap-2 p-2 rounded-md hover:bg-slate-100 cursor-pointer [&>*]:cursor-pointer"
-          >
-            <Checkbox
-              id={value}
-              checked={selected.has(value)}
-              onCheckedChange={(newChecked) => {
-                onSelect(
-                  value,
-                  newChecked === "indeterminate" ? false : newChecked,
-                );
-              }}
-            />
-            <span>{value}</span>
-          </Label>
-        ))}
+        {options.map((option) => {
+          const value = typeof option === "string" ? option : option.value;
+          const label = typeof option === "string" ? option : option.label;
+          return (
+            <Label
+              key={value}
+              htmlFor={value}
+              className="flex items-center gap-2 p-2 rounded-md hover:bg-slate-100 cursor-pointer [&>*]:cursor-pointer"
+            >
+              <Checkbox
+                id={value}
+                checked={selected.has(value)}
+                onCheckedChange={(newChecked) => {
+                  onSelect(
+                    value,
+                    newChecked === "indeterminate" ? false : newChecked,
+                  );
+                }}
+              />
+              <span>{label}</span>
+            </Label>
+          );
+        })}
       </PopoverContent>
     </Popover>
   );
