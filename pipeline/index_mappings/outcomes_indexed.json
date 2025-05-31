@@ -137,12 +137,6 @@
         "parties.unions": {
           "type": "keyword"
         },
-        "parties.employer": {
-          "type": "keyword"
-        },
-        "bargainingUnit.size": {
-          "type": "integer"
-        },
         "events.type": {
           "type": "keyword"
         }

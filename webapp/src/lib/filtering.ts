@@ -6,10 +6,16 @@ type Param = string | string[] | undefined;
 export type AppQueryParams = Record<
   | "query"
   | "page"
+  | "sort"
   | "parties.unions"
   | "parties.employer"
   | "reference"
-  | "sort"
+  | "state"
+  | "bargainingUnit.size.from"
+  | "bargainingUnit.size.to"
+  | "events.type"
+  | "events.date.from"
+  | "events.date.to"
   | "debug",
   Param
 >;
@@ -50,6 +56,12 @@ export function appQueryParamsToOutcomesOptions(
     "parties.unions": multiValue(params["parties.unions"]),
     "parties.employer": multiValue(params["parties.employer"]),
     reference: multiValue(params.reference),
+    state: multiValue(params.state),
+    "bargainingUnit.size.from": singleValue(params["bargainingUnit.size.from"]),
+    "bargainingUnit.size.to": singleValue(params["bargainingUnit.size.to"]),
+    "events.type": multiValue(params["events.type"]),
+    "events.date.from": singleValue(params["events.date.from"]),
+    "events.date.to": singleValue(params["events.date.to"]),
     sortKey,
     sortOrder,
   };

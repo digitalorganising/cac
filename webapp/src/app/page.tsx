@@ -1,6 +1,6 @@
 import OutcomeCard from "@/components/outcome-card/OutcomeCard";
 import OutcomePagination from "@/components/search/OutcomePagination";
-import { getOutcomes } from "@/lib/outcomes";
+import { getFacets, getOutcomes } from "@/lib/outcomes";
 import {
   AppQueryParams,
   appQueryParamsToOutcomesOptions,
@@ -23,7 +23,9 @@ export default async function Home({
     pathname: "/",
   });
   const options = appQueryParamsToOutcomesOptions(pageSize, params);
-  const outcomes = await getOutcomes(options);
+  const outcomesPromise = getOutcomes(options);
+  const facetsPromise = getFacets(options);
+  const outcomes = await outcomesPromise;
   return (
     <>
       <AppliedFilters
@@ -31,7 +33,7 @@ export default async function Home({
         className="my-4"
         filterHref={filterHref}
       />
-      <Facets />
+      <Facets facetsPromise={facetsPromise} />
       <ResultListControls
         nResults={outcomes.size}
         pageSize={pageSize}

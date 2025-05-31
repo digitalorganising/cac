@@ -1,5 +1,8 @@
 import "server-only";
-import { Client } from "@opensearch-project/opensearch";
+import {
+  Client,
+  Types as OpenSearchTypes,
+} from "@opensearch-project/opensearch";
 import { awsCredentialsProvider } from "@vercel/functions/oidc";
 import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
 import { Outcome } from "@/lib/types";
@@ -28,6 +31,8 @@ export type GetOutcomesOptions = {
   reference?: string[];
   state?: string[];
   "events.type"?: string[];
+  "events.date.from"?: string;
+  "events.date.to"?: string;
   "bargainingUnit.size.from"?: string;
   "bargainingUnit.size.to"?: string;
 };
@@ -81,47 +86,74 @@ const filterText = (field: string, query?: string[]) => {
   ];
 };
 
+const filterKeyword = (field: string, query?: string[]) => {
+  if (!query) {
+    return [];
+  }
+
+  return [
+    {
+      terms: {
+        [field]: query,
+      },
+    },
+  ];
+};
+
+type QueryOptions = {
+  query?: string;
+  "parties.unions"?: string[];
+  "parties.employer"?: string[];
+  state?: string[];
+  "events.type"?: string[];
+  reference?: string[];
+};
+
+const getQuery = ({
+  query,
+  "parties.unions": unions,
+  "parties.employer": employer,
+  state,
+  "events.type": eventsType,
+  reference,
+}: QueryOptions) => ({
+  bool: {
+    should: query
+      ? [
+          {
+            match: {
+              full_text: query,
+            },
+          },
+        ]
+      : [{ match_all: {} }],
+    filter: [
+      filterText("filter.parties.unions", unions),
+      filterText("filter.parties.employer", employer),
+      filterKeyword("filter.state", state),
+      filterKeyword("filter.events.type", eventsType),
+      filterKeyword("filter.reference", reference),
+    ].flat(),
+  },
+});
+
+const outcomesIndex = "outcomes-2025-05-31-indexed";
+
 export const getOutcomes = unstable_cache(
   async ({
     from,
     size,
-    query,
     sortKey,
     sortOrder,
-    "parties.unions": unions,
-    "parties.employer": employer,
-    reference,
+    ...queryOptions
   }: GetOutcomesOptions): Promise<{ size: number; docs: Outcome[] }> => {
     const response = await client.search({
-      index: "outcomes-2025-05-31-indexed",
+      index: outcomesIndex,
       body: {
         from,
         size,
         track_total_hits: true,
-        query: {
-          bool: {
-            must: reference
-              ? [
-                  {
-                    terms: { "filter.reference": reference },
-                  },
-                ]
-              : [],
-            should: query
-              ? [
-                  {
-                    match: {
-                      full_text: query,
-                    },
-                  },
-                ]
-              : [{ match_all: {} }],
-            filter: [
-              ...filterText("filter.parties.unions", unions),
-              ...filterText("filter.parties.employer", employer),
-            ],
-          },
-        },
+        query: getQuery(queryOptions),
         sort: getSort(sortKey, sortOrder),
         _source: ["display"],
       },
@@ -136,6 +168,66 @@ export const getOutcomes = unstable_cache(
       size: totalHits,
       docs: response.body.hits.hits.map((hit: any) => hit._source.display),
     };
+  },
+  ["client"],
+);
+
+const facetPrefix = "facet.";
+
+const termsAgg = (name: string) => ({
+  [name]: {
+    terms: {
+      field: name,
+      size: 50,
+    },
+  },
+});
+
+const aggIsFacet = (
+  agg: [string, OpenSearchTypes.Common_Aggregations.Aggregate],
+): agg is [string, OpenSearchTypes.Common_Aggregations.StringTermsAggregate] =>
+  agg[0].startsWith(facetPrefix) && "buckets" in agg[1];
+
+const getFacetProps = (key: string): { value: string; label?: string } => {
+  const p = JSON.parse(key);
+  if (typeof p === "string") {
+    return { value: p };
+  }
+
+  return { value: p.value, label: p.label };
+};
+
+export const getFacets = unstable_cache(
+  async (queryOptions: QueryOptions) => {
+    const response = await client.search({
+      index: outcomesIndex,
+      body: {
+        size: 0,
+        query: getQuery(queryOptions),
+        aggs: {
+          ...termsAgg("facet.parties.unions"),
+          ...termsAgg("facet.state"),
+          ...termsAgg("facet.events.type"),
+        },
+      },
+    });
+
+    const aggs = response.body.aggregations;
+    const facets = Object.fromEntries(
+      Object.entries(aggs ?? {})
+        .filter(aggIsFacet)
+        .map(([name, agg]) => [
+          name.slice(facetPrefix.length),
+          (
+            agg.buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[]
+          ).map(({ key, doc_count }) => ({
+            ...getFacetProps(key as string),
+            count: doc_count,
+          })),
+        ]),
+    );
+
+    return facets;
   },
   ["client"],
 );

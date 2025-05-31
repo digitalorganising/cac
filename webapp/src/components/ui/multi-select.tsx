@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+"use client";
+
+import React, { ButtonHTMLAttributes, useState } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
@@ -8,17 +10,18 @@ import { Label } from "./label";
 type Props = {
   label: string;
   name: string;
-  options: string[] | { label: string; value: string }[];
+  options: { label: string; value: string }[];
   selected: Set<string>;
   onSelect: (value: string, checked: boolean) => void;
   form?: string;
+  disabled?: boolean;
 };
 
-function SelectTrigger({
+export function SelectTrigger({
   children,
   className,
   ...props
-}: React.HTMLAttributes<HTMLButtonElement>) {
+}: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       role="combobox"
@@ -49,6 +52,7 @@ export default function MultiSelect({
   selected,
   onSelect,
   form,
+  disabled,
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -64,35 +68,31 @@ export default function MultiSelect({
         />
       ))}
       <PopoverTrigger asChild>
-        <SelectTrigger aria-expanded={open}>
+        <SelectTrigger aria-expanded={open} disabled={!!disabled}>
           {label}
           {selected.size > 0 && <CountBadge count={selected.size} />}
         </SelectTrigger>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-fit p-2">
-        {options.map((option) => {
-          const value = typeof option === "string" ? option : option.value;
-          const label = typeof option === "string" ? option : option.label;
-          return (
-            <Label
-              key={value}
-              htmlFor={value}
-              className="flex items-center gap-2 p-2 rounded-md hover:bg-slate-100 cursor-pointer [&>*]:cursor-pointer"
-            >
-              <Checkbox
-                id={value}
-                checked={selected.has(value)}
-                onCheckedChange={(newChecked) => {
-                  onSelect(
-                    value,
-                    newChecked === "indeterminate" ? false : newChecked,
-                  );
-                }}
-              />
-              <span>{label}</span>
-            </Label>
-          );
-        })}
+        {options.map((option) => (
+          <Label
+            key={option.value}
+            htmlFor={option.value}
+            className="flex items-center gap-2 p-2 rounded-md hover:bg-slate-100 cursor-pointer [&>*]:cursor-pointer"
+          >
+            <Checkbox
+              id={option.value}
+              checked={selected.has(option.value)}
+              onCheckedChange={(newChecked) => {
+                onSelect(
+                  option.value,
+                  newChecked === "indeterminate" ? false : newChecked,
+                );
+              }}
+            />
+            <span>{option.label}</span>
+          </Label>
+        ))}
       </PopoverContent>
     </Popover>
   );

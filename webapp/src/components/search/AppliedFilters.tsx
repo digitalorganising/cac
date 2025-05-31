@@ -4,17 +4,7 @@ import { cn } from "@/lib/utils";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { AppQueryParams, FilterHref } from "@/lib/filtering";
-
-type Filters = Pick<
-  AppQueryParams,
-  "parties.unions" | "parties.employer" | "reference"
->;
-
-const singularFilterLabels: Record<keyof Filters, string> = {
-  "parties.unions": "Union",
-  "parties.employer": "Employer",
-  reference: "Reference",
-};
+import { Filters, filterLabels } from "./common";
 
 const Filter = <F extends keyof Filters>({
   filterKey,
@@ -32,10 +22,8 @@ const Filter = <F extends keyof Filters>({
       className="flex gap-x-2 items-center bg-slate-100 rounded-md px-3 py-2 border border-slate-200 group"
     >
       <span className="text-sm text-nowrap">
-        <strong className="font-semibold">
-          {singularFilterLabels[filterKey]}
-        </strong>
-        : <span className="no-underline group-hover:underline">{v}</span>
+        <strong className="font-semibold">{filterLabels[filterKey]}</strong>:{" "}
+        <span className="no-underline group-hover:underline">{v}</span>
       </span>
       <Cross2Icon className="size-3 text-slate-500 group-hover:text-slate-700" />
     </Link>
@@ -52,7 +40,7 @@ export default function AppliedFilters({
 } & React.HTMLAttributes<HTMLDivElement>) {
   const appliedFilters = Object.entries(params).filter(
     (kv): kv is [keyof Filters, string[]] =>
-      kv[0] in singularFilterLabels && kv[1] !== undefined,
+      kv[0] in filterLabels && kv[1] !== undefined,
   );
 
   if (appliedFilters.length === 0) {
