@@ -41,6 +41,7 @@ export default function MultiSelect({
       ))}
       <PopoverTrigger asChild>
         <SelectTrigger
+          aria-label={`${label} filter`}
           aria-expanded={open}
           loading={loading}
           count={selected.size}

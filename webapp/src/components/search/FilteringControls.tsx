@@ -14,7 +14,7 @@ type Props = {
 
 function FacetFallback() {
   return Object.entries(filterLabels).map(([key, label]) => (
-    <SelectTrigger key={key} loading={true}>
+    <SelectTrigger key={key} loading={true} aria-label={`${label} filter`}>
       {label}
     </SelectTrigger>
   ));

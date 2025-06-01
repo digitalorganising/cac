@@ -145,6 +145,7 @@ const OutcomeCard = ({ outcome, filterHref, showDebugView = false }: Props) => (
   <Card>
     <CardHeader className="space-y-0 xs:space-x-2 block xs:flex flex-row-reverse items-center justify-between mb-2">
       <Link
+        aria-label="View this outcome on gov.uk"
         href={outcome.cacUrl}
         target="_blank"
         className="size-6 xs:size-auto p-0 float-right xs:m-1 flex flex-row items-center justify-center text-nowrap xs:space-x-2 rounded-full border xs:px-2.5 xs:py-0.5 text-xs border-transparent bg-slate-200 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-slate-300"

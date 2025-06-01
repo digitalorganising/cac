@@ -42,7 +42,7 @@ export default function ResultListControls({
           filterRouter.replace("sort", value);
         }}
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[180px]" aria-label="Sort results">
           <SelectValue
             placeholder={
               hasQuery ? "Relevance" : "Last updated (newest to oldest)"
