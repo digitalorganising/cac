@@ -1,14 +1,12 @@
 import OutcomeCard from "@/components/outcome-card/OutcomeCard";
 import OutcomePagination from "@/components/search/OutcomePagination";
-import { getFacets, getOutcomes } from "@/lib/outcomes";
+import { getOutcomes } from "@/lib/queries/outcomes";
 import {
   AppQueryParams,
   appQueryParamsToOutcomesOptions,
   createFilterHref,
 } from "@/lib/filtering";
-import AppliedFilters from "@/components/search/AppliedFilters";
 import ResultListControls from "@/components/search/ResultListControls";
-import Facets from "@/components/search/FacetControls";
 import FilteringControls from "@/components/search/FilteringControls";
 
 export default async function Home({

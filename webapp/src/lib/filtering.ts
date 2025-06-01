@@ -1,5 +1,5 @@
 import type { UrlObject } from "node:url";
-import { GetOutcomesOptions } from "./outcomes";
+import { GetOutcomesOptions } from "./queries/outcomes";
 
 type Param = string | string[] | undefined;
 
@@ -62,11 +62,11 @@ export function appQueryParamsToOutcomesOptions(
     "parties.employer": multiValue(params["parties.employer"]),
     reference: multiValue(params.reference),
     state: multiValue(params.state),
-    "bargainingUnit.size.from": singleValue(params["bargainingUnit.size.from"]),
-    "bargainingUnit.size.to": singleValue(params["bargainingUnit.size.to"]),
+    // "bargainingUnit.size.from": singleValue(params["bargainingUnit.size.from"]),
+    // "bargainingUnit.size.to": singleValue(params["bargainingUnit.size.to"]),
     "events.type": multiValue(params["events.type"]),
-    "events.date.from": singleValue(params["events.date.from"]),
-    "events.date.to": singleValue(params["events.date.to"]),
+    // "events.date.from": singleValue(params["events.date.from"]),
+    // "events.date.to": singleValue(params["events.date.to"]),
     sortKey,
     sortOrder,
   };

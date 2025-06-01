@@ -1,5 +1,5 @@
 import { filterLabels } from "./common";
-import { Facets, getFacets, GetOutcomesOptions } from "@/lib/outcomes";
+import { Facets } from "@/lib/queries/facets";
 import { Entries } from "type-fest";
 import FacetSelect from "./FacetSelect";
 

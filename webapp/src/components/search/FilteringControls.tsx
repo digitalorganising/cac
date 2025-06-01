@@ -1,5 +1,5 @@
 import { FilterHref, Filters } from "@/lib/filtering";
-import { Facets, getFacets, GetOutcomesOptions } from "@/lib/outcomes";
+import { Facets, getFacets, GetFacetsOptions } from "@/lib/queries/facets";
 import AppliedFilters, { FilterEntries } from "./AppliedFilters";
 import FacetControls from "./FacetControls";
 import { Suspense } from "react";
@@ -9,7 +9,7 @@ import { arr } from "@/lib/utils";
 
 type Props = {
   filterHref: FilterHref;
-  options: GetOutcomesOptions;
+  options: GetFacetsOptions;
 };
 
 function FacetFallback() {
