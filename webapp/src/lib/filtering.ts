@@ -28,6 +28,11 @@ export type SortKey =
   | "bargainingUnitSize";
 export type SortOrder = "asc" | "desc";
 
+export type Filters = Pick<
+  AppQueryParams,
+  "parties.unions" | "parties.employer" | "reference" | "state" | "events.type"
+>;
+
 type ParamKey = keyof AppQueryParams;
 
 const singleValue = <T extends string = string>(value: Param): T | undefined =>
@@ -73,6 +78,7 @@ type Href = {
 };
 
 export type FilterHref = {
+  params: AppQueryParams;
   replace: (key: ParamKey, value: string | string[]) => Href;
   add: (key: ParamKey, value: string | string[]) => Href;
   delete: (key: ParamKey, value?: string | string[]) => Href;
@@ -110,6 +116,7 @@ export function createFilterHref({
   ) as AppQueryParams;
 
   return {
+    params: searchParams,
     replace: (key: ParamKey, value: string | string[]) =>
       href({ [key]: value } as AppQueryParams),
     add: (key: ParamKey, value: string | string[]) =>

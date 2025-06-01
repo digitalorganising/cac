@@ -1,14 +1,9 @@
-import { AppQueryParams } from "@/lib/filtering";
-
-export type Filters = Pick<
-  AppQueryParams,
-  "parties.unions" | "parties.employer" | "reference" | "state" | "events.type"
->;
+import { Filters } from "@/lib/filtering";
 
 export const filterLabels: Record<keyof Filters, string> = {
-  "parties.unions": "Union",
+  "parties.unions": "Unions",
   "parties.employer": "Employer",
   reference: "Reference",
-  state: "State",
+  state: "Status",
   "events.type": "Events",
 };

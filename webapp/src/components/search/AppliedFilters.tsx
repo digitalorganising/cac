@@ -1,62 +1,38 @@
-import type { Entries, Except } from "type-fest";
 import React from "react";
-import { cn } from "@/lib/utils";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { AppQueryParams, FilterHref } from "@/lib/filtering";
-import { Filters, filterLabels } from "./common";
+import { FilterHref, Filters } from "@/lib/filtering";
+import { filterLabels } from "./common";
+import { Entries } from "type-fest";
 
-const Filter = <F extends keyof Filters>({
-  filterKey,
-  value,
-  filterHref,
-}: {
-  filterKey: F;
-  value: NonNullable<Filters[F]>;
-  filterHref: FilterHref;
-}) =>
-  (Array.isArray(value) ? value : [value]).map((v) => (
-    <Link
-      key={`filter-${filterKey}-${v}`}
-      href={filterHref.delete(filterKey, v).urlObject}
-      className="flex gap-x-2 items-center bg-slate-100 rounded-md px-3 py-2 border border-slate-200 group"
-    >
-      <span className="text-sm text-nowrap">
-        <strong className="font-semibold">{filterLabels[filterKey]}</strong>:{" "}
-        <span className="no-underline group-hover:underline">{v}</span>
-      </span>
-      <Cross2Icon className="size-3 text-slate-500 group-hover:text-slate-700" />
-    </Link>
-  ));
+export type FilterEntries = Record<
+  keyof Filters,
+  { value: string; label?: string }[]
+>;
 
 export default function AppliedFilters({
-  params,
-  className,
+  filterEntries,
   filterHref,
-  ...otherProps
 }: {
-  params: AppQueryParams;
+  filterEntries: FilterEntries;
   filterHref: FilterHref;
-} & React.HTMLAttributes<HTMLDivElement>) {
-  const appliedFilters = Object.entries(params).filter(
-    (kv): kv is [keyof Filters, string[]] =>
-      kv[0] in filterLabels && kv[1] !== undefined,
-  );
-
-  if (appliedFilters.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className={cn("flex flex-wrap gap-2", className)} {...otherProps}>
-      {appliedFilters.map(([key, value]) => (
-        <Filter
-          key={key}
-          filterKey={key}
-          value={value}
-          filterHref={filterHref}
-        />
-      ))}
-    </div>
+}) {
+  return (Object.entries(filterEntries) as Entries<FilterEntries>).flatMap(
+    ([key, entries]) =>
+      entries.map(({ value, label }) => (
+        <Link
+          key={`filter-${key}-${value}`}
+          href={filterHref.delete(key, value).urlObject}
+          className="flex gap-x-2 items-center bg-slate-100 rounded-md px-3 py-2 border border-slate-200 group"
+        >
+          <span className="text-sm text-nowrap">
+            <strong className="font-semibold">{filterLabels[key]}</strong>:{" "}
+            <span className="no-underline group-hover:underline">
+              {label ?? value}
+            </span>
+          </span>
+          <Cross2Icon className="size-3 text-slate-500 group-hover:text-slate-700" />
+        </Link>
+      )),
   );
 }

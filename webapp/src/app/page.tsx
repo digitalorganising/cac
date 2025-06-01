@@ -8,7 +8,8 @@ import {
 } from "@/lib/filtering";
 import AppliedFilters from "@/components/search/AppliedFilters";
 import ResultListControls from "@/components/search/ResultListControls";
-import Facets from "@/components/search/Facets";
+import Facets from "@/components/search/FacetControls";
+import FilteringControls from "@/components/search/FilteringControls";
 
 export default async function Home({
   searchParams,
@@ -23,17 +24,10 @@ export default async function Home({
     pathname: "/",
   });
   const options = appQueryParamsToOutcomesOptions(pageSize, params);
-  const outcomesPromise = getOutcomes(options);
-  const facetsPromise = getFacets(options);
-  const outcomes = await outcomesPromise;
+  const outcomes = await getOutcomes(options);
   return (
     <>
-      <AppliedFilters
-        params={params}
-        className="my-4"
-        filterHref={filterHref}
-      />
-      <Facets facetsPromise={facetsPromise} />
+      <FilteringControls filterHref={filterHref} options={options} />
       <ResultListControls
         nResults={outcomes.size}
         pageSize={pageSize}

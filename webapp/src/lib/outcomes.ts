@@ -7,7 +7,7 @@ import { awsCredentialsProvider } from "@vercel/functions/oidc";
 import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
 import { Outcome } from "@/lib/types";
 import { unstable_cache } from "next/cache";
-import { SortKey } from "./filtering";
+import { Filters, SortKey } from "./filtering";
 
 const client = new Client({
   ...AwsSigv4Signer({
@@ -197,8 +197,13 @@ const getFacetProps = (key: string): { value: string; label?: string } => {
   return { value: p.value, label: p.label };
 };
 
+export type Facets = Record<
+  keyof Filters,
+  { value: string; label?: string; count: number }[]
+>;
+
 export const getFacets = unstable_cache(
-  async (queryOptions: QueryOptions) => {
+  async (queryOptions: QueryOptions): Promise<Facets> => {
     const response = await client.search({
       index: outcomesIndex,
       body: {
@@ -225,7 +230,7 @@ export const getFacets = unstable_cache(
             count: doc_count,
           })),
         ]),
-    );
+    ) as Facets;
 
     return facets;
   },
