@@ -39,7 +39,6 @@ export const getFacets = unstable_cache(
     });
 
     const aggs = response.body.aggregations;
-    console.log(aggs);
     const facets = Object.fromEntries(
       Object.entries(aggs ?? {})
         .filter(aggIsFacet)
@@ -70,7 +69,7 @@ const facetAgg = (
     filter: {
       bool: {
         filter: filters.filter((f) =>
-          Object.values(f).some((v) => v._name === `filter-${name}`),
+          Object.values(f).some((v) => v._name !== `filter-${name}`),
         ),
       },
     },

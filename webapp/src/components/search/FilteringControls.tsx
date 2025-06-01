@@ -60,8 +60,8 @@ export default function FilteringControls({ filterHref, options }: Props) {
       .map(([key, value]) => [key, arr(value).map((v) => ({ value: v }))]),
   ) as FilterEntries;
   return (
-    <div>
-      <div className="my-4 flex flex-wrap gap-2">
+    <div className="my-4 space-y-2">
+      <div className="flex flex-wrap gap-2">
         <Suspense
           fallback={
             <AppliedFilters
@@ -77,7 +77,7 @@ export default function FilteringControls({ filterHref, options }: Props) {
           />
         </Suspense>
       </div>
-      <div className="flex justify-center items-center md:justify-start gap-4 py-4">
+      <div className="flex flex-wrapitems-center justify-start gap-4 py-4">
         <Suspense fallback={<FacetFallback />}>
           <FacetControls facetsPromise={facetsPromise} />
         </Suspense>
