@@ -13,6 +13,7 @@ type Props = {
   options: { label: string; value: string }[];
   selected: Set<string>;
   onSelect: (value: string, checked: boolean) => void;
+  onClearAll?: () => void;
   form?: string;
   loading?: boolean;
 };
@@ -23,6 +24,7 @@ export default function MultiSelect({
   options,
   selected,
   onSelect,
+  onClearAll,
   form,
   loading,
 }: Props) {
@@ -74,6 +76,17 @@ export default function MultiSelect({
             </Label>
           ))}
         </ScrollArea>
+        {onClearAll ? (
+          <div className="p-0.5 border-t border-slate-200 flex justify-center items-center">
+            <button
+              aria-label="Clear all"
+              className="text-center text-sm px-3 py-1 rounded-sm hover:bg-slate-100"
+              onClick={onClearAll}
+            >
+              Clear all
+            </button>
+          </div>
+        ) : null}
       </PopoverContent>
     </Popover>
   );

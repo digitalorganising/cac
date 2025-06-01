@@ -4,6 +4,7 @@ import React from "react";
 import MultiSelect from "../ui/multi-select/client";
 import { useOptimisticFilterRouter } from "@/lib/useOptimisticFilterRouter";
 import { Filters } from "@/lib/filtering";
+import { arr } from "@/lib/utils";
 
 type Props = Omit<
   React.ComponentProps<typeof MultiSelect>,
@@ -14,7 +15,7 @@ export default function FacetSelect(props: Props) {
   const filterRouter = useOptimisticFilterRouter({
     resetOnNavigate: new Set(["page"]),
   });
-  const selected = new Set(filterRouter.params[props.name] ?? []);
+  const selected = new Set(arr(filterRouter.params[props.name] ?? []));
 
   const handleSelect = (value: string, checked: boolean) => {
     if (checked) {
@@ -23,5 +24,13 @@ export default function FacetSelect(props: Props) {
       filterRouter.delete(props.name, value);
     }
   };
-  return <MultiSelect {...props} selected={selected} onSelect={handleSelect} />;
+
+  return (
+    <MultiSelect
+      {...props}
+      selected={selected}
+      onSelect={handleSelect}
+      onClearAll={() => filterRouter.delete(props.name)}
+    />
+  );
 }

@@ -27,20 +27,18 @@ export const getOutcomes = unstable_cache(
     sortOrder,
     ...queryOptions
   }: GetOutcomesOptions): Promise<{ size: number; docs: Outcome[] }> => {
-    const qb = {
-      bool: {
-        should: getQuery(queryOptions),
-        filter: getFilters(queryOptions),
-      },
-    };
-    console.log(JSON.stringify(qb, null, 2));
     const response = await client.search({
       index: outcomesIndex,
       body: {
         from,
         size,
         track_total_hits: true,
-        query: qb,
+        query: {
+          bool: {
+            should: getQuery(queryOptions),
+            filter: getFilters(queryOptions),
+          },
+        },
         sort: getSort(sortKey, sortOrder),
         _source: ["display"],
       },
