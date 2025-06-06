@@ -6,7 +6,7 @@ import {
 } from "@opensearch-project/opensearch";
 import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
 import { awsCredentialsProvider } from "@vercel/functions/oidc";
-import { SortKey } from "../filtering";
+import { SortKey } from "../types";
 
 export const client = new Client({
   ...AwsSigv4Signer({
@@ -41,9 +41,11 @@ export type FilterOptions = {
   reference?: string[];
   state?: string[];
   "events.type"?: string[];
+  "events.date.from"?: string;
+  "events.date.to"?: string;
 };
 
-const filterPrefix = "filter.";
+export const filterPrefix = "filter.";
 
 const filterMatch = (name: string) => (query: string) => ({
   match: {
@@ -88,12 +90,32 @@ const filterKeyword = (name: string, query?: string[]) => {
   ];
 };
 
+const filterDateRange = (name: string, from?: string, to?: string) => {
+  if (!from && !to) {
+    return [];
+  }
+
+  return [
+    {
+      range: {
+        [filterPrefix + name]: {
+          gte: from,
+          lte: to,
+          _name: `filter-${name}`,
+        },
+      },
+    },
+  ];
+};
+
 export const getFilters = ({
   "parties.unions": unions,
   "parties.employer": employer,
   reference,
   state,
   "events.type": eventsType,
+  "events.date.from": eventsDateFrom,
+  "events.date.to": eventsDateTo,
 }: FilterOptions): OpenSearchTypes.Common_QueryDsl.QueryContainer[] =>
   [
     filterText("parties.unions", unions),
@@ -101,6 +123,7 @@ export const getFilters = ({
     filterKeyword("state", state),
     filterKeyword("events.type", eventsType),
     filterKeyword("reference", reference),
+    filterDateRange("events.date", eventsDateFrom, eventsDateTo),
   ].flat();
 
 export const getQuery = ({ query }: QueryOptions) =>

@@ -1,9 +1,10 @@
 import React from "react";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { FilterHref, Filters } from "@/lib/filtering";
 import { filterLabels } from "./common";
 import { Entries } from "type-fest";
+import { FilterHref } from "@/lib/filtering";
+import { Filters } from "@/lib/types";
 
 export type FilterEntries = Record<
   keyof Filters,

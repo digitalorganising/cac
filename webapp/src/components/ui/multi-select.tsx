@@ -1,11 +1,11 @@
-"use client";
-
-import { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "../popover";
-import { Checkbox } from "../checkbox";
-import { Label } from "../label";
-import { ScrollArea } from "../scroll-area";
-import { SelectTrigger } from "./server";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Checkbox } from "./checkbox";
+import { Label } from "./label";
+import { ScrollArea } from "./scroll-area";
+import { ChevronDownIcon } from "@radix-ui/react-icons";
+import { UpdateIcon } from "@radix-ui/react-icons";
+import { cn } from "@/lib/utils";
+import { ButtonHTMLAttributes } from "react";
 
 type Props = {
   label: string;
@@ -18,6 +18,45 @@ type Props = {
   loading?: boolean;
 };
 
+function CountBadge({ count }: { count: number }) {
+  return (
+    <span className="inline-flex items-center justify-center bg-slate-600 text-white h-4 min-w-4 px-1 rounded-full text-xs tabular-nums">
+      {count}
+    </span>
+  );
+}
+
+export function SelectTrigger({
+  children,
+  className,
+  loading,
+  count,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  loading?: boolean;
+  count?: number;
+}) {
+  return (
+    <button
+      role="combobox"
+      className={cn(
+        "cursor-pointer border-input [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 flex w-fit items-center justify-between gap-2 rounded-md border bg-white hover:bg-slate-50 aria-expanded:bg-slate-50 px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        className,
+      )}
+      disabled={loading}
+      {...props}
+    >
+      {children}
+      {count !== undefined && count > 0 ? <CountBadge count={count} /> : null}
+      {loading ? (
+        <UpdateIcon className="animate-spin" />
+      ) : (
+        <ChevronDownIcon className="size-4 opacity-50" />
+      )}
+    </button>
+  );
+}
+
 export default function MultiSelect({
   label,
   name,
@@ -28,10 +67,8 @@ export default function MultiSelect({
   form,
   loading,
 }: Props) {
-  const [open, setOpen] = useState(false);
-
   return (
-    <Popover open={open} onOpenChange={setOpen} modal={true}>
+    <Popover modal={true}>
       {Array.from(selected).map((value) => (
         <input
           type="hidden"
@@ -44,7 +81,6 @@ export default function MultiSelect({
       <PopoverTrigger asChild>
         <SelectTrigger
           aria-label={`${label} filter`}
-          aria-expanded={open}
           loading={loading}
           count={selected.size}
         >

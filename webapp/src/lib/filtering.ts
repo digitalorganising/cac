@@ -1,38 +1,9 @@
 import type { UrlObject } from "node:url";
 import { GetOutcomesOptions } from "./queries/outcomes";
+import { AppQueryParams, SortKey, SortOrder } from "./types";
+import { ValueOf } from "type-fest";
 
-type Param = string | string[] | undefined;
-
-export type AppQueryParams = Record<
-  | "query"
-  | "page"
-  | "sort"
-  | "parties.unions"
-  | "parties.employer"
-  | "reference"
-  | "state"
-  | "bargainingUnit.size.from"
-  | "bargainingUnit.size.to"
-  | "events.type"
-  | "events.date.from"
-  | "events.date.to"
-  | "debug",
-  Param
->;
-
-export type SortKey =
-  | "relevance"
-  | "lastUpdated"
-  | "applicationDate"
-  | "concludedDate"
-  | "bargainingUnitSize";
-export type SortOrder = "asc" | "desc";
-
-export type Filters = Pick<
-  AppQueryParams,
-  "parties.unions" | "parties.employer" | "reference" | "state" | "events.type"
->;
-
+type Param = ValueOf<AppQueryParams>;
 type ParamKey = keyof AppQueryParams;
 
 const singleValue = <T extends string = string>(value: Param): T | undefined =>
@@ -65,8 +36,8 @@ export function appQueryParamsToOutcomesOptions(
     // "bargainingUnit.size.from": singleValue(params["bargainingUnit.size.from"]),
     // "bargainingUnit.size.to": singleValue(params["bargainingUnit.size.to"]),
     "events.type": multiValue(params["events.type"]),
-    // "events.date.from": singleValue(params["events.date.from"]),
-    // "events.date.to": singleValue(params["events.date.to"]),
+    "events.date.from": singleValue(params["events.date.from"]),
+    "events.date.to": singleValue(params["events.date.to"]),
     sortKey,
     sortOrder,
   };

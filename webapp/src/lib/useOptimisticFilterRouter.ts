@@ -1,6 +1,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useRouter } from "nextjs-toploader/app";
-import { AppQueryParams, createFilterHref } from "./filtering";
+import { createFilterHref } from "./filtering";
+import { AppQueryParams } from "./types";
 import { useMemo, useOptimistic, useTransition } from "react";
 import type { UrlObject } from "node:url";
 

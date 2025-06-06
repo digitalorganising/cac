@@ -2,10 +2,10 @@ import OutcomeCard from "@/components/outcome-card/OutcomeCard";
 import OutcomePagination from "@/components/search/OutcomePagination";
 import { getOutcomes } from "@/lib/queries/outcomes";
 import {
-  AppQueryParams,
   appQueryParamsToOutcomesOptions,
   createFilterHref,
 } from "@/lib/filtering";
+import { AppQueryParams } from "@/lib/types";
 import ResultListControls from "@/components/search/ResultListControls";
 import FilteringControls from "@/components/search/FilteringControls";
 

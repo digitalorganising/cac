@@ -81,3 +81,35 @@ export type Outcome = {
   events: OutcomeEvent[];
   keyDates: OutcomeKeyDates;
 };
+
+type QueryParam = string | string[] | undefined;
+
+export type AppQueryParams = Record<
+  | "query"
+  | "page"
+  | "sort"
+  | "parties.unions"
+  | "parties.employer"
+  | "reference"
+  | "state"
+  | "bargainingUnit.size.from"
+  | "bargainingUnit.size.to"
+  | "events.type"
+  | "events.date.from"
+  | "events.date.to"
+  | "debug",
+  QueryParam
+>;
+
+export type SortKey =
+  | "relevance"
+  | "lastUpdated"
+  | "applicationDate"
+  | "concludedDate"
+  | "bargainingUnitSize";
+export type SortOrder = "asc" | "desc";
+
+export type Filters = Pick<
+  AppQueryParams,
+  "parties.unions" | "parties.employer" | "reference" | "state" | "events.type"
+>;

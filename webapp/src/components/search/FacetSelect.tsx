@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import MultiSelect from "../ui/multi-select/client";
+import MultiSelect from "../ui/multi-select";
 import { useOptimisticFilterRouter } from "@/lib/useOptimisticFilterRouter";
-import { Filters } from "@/lib/filtering";
+import { Filters } from "@/lib/types";
 import { arr } from "@/lib/utils";
 
 type Props = Omit<

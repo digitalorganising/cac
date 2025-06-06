@@ -11,10 +11,12 @@ import {
   QueryOptions,
 } from "./common";
 
-export type Facets = Record<
-  keyof FilterOptions,
-  { value: string; label?: string; count: number }[]
->;
+export type Facets = {
+  bucketed: Record<
+    keyof Omit<FilterOptions, "events.date.from" | "events.date.to">,
+    { value: string; label?: string; count: number }[]
+  >;
+};
 
 export type GetFacetsOptions = QueryOptions & FilterOptions;
 
@@ -39,7 +41,7 @@ export const getFacets = unstable_cache(
     });
 
     const aggs = response.body.aggregations;
-    const facets = Object.fromEntries(
+    const bucketedFacets = Object.fromEntries(
       Object.entries(aggs ?? {})
         .filter(aggIsFacet)
         .map(([name, agg]) => [
@@ -52,27 +54,34 @@ export const getFacets = unstable_cache(
             count: doc_count,
           })),
         ]),
-    ) as Facets;
+    ) as Facets["bucketed"];
 
-    return facets;
+    return {
+      bucketed: bucketedFacets,
+    };
   },
   ["client"],
 );
 
 const facetPrefix = "facet.";
 
+const nonMatchingFilters = (
+  filters: OpenSearchTypes.Common_QueryDsl.QueryContainer[],
+  name: string,
+) => ({
+  bool: {
+    filter: filters.filter((f) =>
+      Object.values(f).some((v) => v._name !== `filter-${name}`),
+    ),
+  },
+});
+
 const facetAgg = (
   name: string,
   filters: OpenSearchTypes.Common_QueryDsl.QueryContainer[],
 ) => ({
   [facetPrefix + name]: {
-    filter: {
-      bool: {
-        filter: filters.filter((f) =>
-          Object.values(f).some((v) => v._name !== `filter-${name}`),
-        ),
-      },
-    },
+    filter: nonMatchingFilters(filters, name),
     aggs: {
       filtered: {
         terms: {

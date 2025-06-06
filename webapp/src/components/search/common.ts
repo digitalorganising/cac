@@ -1,4 +1,4 @@
-import { Filters } from "@/lib/filtering";
+import { Filters } from "@/lib/types";
 
 export const filterLabels: Record<keyof Filters, string> = {
   "parties.unions": "Unions",

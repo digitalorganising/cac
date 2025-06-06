@@ -1,11 +1,13 @@
-import { FilterHref, Filters } from "@/lib/filtering";
+import { FilterHref } from "@/lib/filtering";
+import { Filters } from "@/lib/types";
 import { Facets, getFacets, GetFacetsOptions } from "@/lib/queries/facets";
 import AppliedFilters, { FilterEntries } from "./AppliedFilters";
 import FacetControls from "./FacetControls";
 import { Suspense } from "react";
 import { filterLabels } from "./common";
-import { SelectTrigger } from "../ui/multi-select/server";
+import { SelectTrigger } from "../ui/multi-select";
 import { arr } from "@/lib/utils";
+import { DateRange } from "../ui/date-range";
 
 type Props = {
   filterHref: FilterHref;
@@ -13,11 +15,20 @@ type Props = {
 };
 
 function FacetFallback() {
-  return Object.entries(filterLabels).map(([key, label]) => (
-    <SelectTrigger key={key} loading={true} aria-label={`${label} filter`}>
-      {label}
-    </SelectTrigger>
-  ));
+  return (
+    <>
+      {["Unions", "Status", "Events"].map((label) => (
+        <SelectTrigger
+          key={label}
+          loading={true}
+          aria-label={`${label} filter`}
+        >
+          {label}
+        </SelectTrigger>
+      ))}
+      <DateRange />
+    </>
+  );
 }
 
 async function AppliedLabelledFilters({
@@ -36,8 +47,9 @@ async function AppliedLabelledFilters({
       entries.map((entry) => ({
         ...entry,
         label:
-          facets[key as keyof Facets]?.find((f) => f.value === entry.value)
-            ?.label ?? entry.value,
+          facets.bucketed[key as keyof Facets["bucketed"]]?.find(
+            (f) => f.value === entry.value,
+          )?.label ?? entry.value,
       })),
     ]),
   ) as FilterEntries;

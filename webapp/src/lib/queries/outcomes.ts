@@ -11,8 +11,7 @@ import {
   QueryOptions,
   SortOptions,
 } from "./common";
-import { SortKey } from "../filtering";
-import { Outcome } from "../types";
+import { Outcome, SortKey } from "../types";
 
 export type GetOutcomesOptions = PaginationOptions &
   SortOptions &
