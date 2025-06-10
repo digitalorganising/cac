@@ -87,8 +87,8 @@ export function HistogramSlider({
   onSelectRange,
   form,
 }: Props) {
-  const lowerBound = bins[0].value;
-  const upperBound = bins[bins.length - 1].value;
+  const lowerBound = bins[0]?.value ?? 0;
+  const upperBound = bins[bins.length - 1]?.value ?? 0;
 
   const [uiValue, setUiValue] = useState<[number, number]>([
     min ?? lowerBound,

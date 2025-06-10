@@ -2,35 +2,31 @@
 
 import React from "react";
 import MultiSelect from "../ui/multi-select";
-import { useOptimisticFilterRouter } from "@/lib/useOptimisticFilterRouter";
-import { Filters } from "@/lib/types";
-import { arr } from "@/lib/utils";
+import { useAppQueryState } from "@/lib/app-query-state";
+import { MultiSelectFacet } from "@/lib/queries/facets";
 
 type Props = Omit<
   React.ComponentProps<typeof MultiSelect>,
   "selected" | "onSelect" | "name"
-> & { name: keyof Filters };
+> & { name: MultiSelectFacet };
 
 export default function FacetSelect(props: Props) {
-  const filterRouter = useOptimisticFilterRouter({
-    resetOnNavigate: new Set(["page"]),
-  });
-  const selected = new Set(arr(filterRouter.params[props.name] ?? []));
+  const [selected, setSelected] = useAppQueryState(props.name);
 
   const handleSelect = (value: string, checked: boolean) => {
     if (checked) {
-      filterRouter.add(props.name, value);
+      setSelected((s) => [...s, value]);
     } else {
-      filterRouter.delete(props.name, value);
+      setSelected((s) => s.filter((v) => v !== value));
     }
   };
 
   return (
     <MultiSelect
       {...props}
-      selected={selected}
+      selected={new Set(selected ?? [])}
       onSelect={handleSelect}
-      onClearAll={() => filterRouter.delete(props.name)}
+      onClearAll={() => setSelected(null)}
     />
   );
 }

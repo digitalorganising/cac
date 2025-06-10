@@ -10,12 +10,15 @@ import { Outcome, OutcomeState } from "@/lib/types";
 import { formatDuration } from "@/lib/duration";
 import BallotResults from "@/components/outcome-card/BallotResults";
 import { cn } from "@/lib/utils";
-import { FilterHref } from "@/lib/filtering";
+import {
+  appSearchParamsCache,
+  appSearchParamsSerializer,
+  addParamValue,
+} from "@/lib/search-params";
 
 type Props = {
   outcome: Outcome;
   className?: string;
-  filterHref: FilterHref;
   showDebugView?: boolean;
 };
 
@@ -62,86 +65,91 @@ const BargainingUnit = ({
   </span>
 );
 
-const OutcomeDetails = ({ outcome, className, filterHref }: Props) => (
-  <dl
-    className={cn(
-      "m-2 max-md:mt-0 lg:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] lg:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min items-baseline",
-      "xs:gap-x-2 md:gap-x-4 xs:gap-y-0.5 lg:gap-y-3",
-      "[&>dt]:font-medium [&>dt]:col-start-1 [&>dd]:col-start-1 lg:[&>dd]:col-start-2 max-lg:[&>dt]:mt-2.5",
-      className,
-    )}
-  >
-    <dt>Status</dt>
-    <dd className="whitespace-nowrap">
-      <span
-        className={cn(
-          "rounded-md px-2.5 py-0.5 inline-block overflow-hidden align-top text-ellipsis max-w-full",
-          classForState(outcome.state),
-        )}
-      >
-        {outcome.state.label}
-      </span>
-    </dd>
-
-    <dt>Duration</dt>
-    <dd>
-      {formatDuration(outcome.keyDates)}
-      {outcome.keyDates.outcomeConcluded ? null : (
-        <>
-          {" "}
-          <i className="italic text-muted-foreground">(ongoing)</i>
-        </>
+const OutcomeDetails = ({ outcome, className }: Props) => {
+  const params = appSearchParamsCache.all();
+  return (
+    <dl
+      className={cn(
+        "m-2 max-md:mt-0 lg:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] lg:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min items-baseline",
+        "xs:gap-x-2 md:gap-x-4 xs:gap-y-0.5 lg:gap-y-3",
+        "[&>dt]:font-medium [&>dt]:col-start-1 [&>dd]:col-start-1 lg:[&>dd]:col-start-2 max-lg:[&>dt]:mt-2.5",
+        className,
       )}
-    </dd>
+    >
+      <dt>Status</dt>
+      <dd className="whitespace-nowrap">
+        <span
+          className={cn(
+            "rounded-md px-2.5 py-0.5 inline-block overflow-hidden align-top text-ellipsis max-w-full",
+            classForState(outcome.state),
+          )}
+        >
+          {outcome.state.label}
+        </span>
+      </dd>
 
-    <dt>Union</dt>
-    <dd>
-      {outcome.parties.unions.map((unionName, i) => (
-        <Fragment key={unionName}>
-          <Link
-            href={filterHref.add("parties.unions", unionName).urlObject}
-            className="text-primary underline underline-offset-4 hover:font-medium"
-          >
-            {unionName}
-          </Link>
-          {i !== outcome.parties.unions.length - 1 ? ", " : null}
-        </Fragment>
-      ))}
-    </dd>
+      <dt>Duration</dt>
+      <dd>
+        {formatDuration(outcome.keyDates)}
+        {outcome.keyDates.outcomeConcluded ? null : (
+          <>
+            {" "}
+            <i className="italic text-muted-foreground">(ongoing)</i>
+          </>
+        )}
+      </dd>
 
-    <dt>Employer</dt>
-    <dd>
-      <Link
-        href={
-          filterHref.add("parties.employer", outcome.parties.employer).urlObject
-        }
-        className="text-primary underline underline-offset-4 hover:font-medium"
-      >
-        {outcome.parties.employer}
-      </Link>
-    </dd>
+      <dt>Union</dt>
+      <dd>
+        {outcome.parties.unions.map((unionName, i) => (
+          <Fragment key={unionName}>
+            <Link
+              href={appSearchParamsSerializer(
+                addParamValue(params, "parties.unions", unionName),
+              )}
+              className="text-primary underline underline-offset-4 hover:font-medium"
+            >
+              {unionName}
+            </Link>
+            {i !== outcome.parties.unions.length - 1 ? ", " : null}
+          </Fragment>
+        ))}
+      </dd>
 
-    {outcome.bargainingUnit ? (
-      <>
-        <dt>Bargaining unit</dt>
-        <dd>
-          <BargainingUnit {...outcome.bargainingUnit} />
-        </dd>
-      </>
-    ) : null}
+      <dt>Employer</dt>
+      <dd>
+        <Link
+          href={appSearchParamsSerializer(
+            addParamValue(params, "parties.employer", outcome.parties.employer),
+          )}
+          className="text-primary underline underline-offset-4 hover:font-medium"
+        >
+          {outcome.parties.employer}
+        </Link>
+      </dd>
 
-    {outcome.ballot ? (
-      <>
-        <dt>Ballot results:</dt>
-        <dd className="col-start-1! col-span-2">
-          <BallotResults {...outcome.ballot} />
-        </dd>
-      </>
-    ) : null}
-  </dl>
-);
+      {outcome.bargainingUnit ? (
+        <>
+          <dt>Bargaining unit</dt>
+          <dd>
+            <BargainingUnit {...outcome.bargainingUnit} />
+          </dd>
+        </>
+      ) : null}
 
-const OutcomeCard = ({ outcome, filterHref, showDebugView = false }: Props) => (
+      {outcome.ballot ? (
+        <>
+          <dt>Ballot results:</dt>
+          <dd className="col-start-1! col-span-2">
+            <BallotResults {...outcome.ballot} />
+          </dd>
+        </>
+      ) : null}
+    </dl>
+  );
+};
+
+const OutcomeCard = ({ outcome, showDebugView = false }: Props) => (
   <Card>
     <CardHeader className="space-y-0 xs:space-x-2 block xs:flex flex-row-reverse items-center justify-between mb-2">
       <Link
@@ -159,7 +167,7 @@ const OutcomeCard = ({ outcome, filterHref, showDebugView = false }: Props) => (
         <ExternalLinkIcon className="size-3" />
       </Link>
       <Link
-        href={filterHref.replaceAll("reference", outcome.reference).urlObject}
+        href={appSearchParamsSerializer({ reference: [outcome.reference] })}
         className="flex items-center gap-x-2 group"
       >
         <CardTitle className="text-md xs:text-xl group-hover:underline">
@@ -177,11 +185,7 @@ const OutcomeCard = ({ outcome, filterHref, showDebugView = false }: Props) => (
           />
         ))}
       </Timeline>
-      <OutcomeDetails
-        outcome={outcome}
-        className="md:w-1/2"
-        filterHref={filterHref}
-      />
+      <OutcomeDetails outcome={outcome} className="md:w-1/2" />
     </CardContent>
     {showDebugView ? <DebugView outcome={outcome} /> : null}
   </Card>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppQueryState } from "@/lib/app-query-state";
 import OutcomePagination from "./OutcomePagination";
 import {
   Select,
@@ -8,7 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useOptimisticFilterRouter } from "@/lib/useOptimisticFilterRouter";
+import { SortOrder } from "@/lib/search-params";
+import { SortKey } from "@/lib/search-params";
 
 type Props = {
   nResults: number;
@@ -21,9 +23,7 @@ export default function ResultListControls({
   pageSize,
   hasQuery,
 }: Props) {
-  const filterRouter = useOptimisticFilterRouter({
-    resetOnNavigate: new Set(["page"]),
-  });
+  const [sort, setSort] = useAppQueryState("sort");
 
   return (
     <div className="flex justify-center items-center md:justify-end pl-2">
@@ -37,9 +37,9 @@ export default function ResultListControls({
         name="sort"
         onValueChange={(value) => {
           if (value === "relevance-desc") {
-            filterRouter.delete("sort");
+            setSort(null);
           }
-          filterRouter.replace("sort", value);
+          setSort(value as `${SortKey}-${SortOrder}`);
         }}
       >
         <SelectTrigger className="w-[180px]" aria-label="Sort results">

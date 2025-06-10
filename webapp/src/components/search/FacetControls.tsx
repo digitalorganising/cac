@@ -11,33 +11,25 @@ export default async function FacetControls({
   facetsPromise: Promise<Facets>;
 }) {
   const facets = await facetsPromise;
-  const bucketControls = (
-    Object.entries(filterLabels) as Entries<typeof filterLabels>
-  ).map(([name, label]) => {
-    const buckets = facets.bucketed[name as keyof Facets["bucketed"]];
-    if (!buckets) {
-      return null;
-    }
-    return (
-      <FacetSelect
-        key={name}
-        label={label}
-        name={name}
-        form="outcomes-search-form"
-        options={buckets.map(({ value, label, count }) => ({
-          value: value.toString(),
-          label: `${label ?? value} (${count})`,
-        }))}
-      />
-    );
-  });
-
   return (
     <>
-      {bucketControls}
+      {(
+        Object.entries(facets.multiSelect) as Entries<Facets["multiSelect"]>
+      ).map(([name, buckets]) => (
+        <FacetSelect
+          key={name}
+          label={filterLabels[name] ?? ""}
+          name={name}
+          form="outcomes-search-form"
+          options={buckets.map(({ value, label, count }) => ({
+            value: value.toString(),
+            label: `${label ?? value} (${count})`,
+          }))}
+        />
+      ))}
       <EventDateSelect />
       <BargainingUnitSizeSelect
-        bins={facets.bucketed["bargainingUnit.size"].map(
+        bins={facets.histogram["bargainingUnit.size"].map(
           ({ value, count }) => ({
             value: Number(value),
             freq: count,

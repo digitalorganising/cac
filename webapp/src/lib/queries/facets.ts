@@ -10,15 +10,31 @@ import {
   outcomesIndex,
   QueryOptions,
 } from "./common";
+import { JsonObject, JsonValue } from "type-fest";
+
+export const multiSelectFacetNames = [
+  "parties.unions",
+  "state",
+  "events.type",
+] as const;
+export type MultiSelectFacet = (typeof multiSelectFacetNames)[number];
+export const histogramFacetNames = ["bargainingUnit.size"] as const;
+export type HistogramFacet = (typeof histogramFacetNames)[number];
+
+type Bucket = { value: string | number; label?: string; count: number };
 
 export type Facets = {
-  bucketed: Record<
-    "parties.unions" | "state" | "events.type" | "bargainingUnit.size",
-    { value: string | number; label?: string; count: number }[]
-  >;
+  multiSelect: Record<MultiSelectFacet, Bucket[]>;
+  histogram: Record<HistogramFacet, Bucket[]>;
 };
 
 export type GetFacetsOptions = QueryOptions & FilterOptions;
+
+const pick = <T extends object, const K extends keyof T>(
+  obj: T,
+  keys: readonly K[],
+): Pick<T, K> =>
+  Object.fromEntries(keys.map((key) => [key, obj[key]])) as Pick<T, K>;
 
 export const getFacets = unstable_cache(
   async (options: GetFacetsOptions): Promise<Facets> => {
@@ -47,22 +63,29 @@ export const getFacets = unstable_cache(
     });
 
     const aggs = response.body.aggregations;
-    const facets = Object.entries(aggs ?? {}).filter(aggIsFacet);
     const bucketedFacets = Object.fromEntries(
-      facets.map(([name, agg]) => [
-        name.slice(facetPrefix.length),
-        (
-          agg.filtered
-            .buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[]
-        ).map(({ key, doc_count }) => ({
-          ...getFacetProps(key),
-          count: doc_count,
-        })),
-      ]),
-    ) as Facets["bucketed"];
+      [...multiSelectFacetNames, ...histogramFacetNames].flatMap((name) => {
+        const agg = aggs?.[facetPrefix + name];
+        if (!agg || !("filtered" in agg)) {
+          return [];
+        }
+        const buckets = agg.filtered
+          .buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
+        return [
+          [
+            name,
+            buckets.map(({ key, doc_count }) => ({
+              ...getFacetProps(key),
+              count: doc_count,
+            })),
+          ],
+        ];
+      }),
+    );
 
     return {
-      bucketed: bucketedFacets,
+      multiSelect: pick(bucketedFacets, multiSelectFacetNames),
+      histogram: pick(bucketedFacets, histogramFacetNames),
     };
   },
   [
@@ -71,8 +94,10 @@ export const getFacets = unstable_cache(
     "getQuery",
     "facetAgg",
     "histogramAgg",
-    "aggIsFacet",
     "getFacetProps",
+    "multiSelectFacetNames",
+    "histogramFacetNames",
+    "pick",
   ],
 );
 
@@ -81,13 +106,18 @@ const facetPrefix = "facet.";
 const nonMatchingFilters = (
   filters: OpenSearchTypes.Common_QueryDsl.QueryContainer[],
   name: string,
-) => ({
-  bool: {
-    filter: filters.filter((f) =>
-      Object.values(f).some((v) => v._name !== `filter-${name}`),
-    ),
-  },
-});
+) => {
+  // I was going to write this as a recursive tree traversal, but then I didn't
+  const shouldKeepFilter = (
+    filter: OpenSearchTypes.Common_QueryDsl.QueryContainer,
+  ) => !JSON.stringify(filter).includes(`"_name":"filter-${name}"`);
+
+  return {
+    bool: {
+      filter: filters.filter(shouldKeepFilter),
+    },
+  };
+};
 
 const facetAgg = (
   name: string,
@@ -122,16 +152,15 @@ const histogramAgg = (
             min: params.min,
             max: params.max,
           },
+          extended_bounds: {
+            min: params.min,
+            max: params.max,
+          },
         },
       },
     },
   },
 });
-
-const aggIsFacet = (
-  agg: [string, OpenSearchTypes.Common_Aggregations.Aggregate],
-): agg is [string, OpenSearchTypes.Common_Aggregations.FilterAggregate] =>
-  agg[0].startsWith(facetPrefix) && "filtered" in agg[1];
 
 const getFacetProps = (
   key: OpenSearchTypes.Common.FieldValue,

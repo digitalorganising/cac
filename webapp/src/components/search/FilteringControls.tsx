@@ -1,16 +1,20 @@
-import { FilterHref } from "@/lib/filtering";
-import { Filters } from "@/lib/types";
-import { Facets, getFacets, GetFacetsOptions } from "@/lib/queries/facets";
-import AppliedFilters, { FilterEntries } from "./AppliedFilters";
+import {
+  Facets,
+  getFacets,
+  GetFacetsOptions,
+  MultiSelectFacet,
+} from "@/lib/queries/facets";
+import AppliedFilters, { type FilterEntries } from "./AppliedFilters";
 import FacetControls from "./FacetControls";
 import { Suspense } from "react";
 import { filterLabels } from "./common";
 import { SelectTrigger } from "../ui/multi-select";
 import { arr } from "@/lib/utils";
 import { DateRange } from "../ui/date-range";
+import { appSearchParamsCache } from "@/lib/search-params";
+import { Entries } from "type-fest";
 
 type Props = {
-  filterHref: FilterHref;
   options: GetFacetsOptions;
 };
 
@@ -33,58 +37,43 @@ function FacetFallback() {
 
 async function AppliedLabelledFilters({
   filterEntries,
-  filterHref,
   facetsPromise,
 }: {
-  filterEntries: Record<keyof Filters, { value: string; label?: string }[]>;
-  filterHref: FilterHref;
+  filterEntries: FilterEntries;
   facetsPromise: Promise<Facets>;
 }) {
   const facets = await facetsPromise;
   const filterEntriesWithLabels = Object.fromEntries(
-    Object.entries(filterEntries).map(([key, entries]) => [
-      key,
-      entries.map((entry) => ({
-        ...entry,
-        label:
-          facets.bucketed[key as keyof Facets["bucketed"]]?.find(
-            (f) => f.value === entry.value,
-          )?.label ?? entry.value,
-      })),
-    ]),
+    (Object.entries(filterEntries) as Entries<FilterEntries>).map(
+      ([key, entries]) => [
+        key,
+        entries.map((entry) => ({
+          ...entry,
+          label:
+            Object.values(facets.multiSelect[key as MultiSelectFacet])?.find(
+              (f) => f.value === entry.value,
+            )?.label ?? entry.value,
+        })),
+      ],
+    ),
   ) as FilterEntries;
-  return (
-    <AppliedFilters
-      filterEntries={filterEntriesWithLabels}
-      filterHref={filterHref}
-    />
-  );
+  return <AppliedFilters filterEntries={filterEntriesWithLabels} />;
 }
 
-export default function FilteringControls({ filterHref, options }: Props) {
+export default function FilteringControls({ options }: Props) {
   const facetsPromise = getFacets(options);
+  const params = appSearchParamsCache.all();
   const appliedFilters = Object.fromEntries(
-    Object.entries(filterHref.params)
-      .filter(
-        (kv): kv is [keyof Filters, string | string[]] =>
-          kv[0] in filterLabels && kv[1] !== undefined,
-      )
+    Object.entries(params)
+      .filter((kv) => kv[0] in filterLabels && kv[1] !== null)
       .map(([key, value]) => [key, arr(value).map((v) => ({ value: v }))]),
   ) as FilterEntries;
   return (
     <div className="my-4 space-y-2">
       <div className="flex flex-wrap gap-2">
-        <Suspense
-          fallback={
-            <AppliedFilters
-              filterEntries={appliedFilters}
-              filterHref={filterHref}
-            />
-          }
-        >
+        <Suspense fallback={<AppliedFilters filterEntries={appliedFilters} />}>
           <AppliedLabelledFilters
             filterEntries={appliedFilters}
-            filterHref={filterHref}
             facetsPromise={facetsPromise}
           />
         </Suspense>

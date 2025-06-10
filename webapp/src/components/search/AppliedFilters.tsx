@@ -3,27 +3,30 @@ import { Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import { filterLabels } from "./common";
 import { Entries } from "type-fest";
-import { FilterHref } from "@/lib/filtering";
-import { Filters } from "@/lib/types";
+import {
+  AppSearchParams,
+  appSearchParamsCache,
+  appSearchParamsSerializer,
+  deleteParamValue,
+} from "@/lib/search-params";
 
 export type FilterEntries = Record<
-  keyof Filters,
+  keyof AppSearchParams,
   { value: string; label?: string }[]
 >;
 
 export default function AppliedFilters({
   filterEntries,
-  filterHref,
 }: {
   filterEntries: FilterEntries;
-  filterHref: FilterHref;
 }) {
+  const params = appSearchParamsCache.all();
   return (Object.entries(filterEntries) as Entries<FilterEntries>).flatMap(
     ([key, entries]) =>
       entries.map(({ value, label }) => (
         <Link
           key={`filter-${key}-${value}`}
-          href={filterHref.delete(key, value).urlObject}
+          href={appSearchParamsSerializer(deleteParamValue(params, key, value))}
           className="flex gap-x-2 items-center bg-slate-100 rounded-md px-3 py-2 border border-slate-200 group"
         >
           <span className="text-sm text-nowrap">

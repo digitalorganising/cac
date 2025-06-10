@@ -2,42 +2,19 @@
 
 import React from "react";
 import { HistogramSlider } from "../ui/histogram-slider";
-import { useOptimisticFilterRouter } from "@/lib/useOptimisticFilterRouter";
-
-const numberFromParam = (param: string | string[] | undefined) => {
-  if (!param) {
-    return undefined;
-  }
-  const n = Number(param);
-  if (isNaN(n)) {
-    return undefined;
-  }
-  return n;
-};
+import { useAppQueryState } from "@/lib/app-query-state";
 
 export default function BargainingUnitSizeSelect({
   bins,
 }: {
   bins: React.ComponentProps<typeof HistogramSlider>["bins"];
 }) {
-  const filterRouter = useOptimisticFilterRouter({
-    resetOnNavigate: new Set(["page"]),
-  });
+  const [min, setMin] = useAppQueryState("bargainingUnit.size.from");
+  const [max, setMax] = useAppQueryState("bargainingUnit.size.to");
 
-  const min = numberFromParam(filterRouter.params["bargainingUnit.size.from"]);
-  const max = numberFromParam(filterRouter.params["bargainingUnit.size.to"]);
-
-  const handleSelectRange = (min?: number, max?: number) => {
-    if (min !== undefined) {
-      filterRouter.replace("bargainingUnit.size.from", min.toString());
-    } else {
-      filterRouter.delete("bargainingUnit.size.from");
-    }
-    if (max !== undefined) {
-      filterRouter.replace("bargainingUnit.size.to", max.toString());
-    } else {
-      filterRouter.delete("bargainingUnit.size.to");
-    }
+  const handleSelectRange = (newMin?: number, newMax?: number) => {
+    setMin(newMin ?? null);
+    setMax(newMax ?? null);
   };
 
   return (
@@ -46,8 +23,8 @@ export default function BargainingUnitSizeSelect({
       name="bargainingUnit.size"
       form="outcomes-search-form"
       bins={bins}
-      min={min}
-      max={max}
+      min={min ?? undefined}
+      max={max ?? undefined}
       onSelectRange={handleSelectRange}
     />
   );

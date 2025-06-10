@@ -6,7 +6,7 @@ import {
 } from "@opensearch-project/opensearch";
 import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
 import { awsCredentialsProvider } from "@vercel/functions/oidc";
-import { SortKey } from "../types";
+import { SortKey, SortOrder } from "../search-params";
 
 export const client = new Client({
   ...AwsSigv4Signer({
@@ -28,7 +28,7 @@ export type PaginationOptions = {
 
 export type SortOptions = {
   sortKey?: SortKey;
-  sortOrder?: "asc" | "desc";
+  sortOrder?: SortOrder;
 };
 
 export type QueryOptions = {
@@ -59,7 +59,7 @@ const filterMatch = (name: string) => (query: string) => ({
 });
 
 const filterText = (name: string, query?: string[]) => {
-  if (!query) {
+  if (!query || query.length === 0) {
     return [];
   }
 
@@ -78,7 +78,7 @@ const filterText = (name: string, query?: string[]) => {
 };
 
 const filterKeyword = (name: string, query?: string[]) => {
-  if (!query) {
+  if (!query || query.length === 0) {
     return [];
   }
 
@@ -92,7 +92,11 @@ const filterKeyword = (name: string, query?: string[]) => {
   ];
 };
 
-const filterDateRange = (name: string, from?: string, to?: string) => {
+const filterRange = <T extends string | number>(
+  name: string,
+  from?: T,
+  to?: T,
+) => {
   if (!from && !to) {
     return [];
   }
@@ -118,6 +122,8 @@ export const getFilters = ({
   "events.type": eventsType,
   "events.date.from": eventsDateFrom,
   "events.date.to": eventsDateTo,
+  "bargainingUnit.size.from": bargainingUnitSizeFrom,
+  "bargainingUnit.size.to": bargainingUnitSizeTo,
 }: FilterOptions): OpenSearchTypes.Common_QueryDsl.QueryContainer[] =>
   [
     filterText("parties.unions", unions),
@@ -125,7 +131,12 @@ export const getFilters = ({
     filterKeyword("state", state),
     filterKeyword("events.type", eventsType),
     filterKeyword("reference", reference),
-    filterDateRange("events.date", eventsDateFrom, eventsDateTo),
+    filterRange("events.date", eventsDateFrom, eventsDateTo),
+    filterRange(
+      "bargainingUnit.size",
+      bargainingUnitSizeFrom,
+      bargainingUnitSizeTo,
+    ),
   ].flat();
 
 export const getQuery = ({ query }: QueryOptions) =>
