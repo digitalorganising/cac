@@ -13,8 +13,8 @@ import {
 
 export type Facets = {
   bucketed: Record<
-    keyof Omit<FilterOptions, "events.date.from" | "events.date.to">,
-    { value: string; label?: string; count: number }[]
+    "parties.unions" | "state" | "events.type" | "bargainingUnit.size",
+    { value: string | number; label?: string; count: number }[]
   >;
 };
 
@@ -36,31 +36,44 @@ export const getFacets = unstable_cache(
           ...facetAgg("parties.unions", filters),
           ...facetAgg("state", filters),
           ...facetAgg("events.type", filters),
+          ...histogramAgg("bargainingUnit.size", filters, {
+            // These are magic numbers that make the histogram look nice
+            min: 0,
+            max: 200,
+            interval: 5,
+          }),
         },
       },
     });
 
     const aggs = response.body.aggregations;
+    const facets = Object.entries(aggs ?? {}).filter(aggIsFacet);
     const bucketedFacets = Object.fromEntries(
-      Object.entries(aggs ?? {})
-        .filter(aggIsFacet)
-        .map(([name, agg]) => [
-          name.slice(facetPrefix.length),
-          (
-            agg.filtered
-              .buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[]
-          ).map(({ key, doc_count }) => ({
-            ...getFacetProps(key as string),
-            count: doc_count,
-          })),
-        ]),
+      facets.map(([name, agg]) => [
+        name.slice(facetPrefix.length),
+        (
+          agg.filtered
+            .buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[]
+        ).map(({ key, doc_count }) => ({
+          ...getFacetProps(key),
+          count: doc_count,
+        })),
+      ]),
     ) as Facets["bucketed"];
 
     return {
       bucketed: bucketedFacets,
     };
   },
-  ["client"],
+  [
+    "client",
+    "getFilters",
+    "getQuery",
+    "facetAgg",
+    "histogramAgg",
+    "aggIsFacet",
+    "getFacetProps",
+  ],
 );
 
 const facetPrefix = "facet.";
@@ -93,16 +106,50 @@ const facetAgg = (
   },
 });
 
+const histogramAgg = (
+  name: string,
+  filters: OpenSearchTypes.Common_QueryDsl.QueryContainer[],
+  params: { min: number; max: number; interval: number },
+) => ({
+  [facetPrefix + name]: {
+    filter: nonMatchingFilters(filters, name),
+    aggs: {
+      filtered: {
+        histogram: {
+          field: facetPrefix + name,
+          interval: params.interval,
+          hard_bounds: {
+            min: params.min,
+            max: params.max,
+          },
+        },
+      },
+    },
+  },
+});
+
 const aggIsFacet = (
   agg: [string, OpenSearchTypes.Common_Aggregations.Aggregate],
 ): agg is [string, OpenSearchTypes.Common_Aggregations.FilterAggregate] =>
   agg[0].startsWith(facetPrefix) && "filtered" in agg[1];
 
-const getFacetProps = (key: string): { value: string; label?: string } => {
-  const p = JSON.parse(key);
-  if (typeof p === "string") {
-    return { value: p };
+const getFacetProps = (
+  key: OpenSearchTypes.Common.FieldValue,
+): { value: string | number; label?: string } => {
+  switch (typeof key) {
+    case "string":
+      const p = JSON.parse(key);
+      if (typeof p === "string") {
+        return { value: p };
+      }
+      return { value: p.value, label: p.label };
+    case "number":
+      return { value: key };
+    case "boolean":
+      return { value: key.toString() };
+    case "undefined":
+      return { value: "" };
+    default:
+      return key as { value: string; label?: string };
   }
-
-  return { value: p.value, label: p.label };
 };

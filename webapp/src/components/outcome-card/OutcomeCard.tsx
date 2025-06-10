@@ -159,7 +159,7 @@ const OutcomeCard = ({ outcome, filterHref, showDebugView = false }: Props) => (
         <ExternalLinkIcon className="size-3" />
       </Link>
       <Link
-        href={filterHref.replace("reference", outcome.reference).urlObject}
+        href={filterHref.replaceAll("reference", outcome.reference).urlObject}
         className="flex items-center gap-x-2 group"
       >
         <CardTitle className="text-md xs:text-xl group-hover:underline">

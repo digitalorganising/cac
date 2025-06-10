@@ -53,7 +53,7 @@ export const getOutcomes = unstable_cache(
       docs: response.body.hits.hits.map((hit: any) => hit._source.display),
     };
   },
-  ["client"],
+  ["client", "getFilters", "getQuery", "getSort"],
 );
 
 const getSort = (sortKey?: SortKey, sortOrder?: "asc" | "desc") => {

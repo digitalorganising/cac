@@ -43,6 +43,8 @@ export type FilterOptions = {
   "events.type"?: string[];
   "events.date.from"?: string;
   "events.date.to"?: string;
+  "bargainingUnit.size.from"?: number;
+  "bargainingUnit.size.to"?: number;
 };
 
 export const filterPrefix = "filter.";

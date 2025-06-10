@@ -139,6 +139,9 @@
         },
         "events.type": {
           "type": "keyword"
+        },
+        "bargainingUnit.size": {
+          "type": "integer"
         }
       }
     }

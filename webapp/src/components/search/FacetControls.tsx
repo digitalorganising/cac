@@ -2,8 +2,8 @@ import { filterLabels } from "./common";
 import { Facets } from "@/lib/queries/facets";
 import { Entries } from "type-fest";
 import FacetSelect from "./FacetSelect";
-import { DateRange } from "../ui/date-range";
 import EventDateSelect from "./EventDateSelect";
+import BargainingUnitSizeSelect from "./BargainingUnitSizeSelect";
 
 export default async function FacetControls({
   facetsPromise,
@@ -14,7 +14,7 @@ export default async function FacetControls({
   const bucketControls = (
     Object.entries(filterLabels) as Entries<typeof filterLabels>
   ).map(([name, label]) => {
-    const buckets = facets.bucketed[name];
+    const buckets = facets.bucketed[name as keyof Facets["bucketed"]];
     if (!buckets) {
       return null;
     }
@@ -25,7 +25,7 @@ export default async function FacetControls({
         name={name}
         form="outcomes-search-form"
         options={buckets.map(({ value, label, count }) => ({
-          value,
+          value: value.toString(),
           label: `${label ?? value} (${count})`,
         }))}
       />
@@ -36,6 +36,14 @@ export default async function FacetControls({
     <>
       {bucketControls}
       <EventDateSelect />
+      <BargainingUnitSizeSelect
+        bins={facets.bucketed["bargainingUnit.size"].map(
+          ({ value, count }) => ({
+            value: Number(value),
+            freq: count,
+          }),
+        )}
+      />
     </>
   );
 }

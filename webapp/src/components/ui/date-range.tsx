@@ -113,7 +113,7 @@ function DateRangePicker({
   name?: string;
 }) {
   return (
-    <Popover>
+    <Popover modal={true}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <MonthPicker

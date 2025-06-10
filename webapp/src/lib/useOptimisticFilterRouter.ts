@@ -18,10 +18,13 @@ const urlSearchParamsToObject = <T>(searchParams: URLSearchParams): T => {
   return obj;
 };
 
+type RouterFn = (key: keyof AppQueryParams, value: string | string[]) => void;
+
 type FilterRouter = {
   params: AppQueryParams;
-  replace: (key: keyof AppQueryParams, value: string | string[]) => void;
-  add: (key: keyof AppQueryParams, value: string | string[]) => void;
+  replaceAll: RouterFn;
+  replace: RouterFn;
+  add: RouterFn;
   delete: (key: keyof AppQueryParams, value?: string | string[]) => void;
 };
 
@@ -54,12 +57,21 @@ export function useOptimisticFilterRouter({
 
   const doTransition =
     (newHref: { urlObject: UrlObject; urlString: string }) => () => {
-      setOptimisticParams(newHref.urlObject.query as AppQueryParams);
+      setOptimisticParams((pendingParams) => {
+        const a = {
+          ...pendingParams,
+          ...(newHref.urlObject.query as AppQueryParams),
+        } as AppQueryParams;
+        return a;
+      });
       router.push(newHref.urlString);
     };
 
   return {
     params: optimisticParams,
+    replaceAll: (key, value) => {
+      startTransition(doTransition(filterHref.replaceAll(key, value)));
+    },
     replace: (key, value) => {
       startTransition(doTransition(filterHref.replace(key, value)));
     },

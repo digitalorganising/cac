@@ -57,7 +57,8 @@ def transform_for_index(outcome):
                 "parties.unions": parties["unions"],
                 "events.type": [e["type"] for e in events_json],
             }
-        ),
+        )
+        | {"bargainingUnit.size": bu["size"] if bu else None},
     }
 
 

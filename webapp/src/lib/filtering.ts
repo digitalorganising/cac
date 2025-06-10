@@ -48,10 +48,13 @@ type Href = {
   urlString: string;
 };
 
+type HrefFn = (key: ParamKey, value: string | string[]) => Href;
+
 export type FilterHref = {
   params: AppQueryParams;
-  replace: (key: ParamKey, value: string | string[]) => Href;
-  add: (key: ParamKey, value: string | string[]) => Href;
+  replaceAll: HrefFn;
+  replace: HrefFn;
+  add: HrefFn;
   delete: (key: ParamKey, value?: string | string[]) => Href;
 };
 
@@ -89,11 +92,13 @@ export function createFilterHref({
   return {
     params: searchParams,
     replace: (key: ParamKey, value: string | string[]) =>
+      href(addQueryParam(deleteQueryParam(baseParams, key), key, value)),
+    replaceAll: (key: ParamKey, value: string | string[]) =>
       href({ [key]: value } as AppQueryParams),
     add: (key: ParamKey, value: string | string[]) =>
       href(addQueryParam(baseParams, key, value)),
     delete: (key: ParamKey, value?: string | string[]) =>
-      href(deleteQueryParam(searchParams, key, value)),
+      href(deleteQueryParam(baseParams, key, value)),
   };
 }
 
