@@ -26,7 +26,10 @@ export default function AppliedFilters({
       entries.map(({ value, label }) => (
         <Link
           key={`filter-${key}-${value}`}
-          href={appSearchParamsSerializer(deleteParamValue(params, key, value))}
+          href={
+            appSearchParamsSerializer(deleteParamValue(params, key, value)) ||
+            "/"
+          }
           className="flex gap-x-2 items-center bg-slate-100 rounded-md px-3 py-2 border border-slate-200 group"
         >
           <span className="text-sm text-nowrap">

@@ -50,9 +50,9 @@ async function AppliedLabelledFilters({
         entries.map((entry) => ({
           ...entry,
           label:
-            Object.values(facets.multiSelect[key as MultiSelectFacet])?.find(
-              (f) => f.value === entry.value,
-            )?.label ?? entry.value,
+            Object.values(
+              facets.multiSelect[key as MultiSelectFacet] ?? {},
+            )?.find((f) => f.value === entry.value)?.label ?? entry.value,
         })),
       ],
     ),
