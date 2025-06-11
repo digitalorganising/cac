@@ -1,5 +1,5 @@
 import { useEffect, useTransition } from "react";
-import { useQueryState, UseQueryStateReturn } from "nuqs";
+import { useQueryState, UseQueryStateReturn, Options } from "nuqs";
 import { useTopLoader } from "nextjs-toploader";
 import { AppSearchParams, appSearchParamsParser } from "./search-params";
 
@@ -12,6 +12,11 @@ type DefaultValue<K extends keyof AppSearchParamsParser> =
     ? NonNullable<AppSearchParams[K]>
     : undefined;
 
+const opts: Options = {
+  shallow: false,
+  scroll: true,
+};
+
 export const useAppQueryState = <const K extends keyof AppSearchParamsParser>(
   key: K,
 ): UseQueryStateReturn<AppSearchParams[K], DefaultValue<K>> => {
@@ -19,7 +24,7 @@ export const useAppQueryState = <const K extends keyof AppSearchParamsParser>(
   const [isLoading, startTransition] = useTransition();
   const qs = useQueryState(
     key,
-    appSearchParamsParser[key].withOptions({ startTransition, shallow: false }),
+    appSearchParamsParser[key].withOptions({ startTransition, ...opts }),
   ) as UseQueryStateReturn<AppSearchParams[K], DefaultValue<K>>;
 
   useEffect(() => {

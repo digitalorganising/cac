@@ -1,4 +1,5 @@
 import {
+  createParser,
   createSearchParamsCache,
   createSerializer,
   parseAsArrayOf,
@@ -7,6 +8,7 @@ import {
   parseAsIsoDate,
   parseAsString,
   parseAsStringLiteral,
+  ParserBuilder,
   type inferParserType,
 } from "nuqs/server";
 import { eventTypes, outcomeStates } from "./types";
@@ -26,19 +28,29 @@ const sortPermutations = sortKeys.flatMap((key) =>
 export type SortKey = (typeof sortKeys)[number];
 export type SortOrder = (typeof sortOrders)[number];
 
+const parseAsUniqueArrayOf = <T>(
+  valueParser: ParserBuilder<T>,
+  separator?: string,
+) => {
+  const unique = (value: T[]): T[] => Array.from(new Set(value));
+  const arrayParser = parseAsArrayOf(valueParser, separator).withDefault([]);
+  return createParser({
+    parse: (value: string) => unique(arrayParser.parse(value) ?? []),
+    serialize: (value: T[]) => arrayParser.serialize(unique(value)),
+  }).withDefault([]);
+};
+
 export const appSearchParamsParser = {
   query: parseAsString,
   page: parseAsInteger.withDefault(1),
   sort: parseAsStringLiteral(sortPermutations).withDefault("relevance-desc"),
-  "parties.unions": parseAsArrayOf(parseAsString).withDefault([]),
-  "parties.employer": parseAsArrayOf(parseAsString).withDefault([]),
-  reference: parseAsArrayOf(parseAsString).withDefault([]),
-  state: parseAsArrayOf(parseAsStringLiteral(outcomeStates)).withDefault([]),
+  "parties.unions": parseAsUniqueArrayOf(parseAsString),
+  "parties.employer": parseAsUniqueArrayOf(parseAsString),
+  reference: parseAsUniqueArrayOf(parseAsString),
+  state: parseAsUniqueArrayOf(parseAsStringLiteral(outcomeStates)),
   "bargainingUnit.size.from": parseAsInteger,
   "bargainingUnit.size.to": parseAsInteger,
-  "events.type": parseAsArrayOf(parseAsStringLiteral(eventTypes)).withDefault(
-    [],
-  ),
+  "events.type": parseAsUniqueArrayOf(parseAsStringLiteral(eventTypes)),
   "events.date.from": parseAsIsoDate,
   "events.date.to": parseAsIsoDate,
   debug: parseAsBoolean.withDefault(false),
@@ -89,9 +101,10 @@ export const deleteParamValue = <const K extends keyof AppSearchParams>(
     };
   }
   if (Array.isArray(params[key])) {
+    const arr = params[key].filter((v) => v !== value);
     return {
       ...params,
-      [key]: params[key].filter((v) => v !== value),
+      [key]: arr.length > 0 ? arr : null,
     };
   }
   return params;

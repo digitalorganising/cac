@@ -10,7 +10,7 @@ import {
   outcomesIndex,
   QueryOptions,
 } from "./common";
-import { JsonObject, JsonValue } from "type-fest";
+import { hasDeepProperty } from "../utils";
 
 export const multiSelectFacetNames = [
   "parties.unions",
@@ -107,10 +107,9 @@ const nonMatchingFilters = (
   filters: OpenSearchTypes.Common_QueryDsl.QueryContainer[],
   name: string,
 ) => {
-  // I was going to write this as a recursive tree traversal, but then I didn't
   const shouldKeepFilter = (
     filter: OpenSearchTypes.Common_QueryDsl.QueryContainer,
-  ) => !JSON.stringify(filter).includes(`"_name":"filter-${name}"`);
+  ) => !hasDeepProperty({ _name: `filter-${name}` }, filter);
 
   return {
     bool: {
