@@ -37,6 +37,16 @@ const parseAsUniqueArrayOf = <T>(
   return createParser({
     parse: (value: string) => unique(arrayParser.parse(value) ?? []),
     serialize: (value: T[]) => arrayParser.serialize(unique(value)),
+    eq: (a, b) => {
+      if (a === b) {
+        return true;
+      }
+      if (a.length !== b.length) {
+        return false;
+      }
+      const setB = new Set(b);
+      return a.every((v) => setB.has(v));
+    },
   }).withDefault([]);
 };
 
@@ -101,10 +111,9 @@ export const deleteParamValue = <const K extends keyof AppSearchParams>(
     };
   }
   if (Array.isArray(params[key])) {
-    const arr = params[key].filter((v) => v !== value);
     return {
       ...params,
-      [key]: arr.length > 0 ? arr : null,
+      [key]: params[key].filter((v) => v !== value),
     };
   }
   return params;
