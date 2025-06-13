@@ -1,6 +1,5 @@
 "use client";
 
-import { useAppQueryState } from "@/lib/app-query-state";
 import OutcomePagination from "./OutcomePagination";
 import {
   Select,
@@ -9,19 +8,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAppQueryState } from "@/lib/app-query-state";
 import { SortOrder } from "@/lib/search-params";
 import { SortKey } from "@/lib/search-params";
 
 type Props = {
   nResults: number;
-  pageSize: number;
   hasQuery?: boolean;
+  children?: React.ReactNode;
 };
 
 export default function ResultListControls({
   nResults,
-  pageSize,
   hasQuery,
+  children,
 }: Props) {
   const [sort, setSort] = useAppQueryState("sort");
 
@@ -81,10 +81,7 @@ export default function ResultListControls({
         </SelectContent>
       </Select>
 
-      <OutcomePagination
-        className="hidden md:block"
-        totalPages={Math.ceil(nResults / pageSize)}
-      />
+      {children}
     </div>
   );
 }

@@ -21,9 +21,14 @@ export default async function Home({
       <FilteringControls options={options} />
       <ResultListControls
         nResults={outcomes.size}
-        pageSize={pageSize}
         hasQuery={params.query !== null}
-      />
+      >
+        <OutcomePagination
+          className="hidden md:block"
+          totalPages={Math.ceil(outcomes.size / pageSize)}
+          page={params.page}
+        />
+      </ResultListControls>
       <section className="container space-y-4 xs:space-y-5 sm:space-y-6 my-3 px-0">
         {outcomes.docs.map((outcome) => (
           <OutcomeCard
@@ -34,7 +39,10 @@ export default async function Home({
         ))}
       </section>
       <div className="flex justify-center md:justify-end">
-        <OutcomePagination totalPages={Math.ceil(outcomes.size / pageSize)} />
+        <OutcomePagination
+          totalPages={Math.ceil(outcomes.size / pageSize)}
+          page={params.page}
+        />
       </div>
     </>
   );

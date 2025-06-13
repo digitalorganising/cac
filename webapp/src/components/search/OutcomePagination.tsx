@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Pagination,
   PaginationContent,
@@ -9,24 +7,24 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { usePathname, useSearchParams } from "next/navigation";
+import {
+  appSearchParamsCache,
+  appSearchParamsSerializer,
+} from "@/lib/search-params";
 import React from "react";
 
 export default function OutcomePagination({
   totalPages,
+  page = 1,
   ...props
 }: {
   totalPages: number;
+  page?: number;
 } & React.ComponentProps<typeof Pagination>) {
-  const pathname = usePathname();
-  const params = useSearchParams();
-  const currentPage = Number(params.get("page") ?? 1);
+  const params = appSearchParamsCache.all();
   const pageUrl = (n: number): string => {
-    const p = new URLSearchParams(params);
-    p.set("page", n.toString());
-    return `${pathname}?${p.toString()}`;
+    return appSearchParamsSerializer({ ...params, page: n });
   };
-
   const pageNumbers = () => {
     if (totalPages <= 1) {
       return [1];
@@ -35,20 +33,19 @@ export default function OutcomePagination({
     const maxDisplayed = 7;
     const pages: (number | "...")[] = [1];
 
-    const startEllipsis =
-      totalPages > maxDisplayed && currentPage > maxDisplayed - 3;
+    const startEllipsis = totalPages > maxDisplayed && page > maxDisplayed - 3;
     const endEllipsis =
-      totalPages > maxDisplayed && currentPage < totalPages - maxDisplayed + 4;
+      totalPages > maxDisplayed && page < totalPages - maxDisplayed + 4;
 
     if (startEllipsis) {
       pages.push("...");
     }
 
     const startIndex = startEllipsis
-      ? Math.max(2, Math.min(currentPage - 1, totalPages - maxDisplayed + 3))
+      ? Math.max(2, Math.min(page - 1, totalPages - maxDisplayed + 3))
       : 2;
     const endIndex = endEllipsis
-      ? Math.min(totalPages - 1, Math.max(currentPage + 1, maxDisplayed - 2))
+      ? Math.min(totalPages - 1, Math.max(page + 1, maxDisplayed - 2))
       : totalPages - 1;
     for (let i = startIndex; i <= endIndex; i++) {
       pages.push(i);
@@ -74,9 +71,9 @@ export default function OutcomePagination({
         <PaginationItem>
           <PaginationPrevious
             className={
-              currentPage === 1 ? "pointer-events-none opacity-30" : undefined
+              page === 1 ? "pointer-events-none opacity-30" : undefined
             }
-            href={currentPage === 1 ? "" : pageUrl(currentPage - 1)}
+            href={page === 1 ? "" : pageUrl(page - 1)}
           />
         </PaginationItem>
         {pages.map((p, index) =>
@@ -84,7 +81,7 @@ export default function OutcomePagination({
             <PaginationEllipsis key={`ellipsis-${index}`} />
           ) : (
             <PaginationItem key={p}>
-              <PaginationLink href={pageUrl(p)} isActive={p === currentPage}>
+              <PaginationLink href={pageUrl(p)} isActive={p === page}>
                 {p}
               </PaginationLink>
             </PaginationItem>
@@ -92,14 +89,10 @@ export default function OutcomePagination({
         )}
         <PaginationItem
           className={
-            currentPage === totalPages
-              ? "pointer-events-none opacity-30"
-              : undefined
+            page === totalPages ? "pointer-events-none opacity-30" : undefined
           }
         >
-          <PaginationNext
-            href={currentPage === totalPages ? "" : pageUrl(currentPage + 1)}
-          />
+          <PaginationNext href={page === totalPages ? "" : pageUrl(page + 1)} />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
