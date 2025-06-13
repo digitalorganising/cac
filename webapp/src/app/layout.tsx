@@ -40,7 +40,7 @@ export default function RootLayout({
             </h1>
             <Form
               action=""
-              className="my-8 xs:my-12 max-w-2xl mx-auto"
+              className="mt-8 xs:mt-12 max-w-2xl mx-auto"
               id="outcomes-search-form"
             >
               <div className="flex flex-col max-xs:space-y-2 xs:flex-row xs:space-x-2 ">

@@ -23,7 +23,7 @@ export default function OutcomePagination({
 } & React.ComponentProps<typeof Pagination>) {
   const params = appSearchParamsCache.all();
   const pageUrl = (n: number): string => {
-    return appSearchParamsSerializer({ ...params, page: n });
+    return appSearchParamsSerializer({ ...params, page: n }) || "/";
   };
   const pageNumbers = () => {
     if (totalPages <= 1) {

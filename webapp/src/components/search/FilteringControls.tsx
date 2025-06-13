@@ -13,6 +13,16 @@ import { arr } from "@/lib/utils";
 import { DateRange } from "../ui/date-range";
 import { appSearchParamsCache } from "@/lib/search-params";
 import { Entries } from "type-fest";
+import { HistogramSliderTrigger } from "../ui/histogram-slider";
+import { Button } from "../ui/button";
+import { MixerHorizontalIcon } from "@radix-ui/react-icons";
+import {
+  Dialog,
+  DialogHeader,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+} from "../ui/dialog";
 
 type Props = {
   options: GetFacetsOptions;
@@ -30,7 +40,10 @@ function FacetFallback() {
           {label}
         </SelectTrigger>
       ))}
-      <DateRange />
+      <DateRange loading={true} />
+      <HistogramSliderTrigger loading={true}>
+        Bargaining Unit Size
+      </HistogramSliderTrigger>
     </>
   );
 }
@@ -69,20 +82,43 @@ export default function FilteringControls({ options }: Props) {
       .map(([key, value]) => [key, arr(value).map((v) => ({ value: v }))]),
   ) as FilterEntries;
   return (
-    <div className="my-4 space-y-2">
-      <div className="flex flex-wrap gap-2">
-        <Suspense fallback={<AppliedFilters filterEntries={appliedFilters} />}>
-          <AppliedLabelledFilters
-            filterEntries={appliedFilters}
-            facetsPromise={facetsPromise}
-          />
-        </Suspense>
+    <>
+      <div className="my-4 space-y-2 hidden sm:block">
+        <div className="flex flex-wrap gap-2">
+          <Suspense
+            fallback={<AppliedFilters filterEntries={appliedFilters} />}
+          >
+            <AppliedLabelledFilters
+              filterEntries={appliedFilters}
+              facetsPromise={facetsPromise}
+            />
+          </Suspense>
+        </div>
+        <div className="flex flex-wrap items-center justify-start gap-x-3 xl:gap-x-4 gap-y-3 py-4">
+          <Suspense fallback={<FacetFallback />}>
+            <FacetControls facetsPromise={facetsPromise} />
+          </Suspense>
+        </div>
       </div>
-      <div className="flex flex-wrapitems-center justify-start gap-4 py-4">
-        <Suspense fallback={<FacetFallback />}>
-          <FacetControls facetsPromise={facetsPromise} />
-        </Suspense>
+      <div className="sm:hidden">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full bg-slate-100 py-4 xs:py-6 mt-2 mb-3"
+              title="Filters"
+            >
+              <MixerHorizontalIcon />
+              Filters
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="size-full">
+            <DialogHeader>
+              <DialogTitle>Filters</DialogTitle>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
       </div>
-    </div>
+    </>
   );
 }

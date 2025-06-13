@@ -51,7 +51,7 @@ export default function SearchInputs() {
             type="reset"
             variant="secondary"
             title="Clear"
-            className="aspect-square cursor-pointer"
+            className="hidden xs:flex aspect-square cursor-pointer"
           >
             <Cross2Icon />
           </Button>
@@ -62,8 +62,13 @@ export default function SearchInputs() {
         </>
       }
     >
-      <SearchInput />
-      <ResetButton forInput="query" />
+      <div className="relative w-full flex xs:space-x-2">
+        <SearchInput />
+        <ResetButton
+          forInput="query"
+          className="absolute xs:static right-1 top-1/2 -translate-y-1/2 xs:translate-none max-xs:bg-inherit max-xs:size-7 max-xs:hover:bg-inherit"
+        />
+      </div>
       <SubmitButton />
     </Suspense>
   );

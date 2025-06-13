@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { ButtonHTMLAttributes, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
-import { BarChartIcon } from "@radix-ui/react-icons";
+import { BarChartIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { Slider } from "./slider";
 import type { Bin } from "./histogram";
 import { Input } from "./input";
@@ -14,21 +14,23 @@ const DynamicHistogram = dynamic(() => import("./histogram"), {
   ssr: false,
 });
 
-function HistogramSliderTrigger({
+export function HistogramSliderTrigger({
   children,
   className,
+  loading,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement>) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) {
   return (
     <button
       className={cn(
         "cursor-pointer border-input [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 flex w-fit items-center justify-between gap-2 rounded-md border bg-white hover:bg-slate-50 aria-expanded:bg-slate-50 px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
+      disabled={loading}
       {...props}
     >
       {children}
-      <BarChartIcon />
+      {loading ? <UpdateIcon className="animate-spin" /> : <BarChartIcon />}
     </button>
   );
 }
@@ -41,6 +43,7 @@ type Props = {
   min?: number;
   onSelectRange?: (min?: number, max?: number) => void;
   form?: string;
+  loading?: boolean;
 };
 
 const ensureNumber = (value: string) => Number(value.replace(/\D/, ""));
@@ -86,6 +89,7 @@ export function HistogramSlider({
   min,
   onSelectRange,
   form,
+  loading,
 }: Props) {
   const lowerBound = bins[0]?.value ?? 0;
   const upperBound = bins[bins.length - 1]?.value ?? 0;
@@ -121,14 +125,16 @@ export function HistogramSlider({
   return (
     <Popover modal={true}>
       <PopoverTrigger asChild>
-        <HistogramSliderTrigger>{label}</HistogramSliderTrigger>
+        <HistogramSliderTrigger loading={loading}>
+          {label}
+        </HistogramSliderTrigger>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-100">
+      <PopoverContent align="start" className="w-100 p-6">
         <DynamicHistogram
           bins={bins}
           min={uiMin}
           max={uiMax}
-          className="h-24 w-full"
+          className="h-16 w-full"
         />
         <Slider
           min={lowerBound}

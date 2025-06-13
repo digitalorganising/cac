@@ -18,7 +18,7 @@ export default function Histogram({
   return (
     <ChartContainer config={{}} className={cn("px-3", className)}>
       <BarChart data={bins} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-        <Bar dataKey="freq" isAnimationActive={false}>
+        <Bar dataKey="freq" isAnimationActive={false} radius={[2, 2, 0, 0]}>
           {bins.map((bin) => (
             <Cell
               key={bin.value}

@@ -55,7 +55,7 @@ export const getFacets = unstable_cache(
           ...histogramAgg("bargainingUnit.size", filters, {
             // These are magic numbers that make the histogram look nice
             min: 0,
-            max: 200,
+            max: 250,
             interval: 5,
           }),
         },

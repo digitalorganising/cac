@@ -13,6 +13,7 @@
     "@aws-sdk/credential-provider-node": "^3.812.0",
     "@opensearch-project/opensearch": "^3.5.1",
     "@radix-ui/react-checkbox": "^1.3.2",
+    "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-icons": "^1.3.2",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-popover": "^1.1.14",
@@ -47,8 +48,8 @@
     "postcss": "^8.4.41",
     "prettier": "^3.3.3",
     "tailwindcss": "^4.0.0",
-    "typescript": "^5",
-    "type-fest": "^4.41.0"
+    "type-fest": "^4.41.0",
+    "typescript": "^5"
   },
   "lint-staged": {
     "*.{js,css,md}": "prettier --write"
