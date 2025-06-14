@@ -36,30 +36,35 @@ const pick = <T extends object, const K extends keyof T>(
   Object.fromEntries(keys.map((key) => [key, obj[key]])) as Pick<T, K>;
 
 export const getFacets = unstable_cache(
-  async (options: GetFacetsOptions): Promise<Facets> => {
+  async (options: GetFacetsOptions, debug = false): Promise<Facets> => {
     const filters = getFilters(options);
-    const response = await client.search({
-      index: outcomesIndex,
-      body: {
-        size: 0,
-        query: {
-          bool: {
-            should: getQuery(options),
-          },
-        },
-        aggs: {
-          ...facetAgg("parties.unions", filters),
-          ...facetAgg("state", filters),
-          ...facetAgg("events.type", filters),
-          ...histogramAgg("bargainingUnit.size", filters, {
-            // These are magic numbers that make the histogram look nice
-            min: 0,
-            max: 250,
-            interval: 5,
-          }),
+    const body = {
+      size: 0,
+      query: {
+        bool: {
+          should: getQuery(options),
         },
       },
-    });
+      aggs: {
+        ...facetAgg("parties.unions", filters),
+        ...facetAgg("state", filters),
+        ...facetAgg("events.type", filters),
+        ...histogramAgg("bargainingUnit.size", filters, {
+          // These are magic numbers that make the histogram look nice
+          min: 0,
+          max: 250,
+          interval: 5,
+        }),
+      },
+    };
+    if (debug) {
+      console.log("Request body (facets):", body);
+    }
+    const response = await client.search({ index: outcomesIndex, body });
+
+    if (debug) {
+      console.log("Response body (facets):", response.body);
+    }
 
     const aggs = response.body.aggregations;
     const bucketedFacets = Object.fromEntries(

@@ -66,7 +66,8 @@ export function FacetSelectMobile({
         <span className="hover:underline flex-grow self-start">{label}</span>
         {selected?.length ? (
           <>
-            <button
+            <a
+              role="button"
               className="text-xs text-muted-foreground cursor-pointer hover:text-foreground"
               title="Clear all"
               onClick={(e) => {
@@ -75,7 +76,7 @@ export function FacetSelectMobile({
               }}
             >
               Clear
-            </button>
+            </a>
             <CountBadge count={selected.length} />
           </>
         ) : null}

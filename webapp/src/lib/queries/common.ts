@@ -53,6 +53,7 @@ const filterMatch = (name: string) => (query: string) => ({
     [filterPrefix + name]: {
       query,
       minimum_should_match: "3<-25%",
+      _name: `filter-${name}`,
     },
   },
 });

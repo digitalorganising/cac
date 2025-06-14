@@ -19,29 +19,33 @@ export type GetOutcomesOptions = PaginationOptions &
   FilterOptions;
 
 export const getOutcomes = unstable_cache(
-  async ({
-    from,
-    size,
-    sortKey,
-    sortOrder,
-    ...queryOptions
-  }: GetOutcomesOptions): Promise<{ size: number; docs: Outcome[] }> => {
-    const response = await client.search({
-      index: outcomesIndex,
-      body: {
-        from,
-        size,
-        track_total_hits: true,
-        query: {
-          bool: {
-            should: getQuery(queryOptions),
-            filter: getFilters(queryOptions),
-          },
+  async (
+    { from, size, sortKey, sortOrder, ...queryOptions }: GetOutcomesOptions,
+    debug = false,
+  ): Promise<{ size: number; docs: Outcome[] }> => {
+    const body = {
+      from,
+      size,
+      track_total_hits: true,
+      query: {
+        bool: {
+          should: getQuery(queryOptions),
+          filter: getFilters(queryOptions),
         },
-        sort: getSort(sortKey, sortOrder),
-        _source: ["display"],
       },
-    });
+      sort: getSort(sortKey, sortOrder),
+      _source: ["display"],
+    };
+
+    if (debug) {
+      console.log("Request body (outcomes):", body);
+    }
+
+    const response = await client.search({ index: outcomesIndex, body });
+
+    if (debug) {
+      console.log("Response body (outcomes):", response.body);
+    }
 
     const totalHits =
       typeof response.body.hits.total === "number"

@@ -77,7 +77,7 @@ async function AppliedLabelledFilters({
 }
 
 export default function FilteringControls({ options }: Props) {
-  const facetsPromise = getFacets(options);
+  const facetsPromise = getFacets(options, appSearchParamsCache.get("debug"));
   const params = appSearchParamsCache.all();
   const appliedFilters = Object.fromEntries(
     Object.entries(params)

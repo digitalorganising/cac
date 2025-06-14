@@ -15,7 +15,7 @@ export default async function Home({
   const pageSize = 15;
   const params = await appSearchParamsCache.parse(searchParams);
   const options = appSearchParamsToOutcomesOptions(pageSize, params);
-  const outcomes = await getOutcomes(options);
+  const outcomes = await getOutcomes(options, params.debug);
   return (
     <>
       <FilteringControls options={options} />
