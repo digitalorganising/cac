@@ -1,5 +1,11 @@
-import { MixerHorizontalIcon } from "@radix-ui/react-icons";
-import { BarChartIcon, ChevronDownIcon, Loader2Icon } from "lucide-react";
+import {
+  BarChartIcon,
+  ChevronDownIcon,
+  Cross2Icon,
+  MixerHorizontalIcon,
+} from "@radix-ui/react-icons";
+import { Loader2Icon } from "lucide-react";
+import Link from "next/link";
 import { Suspense } from "react";
 import { Entries } from "type-fest";
 import {
@@ -8,13 +14,17 @@ import {
   MultiSelectFacet,
   getFacets,
 } from "@/lib/queries/facets";
-import { appSearchParamsCache } from "@/lib/search-params";
+import {
+  appSearchParamsCache,
+  appSearchParamsSerializer,
+} from "@/lib/search-params";
 import { arr } from "@/lib/utils";
 import { Button } from "../ui/button";
 import CountBadge from "../ui/count-badge";
 import { DateRange } from "../ui/date-range";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -126,6 +136,30 @@ export default function FilteringControls({ options }: Props) {
                 Filters for searching outcomes
               </DialogDescription>
             </DialogHeader>
+            {appliedFilters["reference"] ? (
+              <DialogClose asChild>
+                <Link
+                  href={
+                    appSearchParamsSerializer({
+                      ...params,
+                      reference: null,
+                    }) || "/"
+                  }
+                  className="flex p-2 mb-2 mt-3 text-sm w-full items-center space-x-2 justify-center mx-auto border border-slate-200 bg-slate-100 rounded-md"
+                >
+                  <div>
+                    <span className="font-medium">Reference:</span>{" "}
+                    {appliedFilters["reference"].map((r) => r.value).join(", ")}
+                  </div>
+                  <button
+                    className="cursor-pointer"
+                    title="Clear reference filter"
+                  >
+                    <Cross2Icon className="size-3" />
+                  </button>
+                </Link>
+              </DialogClose>
+            ) : null}
             <Suspense
               fallback={
                 <div className="w-full h-full relative">

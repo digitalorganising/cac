@@ -13,7 +13,7 @@ export const appSearchParamsToOutcomesOptions = (
     query: params.query ?? undefined,
     "parties.unions": params["parties.unions"],
     "parties.employer": params["parties.employer"],
-    reference: params.reference,
+    reference: params.reference ? [params.reference] : undefined,
     state: params.state,
     "events.type": params["events.type"],
     "events.date.from": params["events.date.from"]?.toISOString() ?? undefined,

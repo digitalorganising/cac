@@ -167,7 +167,7 @@ const OutcomeCard = ({ outcome, showDebugView = false }: Props) => (
         <ExternalLinkIcon className="size-3" />
       </Link>
       <Link
-        href={appSearchParamsSerializer({ reference: [outcome.reference] })}
+        href={appSearchParamsSerializer({ reference: outcome.reference })}
         className="flex items-center gap-x-2 group"
       >
         <CardTitle className="text-md xs:text-xl group-hover:underline">

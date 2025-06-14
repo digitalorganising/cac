@@ -56,7 +56,7 @@ export const appSearchParamsParser = {
   sort: parseAsStringLiteral(sortPermutations).withDefault("relevance-desc"),
   "parties.unions": parseAsUniqueArrayOf(parseAsString),
   "parties.employer": parseAsUniqueArrayOf(parseAsString),
-  reference: parseAsUniqueArrayOf(parseAsString),
+  reference: parseAsString,
   state: parseAsUniqueArrayOf(parseAsStringLiteral(outcomeStates)),
   "bargainingUnit.size.from": parseAsInteger,
   "bargainingUnit.size.to": parseAsInteger,
