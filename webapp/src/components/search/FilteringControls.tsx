@@ -11,6 +11,7 @@ import {
 import { appSearchParamsCache } from "@/lib/search-params";
 import { arr } from "@/lib/utils";
 import { Button } from "../ui/button";
+import CountBadge from "../ui/count-badge";
 import { DateRange } from "../ui/date-range";
 import {
   Dialog,
@@ -83,6 +84,7 @@ export default function FilteringControls({ options }: Props) {
       .filter((kv) => kv[0] in filterLabels && kv[1] !== null)
       .map(([key, value]) => [key, arr(value).map((v) => ({ value: v }))]),
   ) as FilterEntries;
+  const nAppliedFilters = Object.values(appliedFilters).flat().length;
   return (
     <>
       <div className="my-4 space-y-2 hidden sm:block">
@@ -112,6 +114,9 @@ export default function FilteringControls({ options }: Props) {
             >
               <MixerHorizontalIcon />
               Filters
+              {nAppliedFilters > 0 ? (
+                <CountBadge count={nAppliedFilters} />
+              ) : null}
             </Button>
           </DialogTrigger>
           <DialogContent className="size-full block">

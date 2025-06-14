@@ -3,6 +3,7 @@ import { UpdateIcon } from "@radix-ui/react-icons";
 import { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 import { LabelledCheckbox } from "./checkbox";
+import CountBadge from "./count-badge";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { ScrollArea } from "./scroll-area";
 
@@ -16,14 +17,6 @@ type Props = {
   form?: string;
   loading?: boolean;
 };
-
-function CountBadge({ count }: { count: number }) {
-  return (
-    <span className="inline-flex items-center justify-center bg-slate-600 text-white h-4 min-w-4 px-1 rounded-full text-xs tabular-nums">
-      {count}
-    </span>
-  );
-}
 
 export function SelectTrigger({
   children,

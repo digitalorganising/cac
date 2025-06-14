@@ -21,18 +21,15 @@ export default async function MobileFacetControls({
         {(
           Object.entries(facets.multiSelect) as Entries<Facets["multiSelect"]>
         ).map(([name, buckets]) => (
-          <AccordionItem key={name} value={name}>
-            <AccordionTrigger>{filterLabels[name] ?? ""}</AccordionTrigger>
-            <AccordionContent>
-              <FacetSelectMobile
-                name={name}
-                options={buckets.map((bucket) => ({
-                  value: bucket.value.toString(),
-                  label: `${bucket.label ?? bucket.value} (${bucket.count})`,
-                }))}
-              />
-            </AccordionContent>
-          </AccordionItem>
+          <FacetSelectMobile
+            key={name}
+            label={filterLabels[name] ?? ""}
+            name={name}
+            options={buckets.map((bucket) => ({
+              value: bucket.value.toString(),
+              label: `${bucket.label ?? bucket.value} (${bucket.count})`,
+            }))}
+          />
         ))}
       </Accordion>
     </div>
