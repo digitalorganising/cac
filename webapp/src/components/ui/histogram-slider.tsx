@@ -9,6 +9,7 @@ import { Slider } from "./slider";
 
 const DynamicHistogram = dynamic(() => import("./histogram"), {
   ssr: false,
+  loading: () => <div className="h-16 w-full" />,
 });
 
 type Props = {

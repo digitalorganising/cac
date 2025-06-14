@@ -91,7 +91,7 @@ function MobileDateSelect({
             ) : null}
           </InputTriggerButton>
         </DialogTrigger>
-        <DialogContent className="w-fit">
+        <DialogContent className="w-fit p-2" showCloseButton={false}>
           <DialogTitle className="sr-only">{label}</DialogTitle>
           <DialogDescription className="sr-only">
             Date selector
