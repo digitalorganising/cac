@@ -11,7 +11,14 @@ class EventType(LabelledEnum):
     ApplicationWithdrawn = "application_withdrawn", "Application withdrawn"
     ApplicationAccepted = "application_accepted", "Application accepted"
     ApplicationRejected = "application_rejected", "Application rejected"
-    BargainingUnitDecided = "bargaining_unit_decided", "Bargaining unit decided"
+    BargainingUnitAppropriate = (
+        "bargaining_unit_appropriate",
+        "Bargaining unit confirmed",
+    )
+    BargainingUnitInappropriate = (
+        "bargaining_unit_inappropriate",
+        "Bargaining unit changed",
+    )
     BallotRequirementDecided = (
         "ballot_requirement_decided",
         "Ballot requirement decided",

@@ -103,6 +103,10 @@ export const getFacets = unstable_cache(
     "histogramFacetNames",
     "pick",
   ],
+  {
+    revalidate: 60 * 60, // 1 hour
+    tags: ["outcomes-index"],
+  },
 );
 
 const facetPrefix = "facet.";

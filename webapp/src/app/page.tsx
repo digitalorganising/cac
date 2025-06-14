@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { SearchParams } from "nuqs/server";
 import OutcomeCard from "@/components/outcome-card/OutcomeCard";
 import FilteringControls from "@/components/search/FilteringControls";
@@ -16,6 +17,10 @@ export default async function Home({
   const params = await appSearchParamsCache.parse(searchParams);
   const options = appSearchParamsToOutcomesOptions(pageSize, params);
   const outcomes = await getOutcomes(options, params.debug);
+
+  if (params.debug) {
+    revalidateTag("outcomes-index");
+  }
   return (
     <>
       <FilteringControls options={options} />

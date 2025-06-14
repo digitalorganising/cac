@@ -74,7 +74,7 @@ outcomes_source = OpensearchSource(
 )
 opensearch_sink = OutcomeSink(
     cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
-    index="outcomes-2025-05-31-indexed",
+    index="outcomes-indexed",
     mapping_path="pipeline/index_mappings/outcomes_indexed.json",
 )
 

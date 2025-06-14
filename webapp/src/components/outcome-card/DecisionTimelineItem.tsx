@@ -6,6 +6,7 @@ import {
   BookUp,
   ClipboardX,
   Grid2x2Check,
+  Grid2x2X,
   Inbox,
   Mailbox,
   Megaphone,
@@ -33,8 +34,10 @@ const getIcon = (eventType: EventType): ReactNode => {
       return <BookOpenCheck />;
     case "application_rejected":
       return <ClipboardX />;
-    case "bargaining_unit_decided":
+    case "bargaining_unit_appropriate":
       return <Grid2x2Check />;
+    case "bargaining_unit_inappropriate":
+      return <Grid2x2X />;
     case "ballot_requirement_decided":
       return <ScrollText />;
     case "ballot_form_decided":
@@ -63,12 +66,13 @@ const getColor = (eventType: EventType): string => {
     case "method_agreed":
       return "bg-zinc-400";
     case "application_received":
-    case "bargaining_unit_decided":
+    case "bargaining_unit_appropriate":
     case "ballot_requirement_decided":
     case "ballot_form_decided":
     case "ballot_held":
       return "bg-zinc-500";
     case "access_disputed":
+    case "bargaining_unit_inappropriate":
       return "bg-amber-600";
     case "application_accepted":
     case "union_recognized":

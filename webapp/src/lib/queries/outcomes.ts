@@ -58,6 +58,10 @@ export const getOutcomes = unstable_cache(
     };
   },
   ["client", "getFilters", "getQuery", "getSort"],
+  {
+    revalidate: 60 * 60, // 1 hour
+    tags: ["outcomes-index"],
+  },
 );
 
 const getSort = (sortKey?: SortKey, sortOrder?: "asc" | "desc") => {

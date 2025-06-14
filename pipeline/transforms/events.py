@@ -34,7 +34,12 @@ transitions = [
         OutcomeState.Withdrawn,
     ],
     [
-        EventType.BargainingUnitDecided,
+        EventType.BargainingUnitAppropriate,
+        OutcomeState.PendingRecognitionDecision,
+        OutcomeState.PendingRecognitionDecision,
+    ],
+    [
+        EventType.BargainingUnitInappropriate,
         OutcomeState.PendingRecognitionDecision,
         OutcomeState.PendingRecognitionDecision,
     ],
@@ -234,13 +239,20 @@ def events_from_outcome(outcome):
                         events.add_event(EventType.ApplicationReceived, doc_type)
                     events.add_event(EventType.ApplicationWithdrawn, doc_type)
                 case DocumentType.bargaining_unit_decision:
-                    new_bargaining_unit = doc["new_bargaining_unit_description"]
-                    events.add_event(
-                        EventType.BargainingUnitDecided,
-                        doc_type,
-                        doc["decision_date"],
-                        new_bargaining_unit,
-                    )
+                    if doc["appropriate_unit_differs"]:
+                        events.add_event(
+                            EventType.BargainingUnitInappropriate,
+                            doc_type,
+                            doc["decision_date"],
+                            doc["new_bargaining_unit_description"],
+                        )
+                    else:
+                        events.add_event(
+                            EventType.BargainingUnitAppropriate,
+                            doc_type,
+                            doc["decision_date"],
+                            "The original bargaining unit from the application was determined by the CAC to be appropriate.",
+                        )
                 case DocumentType.bargaining_decision:
                     events.add_event(
                         EventType.MethodDecision, doc_type, doc["decision_date"]

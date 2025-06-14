@@ -18,7 +18,7 @@ export const client = new Client({
   node: process.env.OPENSEARCH_ENDPOINT!,
 });
 
-export const outcomesIndex = "outcomes-2025-05-31-indexed";
+export const outcomesIndex = "outcomes-indexed";
 
 export type PaginationOptions = {
   from: number;
