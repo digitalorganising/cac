@@ -11,6 +11,8 @@ export const filterLabels: Partial<Record<keyof AppSearchParams, string>> = {
   "events.type": "Events",
   "events.date.from": "Start date",
   "events.date.to": "End date",
+  "bargainingUnit.size.from": "Minimum BU size",
+  "bargainingUnit.size.to": "Maximum BU size",
 };
 
 export const humanizeDate = (date: Date) => dayjs(date).format("MMMM YYYY");

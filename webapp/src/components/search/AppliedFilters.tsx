@@ -12,8 +12,21 @@ import { filterLabels, humanizeDate } from "./common";
 
 export type FilterEntries = Record<
   keyof AppSearchParams,
-  { value: string | Date; label?: string }[]
+  { value: string | Date | number; label?: string }[]
 >;
+
+const renderValue = (value?: string | Date | number): string | undefined => {
+  if (typeof value === "string") {
+    return value;
+  }
+  if (value instanceof Date) {
+    return humanizeDate(value);
+  }
+  if (typeof value === "number") {
+    return value.toString();
+  }
+  return value;
+};
 
 export default function AppliedFilters({
   filterEntries,
@@ -35,9 +48,7 @@ export default function AppliedFilters({
           <span className="text-sm text-nowrap">
             <strong className="font-semibold">{filterLabels[key]}</strong>:{" "}
             <span className="no-underline group-hover:underline">
-              {typeof value === "string"
-                ? (label ?? value)
-                : humanizeDate(value as Date)}
+              {label ?? renderValue(value)}
             </span>
           </span>
           <Cross2Icon className="size-3 text-slate-500 group-hover:text-slate-700" />

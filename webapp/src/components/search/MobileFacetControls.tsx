@@ -8,6 +8,7 @@ import {
 import { Accordion } from "../ui/accordion";
 import { Button } from "../ui/button";
 import { DialogClose } from "../ui/dialog";
+import { BargainingUnitSizeSelectMobile } from "./BargainingUnitSizeSelect";
 import { EventDateSelectMobile } from "./EventDateSelect";
 import { FacetSelectMobile } from "./FacetSelect";
 import { filterLabels } from "./common";
@@ -36,6 +37,14 @@ export default async function MobileFacetControls({
           />
         ))}
         <EventDateSelectMobile />
+        <BargainingUnitSizeSelectMobile
+          bins={facets.histogram["bargainingUnit.size"].map(
+            ({ value, count }) => ({
+              value: Number(value),
+              freq: count,
+            }),
+          )}
+        />
       </Accordion>
       <div className="fixed bottom-0 left-0 bg-white border-t border-gray-200 w-full p-4 flex justify-end items-center gap-2">
         <DialogClose asChild>

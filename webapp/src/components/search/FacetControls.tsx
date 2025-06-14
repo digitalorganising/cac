@@ -1,6 +1,6 @@
 import { Entries } from "type-fest";
 import { Facets } from "@/lib/queries/facets";
-import BargainingUnitSizeSelect from "./BargainingUnitSizeSelect";
+import { BargainingUnitSizeSelect } from "./BargainingUnitSizeSelect";
 import { EventDateSelect } from "./EventDateSelect";
 import { FacetSelectDesktop } from "./FacetSelect";
 import { filterLabels } from "./common";

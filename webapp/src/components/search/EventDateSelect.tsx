@@ -13,6 +13,7 @@ import { DateRange } from "../ui/date-range";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
@@ -92,6 +93,9 @@ function MobileDateSelect({
         </DialogTrigger>
         <DialogContent className="w-fit">
           <DialogTitle className="sr-only">{label}</DialogTitle>
+          <DialogDescription className="sr-only">
+            Date selector
+          </DialogDescription>
           <MonthPicker
             selectedMonth={value}
             onMonthSelect={(date) => {

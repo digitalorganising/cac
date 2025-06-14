@@ -1,13 +1,10 @@
 "use client";
 
-import { BarChartIcon } from "@radix-ui/react-icons";
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import type { Bin } from "./histogram";
 import { Input } from "./input";
-import { InputTriggerButton } from "./input-trigger-button";
 import { Label } from "./label";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Slider } from "./slider";
 
 const DynamicHistogram = dynamic(() => import("./histogram"), {
@@ -15,14 +12,12 @@ const DynamicHistogram = dynamic(() => import("./histogram"), {
 });
 
 type Props = {
-  label: React.ReactNode;
   name: string;
   bins: Bin[];
   max?: number;
   min?: number;
   onSelectRange?: (min?: number, max?: number) => void;
   form?: string;
-  loading?: boolean;
 };
 
 const ensureNumber = (value: string) => Number(value.replace(/\D/, ""));
@@ -61,14 +56,12 @@ function SliderInput({
 }
 
 export function HistogramSlider({
-  label,
   name,
   bins,
   max,
   min,
   onSelectRange,
   form,
-  loading,
 }: Props) {
   const lowerBound = bins[0]?.value ?? 0;
   const upperBound = bins[bins.length - 1]?.value ?? 0;
@@ -102,44 +95,37 @@ export function HistogramSlider({
     value === upperBound ? `${value}+` : value;
 
   return (
-    <Popover modal={true}>
-      <PopoverTrigger asChild>
-        <InputTriggerButton loading={loading} icon={<BarChartIcon />}>
-          {label}
-        </InputTriggerButton>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-100 p-6">
-        <DynamicHistogram
-          bins={bins}
-          min={uiMin}
-          max={uiMax}
-          className="h-16 w-full"
+    <div>
+      <DynamicHistogram
+        bins={bins}
+        min={uiMin}
+        max={uiMax}
+        className="h-16 w-full"
+      />
+      <Slider
+        min={lowerBound}
+        max={upperBound}
+        value={uiValue}
+        onValueChange={([min, max]) => setUiValue([min, max])}
+        onValueCommit={([min, max]) => commit(min, max)}
+        thumbClassName="size-6"
+      />
+      <div className="flex justify-between mt-4">
+        <SliderInput
+          name={`${name}.from`}
+          label="Minimum"
+          value={uiMin}
+          onChange={(min) => commit(min, uiMax)}
+          form={form}
         />
-        <Slider
-          min={lowerBound}
-          max={upperBound}
-          value={uiValue}
-          onValueChange={([min, max]) => setUiValue([min, max])}
-          onValueCommit={([min, max]) => commit(min, max)}
-          thumbClassName="size-6"
+        <SliderInput
+          name={`${name}.to`}
+          label="Maximum"
+          value={formatMaxValue(uiMax)}
+          onChange={(max) => commit(uiMin, max)}
+          form={form}
         />
-        <div className="flex justify-between mt-4">
-          <SliderInput
-            name={`${name}.from`}
-            label="Minimum"
-            value={uiMin}
-            onChange={(min) => commit(min, uiMax)}
-            form={form}
-          />
-          <SliderInput
-            name={`${name}.to`}
-            label="Maximum"
-            value={formatMaxValue(uiMax)}
-            onChange={(max) => commit(uiMin, max)}
-            form={form}
-          />
-        </div>
-      </PopoverContent>
-    </Popover>
+      </div>
+    </div>
   );
 }

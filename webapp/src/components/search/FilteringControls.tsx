@@ -16,6 +16,7 @@ import { DateRange } from "../ui/date-range";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -65,10 +66,9 @@ async function AppliedLabelledFilters({
         key,
         entries.map((entry) => ({
           ...entry,
-          label:
-            Object.values(
-              facets.multiSelect[key as MultiSelectFacet] ?? {},
-            )?.find((f) => f.value === entry.value)?.label ?? entry.value,
+          label: Object.values(
+            facets.multiSelect[key as MultiSelectFacet] ?? {},
+          )?.find((f) => f.value === entry.value)?.label,
         })),
       ],
     ),
@@ -122,6 +122,9 @@ export default function FilteringControls({ options }: Props) {
           <DialogContent className="size-full block">
             <DialogHeader>
               <DialogTitle>Filters</DialogTitle>
+              <DialogDescription className="sr-only">
+                Filters for searching outcomes
+              </DialogDescription>
             </DialogHeader>
             <Suspense
               fallback={
