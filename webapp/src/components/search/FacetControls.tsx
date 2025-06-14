@@ -1,7 +1,7 @@
 import { filterLabels } from "./common";
 import { Facets } from "@/lib/queries/facets";
 import { Entries } from "type-fest";
-import FacetSelect from "./FacetSelect";
+import { FacetSelectDesktop } from "./FacetSelect";
 import EventDateSelect from "./EventDateSelect";
 import BargainingUnitSizeSelect from "./BargainingUnitSizeSelect";
 
@@ -16,7 +16,7 @@ export default async function FacetControls({
       {(
         Object.entries(facets.multiSelect) as Entries<Facets["multiSelect"]>
       ).map(([name, buckets]) => (
-        <FacetSelect
+        <FacetSelectDesktop
           key={name}
           label={filterLabels[name] ?? ""}
           name={name}

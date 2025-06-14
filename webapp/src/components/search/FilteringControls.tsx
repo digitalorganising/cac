@@ -6,6 +6,7 @@ import {
 } from "@/lib/queries/facets";
 import AppliedFilters, { type FilterEntries } from "./AppliedFilters";
 import FacetControls from "./FacetControls";
+import MobileFacetControls from "./MobileFacetControls";
 import { Suspense } from "react";
 import { filterLabels } from "./common";
 import { SelectTrigger } from "../ui/multi-select";
@@ -23,6 +24,7 @@ import {
   DialogTrigger,
   DialogTitle,
 } from "../ui/dialog";
+import { Loader2Icon } from "lucide-react";
 
 type Props = {
   options: GetFacetsOptions;
@@ -112,10 +114,21 @@ export default function FilteringControls({ options }: Props) {
               Filters
             </Button>
           </DialogTrigger>
-          <DialogContent className="size-full">
+          <DialogContent className="size-full block">
             <DialogHeader>
               <DialogTitle>Filters</DialogTitle>
             </DialogHeader>
+            <Suspense
+              fallback={
+                <div className="w-full h-full relative">
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 animate-spin">
+                    <Loader2Icon className="size-10" />
+                  </div>
+                </div>
+              }
+            >
+              <MobileFacetControls facetsPromise={facetsPromise} />
+            </Suspense>
           </DialogContent>
         </Dialog>
       </div>

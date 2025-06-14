@@ -1,6 +1,5 @@
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { Checkbox } from "./checkbox";
-import { Label } from "./label";
+import { LabelledCheckbox } from "./checkbox";
 import { ScrollArea } from "./scroll-area";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { UpdateIcon } from "@radix-ui/react-icons";
@@ -93,23 +92,18 @@ export default function MultiSelect({
           type="auto"
         >
           {options.map((option) => (
-            <Label
+            <LabelledCheckbox
               key={option.value}
-              htmlFor={option.value}
-              className="flex items-center gap-2 p-2 rounded-md hover:bg-slate-100 cursor-pointer [&>*]:cursor-pointer"
-            >
-              <Checkbox
-                id={option.value}
-                checked={selected.has(option.value)}
-                onCheckedChange={(newChecked) => {
-                  onSelect(
-                    option.value,
-                    newChecked === "indeterminate" ? false : newChecked,
-                  );
-                }}
-              />
-              <span>{option.label}</span>
-            </Label>
+              id={option.value}
+              label={option.label}
+              checked={selected.has(option.value)}
+              onCheckedChange={(newChecked) => {
+                onSelect(
+                  option.value,
+                  newChecked === "indeterminate" ? false : newChecked,
+                );
+              }}
+            />
           ))}
         </ScrollArea>
         {onClearAll ? (
