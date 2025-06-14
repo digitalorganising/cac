@@ -8,6 +8,7 @@ import {
 import { Accordion } from "../ui/accordion";
 import { Button } from "../ui/button";
 import { DialogClose } from "../ui/dialog";
+import { EventDateSelectMobile } from "./EventDateSelect";
 import { FacetSelectMobile } from "./FacetSelect";
 import { filterLabels } from "./common";
 
@@ -34,13 +35,16 @@ export default async function MobileFacetControls({
             }))}
           />
         ))}
+        <EventDateSelectMobile />
       </Accordion>
       <div className="fixed bottom-0 left-0 bg-white border-t border-gray-200 w-full p-4 flex justify-end items-center gap-2">
-        <Button className="cursor-pointer" variant="outline" asChild>
-          <Link href={appSearchParamsSerializer({ query }) || "/"}>
-            Clear all
-          </Link>
-        </Button>
+        <DialogClose asChild>
+          <Button className="cursor-pointer" variant="outline" asChild>
+            <Link href={appSearchParamsSerializer({ query }) || "/"}>
+              Clear all
+            </Link>
+          </Button>
+        </DialogClose>
         <DialogClose asChild>
           <Button className="cursor-pointer">Show results</Button>
         </DialogClose>

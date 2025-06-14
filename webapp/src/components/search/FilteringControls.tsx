@@ -1,5 +1,5 @@
 import { MixerHorizontalIcon } from "@radix-ui/react-icons";
-import { Loader2Icon } from "lucide-react";
+import { BarChartIcon, ChevronDownIcon, Loader2Icon } from "lucide-react";
 import { Suspense } from "react";
 import { Entries } from "type-fest";
 import {
@@ -20,8 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
-import { HistogramSliderTrigger } from "../ui/histogram-slider";
-import { SelectTrigger } from "../ui/multi-select";
+import { InputTriggerButton } from "../ui/input-trigger-button";
 import AppliedFilters, { type FilterEntries } from "./AppliedFilters";
 import FacetControls from "./FacetControls";
 import MobileFacetControls from "./MobileFacetControls";
@@ -35,18 +34,19 @@ function FacetFallback() {
   return (
     <>
       {["Unions", "Status", "Events"].map((label) => (
-        <SelectTrigger
+        <InputTriggerButton
           key={label}
           loading={true}
           aria-label={`${label} filter`}
+          icon={<ChevronDownIcon className="size-4 opacity-50" />}
         >
           {label}
-        </SelectTrigger>
+        </InputTriggerButton>
       ))}
       <DateRange loading={true} />
-      <HistogramSliderTrigger loading={true}>
+      <InputTriggerButton loading={true} icon={<BarChartIcon />}>
         Bargaining Unit Size
-      </HistogramSliderTrigger>
+      </InputTriggerButton>
     </>
   );
 }

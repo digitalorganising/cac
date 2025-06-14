@@ -1,11 +1,11 @@
 "use client";
 
-import { BarChartIcon, UpdateIcon } from "@radix-ui/react-icons";
+import { BarChartIcon } from "@radix-ui/react-icons";
 import dynamic from "next/dynamic";
-import { ButtonHTMLAttributes, useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 import type { Bin } from "./histogram";
 import { Input } from "./input";
+import { InputTriggerButton } from "./input-trigger-button";
 import { Label } from "./label";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { Slider } from "./slider";
@@ -13,27 +13,6 @@ import { Slider } from "./slider";
 const DynamicHistogram = dynamic(() => import("./histogram"), {
   ssr: false,
 });
-
-export function HistogramSliderTrigger({
-  children,
-  className,
-  loading,
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) {
-  return (
-    <button
-      className={cn(
-        "cursor-pointer border-input [&_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 flex w-fit items-center justify-between gap-2 rounded-md border bg-white hover:bg-slate-50 aria-expanded:bg-slate-50 px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className,
-      )}
-      disabled={loading}
-      {...props}
-    >
-      {children}
-      {loading ? <UpdateIcon className="animate-spin" /> : <BarChartIcon />}
-    </button>
-  );
-}
 
 type Props = {
   label: React.ReactNode;
@@ -125,9 +104,9 @@ export function HistogramSlider({
   return (
     <Popover modal={true}>
       <PopoverTrigger asChild>
-        <HistogramSliderTrigger loading={loading}>
+        <InputTriggerButton loading={loading} icon={<BarChartIcon />}>
           {label}
-        </HistogramSliderTrigger>
+        </InputTriggerButton>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-100 p-6">
         <DynamicHistogram

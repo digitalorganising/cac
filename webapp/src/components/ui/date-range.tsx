@@ -1,5 +1,6 @@
 import { CalendarIcon, UpdateIcon } from "@radix-ui/react-icons";
 import { cn } from "@/lib/utils";
+import { InputTriggerButton } from "./input-trigger-button";
 import { MonthPicker } from "./month-picker";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
@@ -16,11 +17,6 @@ type Props = {
   loading?: boolean;
 };
 
-const buttonClasses =
-  "border-input cursor-pointer pl-2 pr-3 py-2 hover:bg-slate-50 flex w-fit items-center justify-between gap-1 rounded-md bg-white " +
-  "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 aria-expanded:bg-slate-50 " +
-  "focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 outline-none";
-
 function CalendarBadge({
   selected,
   loading,
@@ -32,10 +28,19 @@ function CalendarBadge({
     <span
       className={cn(
         "inline-flex items-center justify-center text-white size-5 px-1 rounded-full pointer-events-none",
-        selected ? "bg-slate-600 text-white" : "text-muted-foreground",
+        selected ? "bg-slate-600" : "bg-transparent",
       )}
     >
-      {loading ? <UpdateIcon className="animate-spin" /> : <CalendarIcon />}
+      {loading ? (
+        <UpdateIcon className="animate-spin" />
+      ) : (
+        <CalendarIcon
+          className={cn(
+            "size-3",
+            selected ? "text-white" : "text-muted-foreground",
+          )}
+        />
+      )}
     </span>
   );
 }
@@ -69,14 +74,17 @@ export function DateRange({
         />
       )}
       <DateRangePicker date={start} onSelect={onSelectStart} max={end}>
-        <button
+        <InputTriggerButton
+          className="border-none flex-row-reverse pl-2 pr-3 gap-1"
           title="Start date"
-          className={buttonClasses}
           disabled={disabled === "start" || disabled === true || loading}
+          loading={loading}
+          icon={
+            <CalendarBadge selected={start !== undefined} loading={loading} />
+          }
         >
-          <CalendarBadge selected={start !== undefined} loading={loading} />
           Start
-        </button>
+        </InputTriggerButton>
       </DateRangePicker>
 
       <div className="w-px flex-grow self-stretch my-1.5 bg-slate-300" />
@@ -90,14 +98,17 @@ export function DateRange({
         />
       )}
       <DateRangePicker date={end} onSelect={onSelectEnd} min={start}>
-        <button
+        <InputTriggerButton
+          className="border-none flex-row-reverse pl-2 pr-3 gap-1"
           title="End date"
-          className={buttonClasses}
           disabled={disabled === "end" || disabled === true || loading}
+          loading={loading}
+          icon={
+            <CalendarBadge selected={end !== undefined} loading={loading} />
+          }
         >
-          <CalendarBadge selected={end !== undefined} loading={loading} />
           End
-        </button>
+        </InputTriggerButton>
       </DateRangePicker>
     </span>
   );

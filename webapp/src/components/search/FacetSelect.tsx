@@ -12,6 +12,7 @@ import {
 import { LabelledCheckbox } from "../ui/checkbox";
 import CountBadge from "../ui/count-badge";
 import MultiSelect from "../ui/multi-select";
+import { AccordionFilter } from "./common";
 
 type Props = Omit<
   React.ComponentProps<typeof MultiSelect>,
@@ -62,25 +63,11 @@ export function FacetSelectMobile({
 
   return (
     <AccordionItem value={name}>
-      <AccordionTrigger className="gap-3">
-        <span className="hover:underline flex-grow self-start">{label}</span>
-        {selected?.length ? (
-          <>
-            <a
-              role="button"
-              className="text-xs text-muted-foreground cursor-pointer hover:text-foreground"
-              title="Clear all"
-              onClick={(e) => {
-                e.stopPropagation(); // Don't want to open the accordion
-                setSelected(null);
-              }}
-            >
-              Clear
-            </a>
-            <CountBadge count={selected.length} />
-          </>
-        ) : null}
-      </AccordionTrigger>
+      <AccordionFilter
+        label={label}
+        count={selected?.length}
+        onClear={() => setSelected(null)}
+      />
       <AccordionContent>
         <div className={cn("flex flex-col gap-2", className)}>
           {options.map((option) => (

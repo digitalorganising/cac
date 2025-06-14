@@ -8,11 +8,11 @@ import {
   appSearchParamsSerializer,
   deleteParamValue,
 } from "@/lib/search-params";
-import { filterLabels } from "./common";
+import { filterLabels, humanizeDate } from "./common";
 
 export type FilterEntries = Record<
   keyof AppSearchParams,
-  { value: string; label?: string }[]
+  { value: string | Date; label?: string }[]
 >;
 
 export default function AppliedFilters({
@@ -35,7 +35,9 @@ export default function AppliedFilters({
           <span className="text-sm text-nowrap">
             <strong className="font-semibold">{filterLabels[key]}</strong>:{" "}
             <span className="no-underline group-hover:underline">
-              {label ?? value}
+              {typeof value === "string"
+                ? (label ?? value)
+                : humanizeDate(value as Date)}
             </span>
           </span>
           <Cross2Icon className="size-3 text-slate-500 group-hover:text-slate-700" />
