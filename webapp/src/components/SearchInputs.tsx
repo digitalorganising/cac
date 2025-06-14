@@ -17,7 +17,7 @@ function SearchInput() {
 
   return (
     <Input
-      placeholder="Search outcomes and decision documents..."
+      placeholder="Search outcomes..."
       name="query"
       defaultValue={params.get("query") ?? ""}
     />
@@ -66,7 +66,7 @@ export default function SearchInputs() {
         <SearchInput />
         <ResetButton
           forInput="query"
-          className="absolute xs:static right-1 top-1/2 -translate-y-1/2 xs:translate-none max-xs:bg-inherit max-xs:size-7 max-xs:hover:bg-inherit"
+          className="absolute xs:static right-1 top-1/2 -translate-y-1/2 xs:translate-none max-xs:bg-white max-xs:bg-opacity-80 max-xs:size-7 max-xs:hover:bg-white"
         />
       </div>
       <SubmitButton />
