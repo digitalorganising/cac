@@ -129,7 +129,28 @@ export default function FilteringControls({ options }: Props) {
               ) : null}
             </Button>
           </DialogTrigger>
-          <DialogContent className="size-full block">
+          <DialogContent
+            className="w-full h-[calc(100%-(var(--spacing)*18)+1px)] block top-0 left-0 translate-none rounded-b-none"
+            sheet={
+              <div className="fixed h-18 z-250 bottom-0 left-0 bg-white border-t border-gray-200 w-full p-4 flex justify-end items-center gap-2">
+                <DialogClose asChild>
+                  <Button className="cursor-pointer" variant="outline" asChild>
+                    <Link
+                      href={
+                        appSearchParamsSerializer({ query: params.query }) ||
+                        "/"
+                      }
+                    >
+                      Clear all
+                    </Link>
+                  </Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button className="cursor-pointer">Show results</Button>
+                </DialogClose>
+              </div>
+            }
+          >
             <DialogHeader>
               <DialogTitle>Filters</DialogTitle>
               <DialogDescription className="sr-only">
