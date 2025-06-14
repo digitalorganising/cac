@@ -1,11 +1,11 @@
 "use client";
 
 import React from "react";
-import MultiSelect from "../ui/multi-select";
 import { useAppQueryState } from "@/lib/app-query-state";
 import { MultiSelectFacet } from "@/lib/queries/facets";
-import { LabelledCheckbox } from "../ui/checkbox";
 import { cn } from "@/lib/utils";
+import { LabelledCheckbox } from "../ui/checkbox";
+import MultiSelect from "../ui/multi-select";
 
 type Props = Omit<
   React.ComponentProps<typeof MultiSelect>,

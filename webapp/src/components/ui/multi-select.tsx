@@ -1,10 +1,10 @@
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { LabelledCheckbox } from "./checkbox";
-import { ScrollArea } from "./scroll-area";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import { UpdateIcon } from "@radix-ui/react-icons";
-import { cn } from "@/lib/utils";
 import { ButtonHTMLAttributes } from "react";
+import { cn } from "@/lib/utils";
+import { LabelledCheckbox } from "./checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { ScrollArea } from "./scroll-area";
 
 type Props = {
   label: string;

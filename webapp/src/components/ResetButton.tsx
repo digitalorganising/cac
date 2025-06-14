@@ -1,9 +1,9 @@
 "use client";
 
 import { Cross2Icon } from "@radix-ui/react-icons";
+import { ButtonHTMLAttributes } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppQueryState } from "@/lib/app-query-state";
-import { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 type Props = {

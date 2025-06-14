@@ -1,11 +1,11 @@
 import { SearchParams } from "nuqs/server";
 import OutcomeCard from "@/components/outcome-card/OutcomeCard";
-import OutcomePagination from "@/components/search/OutcomePagination";
-import { getOutcomes } from "@/lib/queries/outcomes";
-import ResultListControls from "@/components/search/ResultListControls";
 import FilteringControls from "@/components/search/FilteringControls";
-import { appSearchParamsCache } from "@/lib/search-params";
+import OutcomePagination from "@/components/search/OutcomePagination";
+import ResultListControls from "@/components/search/ResultListControls";
+import { getOutcomes } from "@/lib/queries/outcomes";
 import { appSearchParamsToOutcomesOptions } from "@/lib/queries/util";
+import { appSearchParamsCache } from "@/lib/search-params";
 
 export default async function Home({
   searchParams,

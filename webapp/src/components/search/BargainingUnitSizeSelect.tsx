@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { HistogramSlider } from "../ui/histogram-slider";
 import { useAppQueryState } from "@/lib/app-query-state";
+import { HistogramSlider } from "../ui/histogram-slider";
 
 export default function BargainingUnitSizeSelect({
   bins,

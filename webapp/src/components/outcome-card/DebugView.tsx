@@ -1,7 +1,7 @@
 "use client";
 
-import { Outcome } from "@/lib/types";
 import dynamic from "next/dynamic";
+import { Outcome } from "@/lib/types";
 
 const JsonViewDynamic = dynamic(() => import("./JsonView"), {
   ssr: false,

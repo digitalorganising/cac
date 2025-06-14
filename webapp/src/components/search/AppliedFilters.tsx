@@ -1,7 +1,6 @@
-import React from "react";
 import { Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { filterLabels } from "./common";
+import React from "react";
 import { Entries } from "type-fest";
 import {
   AppSearchParams,
@@ -9,6 +8,7 @@ import {
   appSearchParamsSerializer,
   deleteParamValue,
 } from "@/lib/search-params";
+import { filterLabels } from "./common";
 
 export type FilterEntries = Record<
   keyof AppSearchParams,

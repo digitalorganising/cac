@@ -1,18 +1,17 @@
-import "server-only";
-
 import { unstable_cache } from "next/cache";
+import "server-only";
+import { SortKey } from "../search-params";
+import { Outcome } from "../types";
 import {
-  client,
   FilterOptions,
-  getFilters,
-  getQuery,
-  outcomesIndex,
   PaginationOptions,
   QueryOptions,
   SortOptions,
+  client,
+  getFilters,
+  getQuery,
+  outcomesIndex,
 } from "./common";
-import { Outcome } from "../types";
-import { SortKey } from "../search-params";
 
 export type GetOutcomesOptions = PaginationOptions &
   SortOptions &

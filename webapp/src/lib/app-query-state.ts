@@ -1,6 +1,6 @@
-import { useEffect, useTransition } from "react";
-import { useQueryState, UseQueryStateReturn, Options } from "nuqs";
 import { useTopLoader } from "nextjs-toploader";
+import { Options, UseQueryStateReturn, useQueryState } from "nuqs";
+import { useEffect, useTransition } from "react";
 import { AppSearchParams, appSearchParamsParser } from "./search-params";
 
 type AppSearchParamsParser = typeof appSearchParamsParser;

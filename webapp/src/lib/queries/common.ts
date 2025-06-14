@@ -1,11 +1,10 @@
-import "server-only";
-
 import {
   Client,
   Types as OpenSearchTypes,
 } from "@opensearch-project/opensearch";
 import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
 import { awsCredentialsProvider } from "@vercel/functions/oidc";
+import "server-only";
 import { SortKey, SortOrder } from "../search-params";
 
 export const client = new Client({

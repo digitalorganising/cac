@@ -1,15 +1,15 @@
 import {
+  ParserBuilder,
   createParser,
   createSearchParamsCache,
   createSerializer,
+  type inferParserType,
   parseAsArrayOf,
   parseAsBoolean,
   parseAsInteger,
   parseAsIsoDate,
   parseAsString,
   parseAsStringLiteral,
-  ParserBuilder,
-  type inferParserType,
 } from "nuqs/server";
 import { eventTypes, outcomeStates } from "./types";
 

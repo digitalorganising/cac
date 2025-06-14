@@ -1,5 +1,4 @@
 import dayjs from "dayjs";
-
 import { OutcomeKeyDates } from "@/lib/types";
 
 export function formatDuration({

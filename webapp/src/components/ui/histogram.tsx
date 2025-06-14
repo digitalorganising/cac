@@ -1,6 +1,6 @@
 import { Bar, BarChart, Cell } from "recharts";
-import { ChartContainer } from "./chart";
 import { cn } from "@/lib/utils";
+import { ChartContainer } from "./chart";
 
 export type Bin = { value: number; freq: number };
 

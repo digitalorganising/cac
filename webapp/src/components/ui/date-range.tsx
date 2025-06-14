@@ -1,7 +1,7 @@
-import { cn } from "@/lib/utils";
 import { CalendarIcon, UpdateIcon } from "@radix-ui/react-icons";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { cn } from "@/lib/utils";
 import { MonthPicker } from "./month-picker";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 type Props = {
   start?: Date;

@@ -1,11 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
 import Form from "next/form";
 import NextTopLoader from "nextjs-toploader";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-
 import SearchInputs from "@/components/SearchInputs";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "CAC Outcomes",

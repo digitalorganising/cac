@@ -1,30 +1,30 @@
+import { MixerHorizontalIcon } from "@radix-ui/react-icons";
+import { Loader2Icon } from "lucide-react";
+import { Suspense } from "react";
+import { Entries } from "type-fest";
 import {
   Facets,
-  getFacets,
   GetFacetsOptions,
   MultiSelectFacet,
+  getFacets,
 } from "@/lib/queries/facets";
+import { appSearchParamsCache } from "@/lib/search-params";
+import { arr } from "@/lib/utils";
+import { Button } from "../ui/button";
+import { DateRange } from "../ui/date-range";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { HistogramSliderTrigger } from "../ui/histogram-slider";
+import { SelectTrigger } from "../ui/multi-select";
 import AppliedFilters, { type FilterEntries } from "./AppliedFilters";
 import FacetControls from "./FacetControls";
 import MobileFacetControls from "./MobileFacetControls";
-import { Suspense } from "react";
 import { filterLabels } from "./common";
-import { SelectTrigger } from "../ui/multi-select";
-import { arr } from "@/lib/utils";
-import { DateRange } from "../ui/date-range";
-import { appSearchParamsCache } from "@/lib/search-params";
-import { Entries } from "type-fest";
-import { HistogramSliderTrigger } from "../ui/histogram-slider";
-import { Button } from "../ui/button";
-import { MixerHorizontalIcon } from "@radix-ui/react-icons";
-import {
-  Dialog,
-  DialogHeader,
-  DialogContent,
-  DialogTrigger,
-  DialogTitle,
-} from "../ui/dialog";
-import { Loader2Icon } from "lucide-react";
 
 type Props = {
   options: GetFacetsOptions;

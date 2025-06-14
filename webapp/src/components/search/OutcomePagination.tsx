@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Pagination,
   PaginationContent,
@@ -11,7 +12,6 @@ import {
   appSearchParamsCache,
   appSearchParamsSerializer,
 } from "@/lib/search-params";
-import React from "react";
 
 export default function OutcomePagination({
   totalPages,

@@ -1,4 +1,3 @@
-import { ReactNode } from "react";
 import {
   Archive,
   ArchiveX,
@@ -16,9 +15,9 @@ import {
   Trophy,
 } from "lucide-react";
 import Link from "next/link";
-
-import { TimelineItem, TimelineItemProps } from "../timeline/timeline";
+import { ReactNode } from "react";
 import { EventType, OutcomeEvent } from "@/lib/types";
+import { TimelineItem, TimelineItemProps } from "../timeline/timeline";
 
 type Props = {
   event: OutcomeEvent;

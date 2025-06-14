@@ -1,3 +1,4 @@
+import { Entries } from "type-fest";
 import { Facets } from "@/lib/queries/facets";
 import {
   Accordion,
@@ -5,9 +6,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "../ui/accordion";
-import { filterLabels } from "./common";
-import { Entries } from "type-fest";
 import { FacetSelectMobile } from "./FacetSelect";
+import { filterLabels } from "./common";
 
 export default async function MobileFacetControls({
   facetsPromise,

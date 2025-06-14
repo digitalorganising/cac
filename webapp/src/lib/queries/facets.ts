@@ -1,16 +1,15 @@
-import "server-only";
-
 import { Types as OpenSearchTypes } from "@opensearch-project/opensearch";
 import { unstable_cache } from "next/cache";
+import "server-only";
+import { hasDeepProperty } from "../utils";
 import {
-  client,
   FilterOptions,
+  QueryOptions,
+  client,
   getFilters,
   getQuery,
   outcomesIndex,
-  QueryOptions,
 } from "./common";
-import { hasDeepProperty } from "../utils";
 
 export const multiSelectFacetNames = [
   "parties.unions",

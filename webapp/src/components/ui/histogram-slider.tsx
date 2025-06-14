@@ -1,14 +1,14 @@
 "use client";
 
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
-import { ButtonHTMLAttributes, useEffect, useState } from "react";
-import dynamic from "next/dynamic";
-import { cn } from "@/lib/utils";
 import { BarChartIcon, UpdateIcon } from "@radix-ui/react-icons";
-import { Slider } from "./slider";
+import dynamic from "next/dynamic";
+import { ButtonHTMLAttributes, useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 import type { Bin } from "./histogram";
 import { Input } from "./input";
 import { Label } from "./label";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Slider } from "./slider";
 
 const DynamicHistogram = dynamic(() => import("./histogram"), {
   ssr: false,

@@ -1,9 +1,9 @@
-import { filterLabels } from "./common";
-import { Facets } from "@/lib/queries/facets";
 import { Entries } from "type-fest";
-import { FacetSelectDesktop } from "./FacetSelect";
-import EventDateSelect from "./EventDateSelect";
+import { Facets } from "@/lib/queries/facets";
 import BargainingUnitSizeSelect from "./BargainingUnitSizeSelect";
+import EventDateSelect from "./EventDateSelect";
+import { FacetSelectDesktop } from "./FacetSelect";
+import { filterLabels } from "./common";
 
 export default async function FacetControls({
   facetsPromise,

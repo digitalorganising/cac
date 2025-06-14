@@ -1,7 +1,7 @@
 "use client";
 
-import { DateRange } from "../ui/date-range";
 import { useAppQueryState } from "@/lib/app-query-state";
+import { DateRange } from "../ui/date-range";
 
 type Props = Omit<
   React.ComponentProps<typeof DateRange>,

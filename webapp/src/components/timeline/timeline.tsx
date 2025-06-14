@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import type { TimelineColor } from "./types";
-import { HTMLProps } from "react";
 import dayjs from "dayjs";
+import * as React from "react";
+import { HTMLProps } from "react";
+import { cn } from "@/lib/utils";
 import ShowMore from "../ShowMore";
+import type { TimelineColor } from "./types";
 
 /**
  * Timeline component props interface

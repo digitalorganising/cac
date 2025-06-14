@@ -1,6 +1,5 @@
 "use client";
 
-import OutcomePagination from "./OutcomePagination";
 import {
   Select,
   SelectContent,
@@ -11,6 +10,7 @@ import {
 import { useAppQueryState } from "@/lib/app-query-state";
 import { SortOrder } from "@/lib/search-params";
 import { SortKey } from "@/lib/search-params";
+import OutcomePagination from "./OutcomePagination";
 
 type Props = {
   nResults: number;

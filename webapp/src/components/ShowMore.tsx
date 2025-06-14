@@ -1,10 +1,10 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import useResizeObserver, {
   UseResizeObserverCallback,
 } from "@react-hook/resize-observer";
 import { useLayoutEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 
 class ServerSideResizeObserverPolyfill {
   constructor(callback: ResizeObserverCallback) {}

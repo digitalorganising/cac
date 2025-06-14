@@ -1,16 +1,16 @@
 "use client";
 
-import { Suspense } from "react";
-import { Input } from "./ui/input";
-import { useSearchParams } from "next/navigation";
-import ResetButton from "./ResetButton";
-import { Button } from "./ui/button";
 import {
   Cross2Icon,
   MagnifyingGlassIcon,
   UpdateIcon,
 } from "@radix-ui/react-icons";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useFormStatus } from "react-dom";
+import ResetButton from "./ResetButton";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 function SearchInput() {
   const params = useSearchParams();

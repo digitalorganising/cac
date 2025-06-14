@@ -1,20 +1,20 @@
+import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import dayjs from "dayjs";
 import Link from "next/link";
 import { Fragment } from "react";
-import { ExternalLinkIcon } from "@radix-ui/react-icons";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Timeline } from "@/components/timeline/timeline";
-import DecisionTimelineItem from "./DecisionTimelineItem";
-import DebugView from "./DebugView";
-import { Outcome, OutcomeState } from "@/lib/types";
-import { formatDuration } from "@/lib/duration";
 import BallotResults from "@/components/outcome-card/BallotResults";
-import { cn } from "@/lib/utils";
+import { Timeline } from "@/components/timeline/timeline";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDuration } from "@/lib/duration";
 import {
+  addParamValue,
   appSearchParamsCache,
   appSearchParamsSerializer,
-  addParamValue,
 } from "@/lib/search-params";
+import { Outcome, OutcomeState } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import DebugView from "./DebugView";
+import DecisionTimelineItem from "./DecisionTimelineItem";
 
 type Props = {
   outcome: Outcome;
