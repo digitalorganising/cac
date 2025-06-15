@@ -1,5 +1,12 @@
 template_string BargainingUnitThinkingPrompt() #"
     You have a particular interest in the bargaining unit and what is said about it.
+
+    There may be a small number of cases where the number of workers in the bargaining unit is not available in the decision document.
+    For example, there may be preliminary issues which preclude looking at this.
+    In only these cases, n_workers_stated is false, and n_workers is 0.
+    
+    There may also be cases where you do not feel that n_workers was verified: in this case, use the best number you can.
+
     Before you answer, outline the following step by step with reference to the document.
     Make sure to distinguish between claimed numbers and numbers verified by the case manager.
    
@@ -10,6 +17,7 @@ template_string BargainingUnitThinkingPrompt() #"
 
 class BargainingUnit {
   description string @description("The defined bargaining unit exactly as written but excluding any address")
+  size_considered bool @alias("n_workers_stated")
   size int @alias("n_workers") 
   claimed_membership int? @alias("n_stated_union_members")
   membership int? @alias("n_verified_union_members")

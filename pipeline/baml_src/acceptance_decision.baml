@@ -9,6 +9,7 @@ class AcceptanceDecision {
   petition_signatures int? @description("The number of names/signatures on the petition/survey, before any verification or cross-checking or other removal/redaction, if the union used one (null if no petition)")
 
   @@assert(consistent_rejection_reasons, {{ this.success != this.rejection_reasons|length|bool }})
+  @@assert(consistent_bu_size, {{ this.bargaining_unit.size_considered == this.bargaining_unit.size|bool }})
 }
 
 function ExtractAcceptanceDecision(decision_document: string) -> AcceptanceDecision {

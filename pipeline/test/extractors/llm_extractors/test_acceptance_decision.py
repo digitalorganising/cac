@@ -31,6 +31,7 @@ async def test_prospect_british_academy(cac_document_contents):
         description="all employees of the British Academy, except Directors and "
         "the Head of HR",
         size=147,
+        size_considered=True,
         claimed_membership=50,
         membership=47,
     )
@@ -57,6 +58,7 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
         description="Butchery One – Knife Holders, Butchery Two – Knife Holders"
         " and Cutting Lines",
         size=368,
+        size_considered=True,
         claimed_membership=100,
         membership=77,
     )
@@ -83,6 +85,7 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
         description="Motorman, Bosun, Pursers and Able Seaman employed on "
         "board the vessel the Scillonian 111",
         size=12,
+        size_considered=True,
         claimed_membership=11,
         membership=10,
     )
@@ -108,6 +111,7 @@ async def test_gmb_mitie_services(cac_document_contents):
     assert ad.bargaining_unit == BargainingUnit(
         description="All staff employed to clean Non Advertising Bus Shelters",
         size=42,
+        size_considered=True,
         claimed_membership=19,
         membership=17,
     )
@@ -134,6 +138,7 @@ async def test_community_coilcolor(cac_document_contents):
         description="All hourly paid production workers in the paint line "
         "and profiling areas",
         size=27,
+        size_considered=True,
         claimed_membership=12,
         membership=9,
     )
@@ -160,6 +165,56 @@ async def test_iwgb_university_of_london(cac_document_contents):
         description="Security Guards, Postroom Workers, AV Staff, Porters, and "
         "Receptionists working for Cordant Security and/at University of London",
         size=69,
+        size_considered=True,
         claimed_membership=61,
         membership=None,
+    )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://www.gov.uk/government/publications/"
+        "cac-outcome-pcs-interserve-group-limited/application-progress"
+    ],
+)
+async def test_pcs_interserve_group_limited(cac_document_contents):
+    ad = await ExtractAcceptanceDecision(cac_document_contents)
+
+    assert date_eq(ad.decision_date, "24 November 2020")
+    assert not ad.success
+    assert ad.rejection_reasons == [RejectionReason.SomeOtherReason]
+    assert ad.petition_signatures is None
+    assert ad.application_date == "3 November 2020"
+    assert ad.end_of_acceptance_period == "30 November 2020"
+    assert not ad.bargaining_unit_agreed
+    assert not ad.bargaining_unit.size_considered
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://assets.publishing.service.gov.uk/media/"
+        "5a7f7775ed915d74e622aa14/Acceptance_Decision.pdf"
+    ],
+)
+async def test_prospect_babcock_offshore(cac_document_contents):
+    ad = await ExtractAcceptanceDecision(cac_document_contents)
+
+    assert date_eq(ad.decision_date, "21 November 2016")
+    assert ad.success
+    assert not ad.rejection_reasons
+    assert ad.petition_signatures == 47
+    assert ad.application_date == "9 September 2016"
+    assert ad.end_of_acceptance_period == "21 November 2016"
+    assert not ad.bargaining_unit_agreed
+    assert ad.bargaining_unit == BargainingUnit(
+        description="Those holding either a B1 or B2 licence, or both (as recognised "
+        "by the European Aviation Safety Agency and the Civil Aviation Authority) and "
+        "employed by Babcock Mission Critical Services Offshore Limited at all of its "
+        "operational locations fulfilling the role of licensed aircraft engineers.",
+        size=106,
+        size_considered=True,
+        claimed_membership=47,
+        membership=41,
     )

@@ -46,11 +46,12 @@ const BargainingUnit = ({
 }: Required<Outcome>["bargainingUnit"]) => (
   <span
     className={cn(
-      "rounded-md inline-block bg-slate-200",
+      "rounded-md inline-block",
+      size ? "bg-slate-200" : "bg-orange-200 italic",
       membership ? "pl-2 xs:pl-2.5" : "px-2 xs:px-2.5 py-0.5 xs:py-1",
     )}
   >
-    {size} workers
+    {size ? `${size} workers` : "Not stated"}
     {membership ? (
       <span
         className={cn(

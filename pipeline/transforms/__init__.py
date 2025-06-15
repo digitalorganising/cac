@@ -18,35 +18,29 @@ def get_parties(outcome):
 def get_bargaining_unit(outcome):
     data = outcome["extracted_data"]
     if "validity_decision" in data:
-        # TODO: this is a hack while indexed data is inconsistent!
-        try:
-            d = baml_types.ValidityDecision.model_validate(data["validity_decision"])
-        except ValidationError:
-            data["validity_decision"]["new_bargaining_unit"]["size"] = 0
-            d = baml_types.ValidityDecision.model_validate(data["validity_decision"])
+        d = baml_types.ValidityDecision.model_validate(data["validity_decision"])
         return {
-            "size": d.new_bargaining_unit.size,
+            "size": (
+                d.new_bargaining_unit.size
+                if d.new_bargaining_unit.size_considered
+                else None
+            ),
             "membership": d.new_bargaining_unit.membership
             or d.new_bargaining_unit.claimed_membership,
             "description": d.new_bargaining_unit.description,
+            "petitionSignatures": d.petition_signatures,
         }
 
     if "acceptance_decision" in data:
-        # TODO: this is a hack while indexed data is inconsistent!
-        try:
-            d = baml_types.AcceptanceDecision.model_validate(
-                data["acceptance_decision"]
-            )
-        except ValidationError:
-            data["acceptance_decision"]["bargaining_unit"]["size"] = 0
-            d = baml_types.AcceptanceDecision.model_validate(
-                data["acceptance_decision"]
-            )
+        d = baml_types.AcceptanceDecision.model_validate(data["acceptance_decision"])
         return {
-            "size": d.bargaining_unit.size,
+            "size": (
+                d.bargaining_unit.size if d.bargaining_unit.size_considered else None
+            ),
             "membership": d.bargaining_unit.membership
             or d.bargaining_unit.claimed_membership,
             "description": d.bargaining_unit.description,
+            "petitionSignatures": d.petition_signatures,
         }
 
     return None

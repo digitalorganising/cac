@@ -69,7 +69,7 @@ class OutcomeSink(OpensearchSink):
 
 outcomes_source = OpensearchSource(
     cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
-    index="outcomes-augmented",
+    index="outcomes-augmented-15062025",
     page_size=25,
 )
 opensearch_sink = OutcomeSink(

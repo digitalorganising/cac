@@ -67,6 +67,7 @@ async def test_rmt_cwind(cac_document_contents):
         description="all Skippers and Crew employed by CWind except those based at the Ramsgate site "
         "that were subject to the existing bargaining arrangements",
         size=16,
+        size_considered=True,
         claimed_membership=7,
         membership=5,
     )
@@ -91,6 +92,7 @@ async def test_gmb_noble_collection(cac_document_contents):
         "London WC2 and Hamleys Toy Store, "
         "188-196 Regent Street, London W1 excluding the Head of the Retail Team",
         size=15,
+        size_considered=True,
         claimed_membership=7,
         membership=7,
     )
@@ -117,6 +119,7 @@ async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
         "Building Services, Front of House, Security, Tours and "
         "Production and Technical",
         size=448,
+        size_considered=True,
         claimed_membership=58,
         membership=58,
     )
@@ -138,6 +141,7 @@ async def test_gmb_metallink(cac_document_contents):
     assert vd.new_bargaining_unit == BargainingUnit(
         description="All employees excluding management",
         size=38,
+        size_considered=True,
         claimed_membership=11,
         membership=11,
     )

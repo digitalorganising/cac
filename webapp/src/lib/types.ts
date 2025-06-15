@@ -51,9 +51,10 @@ type OutcomeParties = {
 };
 
 type OutcomeBargainingUnit = {
-  size: number;
+  size?: number;
   membership?: number;
-  description: string;
+  description?: string;
+  petitionSignatures?: number;
 };
 
 export type BallotStats = {

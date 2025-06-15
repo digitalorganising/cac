@@ -155,6 +155,9 @@
                 "size": {
                   "type": "integer"
                 },
+                "size_considered": {
+                  "type": "boolean"
+                },
                 "claimed_membership": {
                   "type": "integer"
                 },
@@ -271,6 +274,9 @@
               "properties": {
                 "description": {
                   "type": "text"
+                },
+                "size_considered": {
+                  "type": "boolean"
                 },
                 "size": {
                   "type": "integer"
