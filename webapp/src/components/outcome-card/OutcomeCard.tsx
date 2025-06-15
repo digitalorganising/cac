@@ -138,6 +138,13 @@ const OutcomeDetails = ({ outcome, className }: Props) => {
         </>
       ) : null}
 
+      {outcome.bargainingUnit?.petitionSignatures ? (
+        <>
+          <dt>Supporting petition</dt>
+          <dd>{outcome.bargainingUnit.petitionSignatures} signatures</dd>
+        </>
+      ) : null}
+
       {outcome.ballot ? (
         <>
           <dt>Ballot results:</dt>
