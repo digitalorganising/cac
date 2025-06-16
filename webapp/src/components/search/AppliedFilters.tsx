@@ -34,25 +34,42 @@ export default function AppliedFilters({
   filterEntries: FilterEntries;
 }) {
   const params = appSearchParamsCache.all();
-  return (Object.entries(filterEntries) as Entries<FilterEntries>).flatMap(
-    ([key, entries]) =>
-      entries.map(({ value, label }) => (
+  const nAppliedFilters = Object.values(filterEntries).flat().length;
+  return (
+    <div className="flex flex-wrap gap-2">
+      {(Object.entries(filterEntries) as Entries<FilterEntries>).flatMap(
+        ([key, entries]) =>
+          entries.map(({ value, label }) => (
+            <Link
+              key={`filter-${key}-${value}`}
+              href={
+                appSearchParamsSerializer(
+                  deleteParamValue(params, key, value),
+                ) || "/"
+              }
+              className="flex gap-x-2 items-center bg-slate-100 rounded-md px-3 py-2 border border-slate-200 group"
+            >
+              <span className="text-sm text-nowrap">
+                <strong className="font-semibold">{filterLabels[key]}</strong>:{" "}
+                <span className="no-underline group-hover:underline">
+                  {label ?? renderValue(value)}
+                </span>
+              </span>
+              <Cross2Icon className="size-3 text-slate-500 group-hover:text-slate-700" />
+            </Link>
+          )),
+      )}
+      {nAppliedFilters > 1 ? (
         <Link
-          key={`filter-${key}-${value}`}
-          href={
-            appSearchParamsSerializer(deleteParamValue(params, key, value)) ||
-            "/"
-          }
-          className="flex gap-x-2 items-center bg-slate-100 rounded-md px-3 py-2 border border-slate-200 group"
+          href={appSearchParamsSerializer({ query: params.query }) || "/"}
+          className="flex gap-x-2 items-center bg-transparent rounded-md px-3 py-2 border border-slate-200 group"
         >
-          <span className="text-sm text-nowrap">
-            <strong className="font-semibold">{filterLabels[key]}</strong>:{" "}
-            <span className="no-underline group-hover:underline">
-              {label ?? renderValue(value)}
-            </span>
+          <span className="text-sm text-nowrap group-hover:underline font-semibold">
+            Clear all filters
           </span>
           <Cross2Icon className="size-3 text-slate-500 group-hover:text-slate-700" />
         </Link>
-      )),
+      ) : null}
+    </div>
   );
 }

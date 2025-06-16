@@ -98,16 +98,12 @@ export default function FilteringControls({ options }: Props) {
   return (
     <>
       <div className="my-4 space-y-2 hidden sm:block">
-        <div className="flex flex-wrap gap-2">
-          <Suspense
-            fallback={<AppliedFilters filterEntries={appliedFilters} />}
-          >
-            <AppliedLabelledFilters
-              filterEntries={appliedFilters}
-              facetsPromise={facetsPromise}
-            />
-          </Suspense>
-        </div>
+        <Suspense fallback={<AppliedFilters filterEntries={appliedFilters} />}>
+          <AppliedLabelledFilters
+            filterEntries={appliedFilters}
+            facetsPromise={facetsPromise}
+          />
+        </Suspense>
         <div className="flex flex-wrap items-center justify-start gap-x-3 xl:gap-x-4 gap-y-3 py-4">
           <Suspense fallback={<FacetFallback />}>
             <FacetControls facetsPromise={facetsPromise} />
