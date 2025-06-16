@@ -9,27 +9,44 @@ from .labelled_enum import LabelledEnum
 class EventType(LabelledEnum):
     ApplicationReceived = "application_received", "Application received"
     ApplicationWithdrawn = "application_withdrawn", "Application withdrawn"
+
     ApplicationAccepted = "application_accepted", "Application accepted"
     ApplicationRejected = "application_rejected", "Application rejected"
+
     BargainingUnitAppropriate = (
         "bargaining_unit_appropriate",
-        "Bargaining unit confirmed",
+        "Bargaining unit approved",
     )
     BargainingUnitInappropriate = (
         "bargaining_unit_inappropriate",
-        "Bargaining unit changed",
+        "Bargaining unit not appropriate",
     )
+
     BallotRequirementDecided = (
         "ballot_requirement_decided",
         "Ballot requirement decided",
     )
-    BallotFormDecided = "ballot_form_decided", "Form of ballot decided"
+    BallotNotRequired = "ballot_not_required", "Ballot not required"
+
+    BallotFormPostal = "ballot_form_postal", "Postal ballot decided"
+    BallotFormWorkplace = "ballot_form_workplace", "Workplace ballot decided"
+    BallotFormCombination = "ballot_form_combination", "Combination ballot decided"
+
     BallotHeld = "ballot_held", "Ballot held"
-    AccessDisputed = "access_disputed", "Access disputed"
+
+    UnfairPracticeUpheld = "unfair_practice_upheld", "Unfair practice upheld"
+    UnfairPracticeNotUpheld = (
+        "unfair_practice_not_upheld",
+        "Unfair practice not upheld",
+    )
+    AccessArrangement = "access_arrangement", "Access arranged"
+
     UnionRecognized = "union_recognized", "Union recognised"
     UnionNotRecognized = "union_not_recognized", "Union not recognised"
+
     MethodDecision = "method_decision", "Bargaining method decided"
     MethodAgreed = "method_agreed", "Bargaining method agreed"
+
     CaseClosed = "case_closed", "Case closed"
 
 

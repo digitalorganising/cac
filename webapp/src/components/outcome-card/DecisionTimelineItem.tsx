@@ -5,15 +5,18 @@ import {
   BookText,
   BookUp,
   ClipboardX,
+  DoorOpen,
   Grid2x2Check,
   Grid2x2X,
   Inbox,
   Mailbox,
+  Map,
   Megaphone,
   OctagonX,
   Scale,
   ScrollText,
   Trophy,
+  Vote,
 } from "lucide-react";
 import Link from "next/link";
 import { ReactNode } from "react";
@@ -39,13 +42,23 @@ const getIcon = (eventType: EventType): ReactNode => {
     case "bargaining_unit_inappropriate":
       return <Grid2x2X />;
     case "ballot_requirement_decided":
+      return <Vote />;
+    case "ballot_not_required":
       return <ScrollText />;
-    case "ballot_form_decided":
+    case "ballot_form_postal":
       return <Mailbox />;
+    case "ballot_form_workplace":
+      return <Vote />;
+    case "ballot_form_combination":
+      return <Map />;
     case "ballot_held":
       return <Megaphone />;
-    case "access_disputed":
+    case "unfair_practice_upheld":
       return <Scale />;
+    case "unfair_practice_not_upheld":
+      return <Scale />;
+    case "access_arrangement":
+      return <DoorOpen />;
     case "union_recognized":
       return <Trophy />;
     case "union_not_recognized":
@@ -66,15 +79,20 @@ const getColor = (eventType: EventType): string => {
     case "method_agreed":
       return "bg-zinc-400";
     case "application_received":
+    case "access_arrangement":
     case "bargaining_unit_appropriate":
     case "ballot_requirement_decided":
-    case "ballot_form_decided":
+    case "ballot_form_postal":
+    case "ballot_form_workplace":
+    case "ballot_form_combination":
     case "ballot_held":
       return "bg-zinc-500";
-    case "access_disputed":
+    case "unfair_practice_upheld":
+    case "unfair_practice_not_upheld":
     case "bargaining_unit_inappropriate":
       return "bg-amber-600";
     case "application_accepted":
+    case "ballot_not_required":
     case "union_recognized":
       return "bg-green-600";
     case "application_rejected":

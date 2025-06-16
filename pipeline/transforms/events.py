@@ -49,7 +49,22 @@ transitions = [
         OutcomeState.PendingRecognitionDecision,
     ],
     [
-        EventType.BallotFormDecided,
+        EventType.BallotNotRequired,
+        OutcomeState.PendingRecognitionDecision,
+        OutcomeState.PendingRecognitionDecision,
+    ],
+    [
+        EventType.BallotFormPostal,
+        OutcomeState.PendingRecognitionDecision,
+        OutcomeState.PendingRecognitionDecision,
+    ],
+    [
+        EventType.BallotFormWorkplace,
+        OutcomeState.PendingRecognitionDecision,
+        OutcomeState.PendingRecognitionDecision,
+    ],
+    [
+        EventType.BallotFormCombination,
         OutcomeState.PendingRecognitionDecision,
         OutcomeState.PendingRecognitionDecision,
     ],
@@ -83,7 +98,11 @@ transitions = [
 
 def is_state_changing(event_type: EventType):
     # Access disputes are effectively stateless
-    return event_type is not EventType.AccessDisputed
+    return (
+        event_type is not EventType.AccessArrangement
+        and event_type is not EventType.UnfairPracticeUpheld
+        and event_type is not EventType.UnfairPracticeNotUpheld
+    )
 
 
 def doc_ordering(fallback_date):
@@ -259,24 +278,58 @@ def events_from_outcome(outcome):
                     )
                 case DocumentType.form_of_ballot_decision:
                     ballot_form = doc["form_of_ballot"]
-                    events.add_event(
-                        EventType.BallotFormDecided,
-                        doc_type,
-                        doc["decision_date"],
-                        ballot_form,
-                    )
+                    employer_preferred = doc["employer_preferred"]
+                    union_preferred = doc["union_preferred"]
+                    ballot_form_description = f"Employer preferred: {employer_preferred}; Union preferred: {union_preferred}"
+                    if ballot_form == "Postal":
+                        events.add_event(
+                            EventType.BallotFormPostal,
+                            doc_type,
+                            doc["decision_date"],
+                            ballot_form_description,
+                        )
+                    elif ballot_form == "Workplace":
+                        events.add_event(
+                            EventType.BallotFormWorkplace,
+                            doc_type,
+                            doc["decision_date"],
+                            ballot_form_description,
+                        )
+                    elif ballot_form == "Combination":
+                        events.add_event(
+                            EventType.BallotFormCombination,
+                            doc_type,
+                            doc["decision_date"],
+                            ballot_form_description,
+                        )
                 case DocumentType.whether_to_ballot_decision:
-                    will_ballot = (
-                        "Ballot required"
-                        if doc["decision_to_ballot"]
-                        else "Ballot not required"
-                    )
-                    events.add_event(
-                        EventType.BallotRequirementDecided,
-                        doc_type,
-                        doc["decision_date"],
-                        will_ballot,
-                    )
+                    if doc["decision_to_ballot"]:
+                        qualifying_condition_labels = {
+                            "GoodIndustrialRelations": "it being in the interests of good industrial relations",
+                            "EvidenceMembersOpposed": "evidence from members of the union that they are opposed to it conducting collective bargaining",
+                            "MembershipEvidenceDoubts": "membership evidence that there are doubts about whether members want the union to conduct collective bargaining",
+                        }
+                        qualifying_conditions = [
+                            qualifying_condition_labels[condition]
+                            for condition in doc["qualifying_conditions"]
+                        ]
+                        if not doc["majority_membership"] or not qualifying_conditions:
+                            description = "No evidence of majority membership."
+                        else:
+                            description = f"For the reasons of {'; '.join(qualifying_conditions)}."
+                        events.add_event(
+                            EventType.BallotRequirementDecided,
+                            doc_type,
+                            doc["decision_date"],
+                            description,
+                        )
+                    else:
+                        events.add_event(
+                            EventType.BallotNotRequired,
+                            doc_type,
+                            doc["decision_date"],
+                            "There was a majority membership and no other reasons to ballot",
+                        )
                 case DocumentType.validity_decision:
                     if not doc["valid"]:
                         events.add_event(
@@ -291,8 +344,10 @@ def events_from_outcome(outcome):
                 case DocumentType.recognition_decision:
                     if doc["ballot"]:
                         ballot_summary = (
-                            f"{doc['form_of_ballot']} ballot; "
-                            f"{doc['ballot']['eligible_workers']} eligible workers."
+                            f"{doc['form_of_ballot']} ballot with "
+                            f"{doc['ballot']['eligible_workers']} eligible workers "
+                            f"running from {doc['ballot']['start_ballot_period']} to "
+                            f"{doc['ballot']['end_ballot_period']}."
                         )
                         events.add_event(
                             EventType.BallotHeld,
@@ -301,21 +356,28 @@ def events_from_outcome(outcome):
                             ballot_summary,
                         )
 
-                    if doc["ballot"]:
-                        description = (
-                            f"{doc['ballot']['votes_in_favor']} votes in favour; "
-                            f"{doc['ballot']['votes_against']} votes against."
-                        )
-                    else:
-                        description = "No ballot held"
                     if doc["union_recognized"]:
                         events.add_event(
                             EventType.UnionRecognized,
                             doc_type,
                             doc["decision_date"],
-                            description,
+                            (
+                                "Workers voted to recognise the union."
+                                if doc["ballot"]
+                                else "No ballot held."
+                            ),
                         )
                     else:
+                        description = "No ballot held."
+                        if doc["ballot"]:
+                            pct_favor = doc["ballot"]["votes_in_favor"] / (
+                                doc["ballot"]["votes_in_favor"]
+                                + doc["ballot"]["votes_against"]
+                            )
+                            if pct_favor <= 0.5:
+                                description = "Workers voted against recognition."
+                            else:
+                                description = "Votes in favour fell short of the turnout requirement of 40%."
                         events.add_event(
                             EventType.UnionNotRecognized,
                             doc_type,
@@ -323,20 +385,29 @@ def events_from_outcome(outcome):
                             description,
                         )
                 case DocumentType.access_decision_or_dispute:
-                    if "complainant" in doc["details"]:
+                    if "upheld" in doc["details"]:
                         description = f"Complaint from {doc['details']['complainant']} "
                         if doc["details"]["upheld"]:
-                            description += "upheld"
+                            events.add_event(
+                                EventType.UnfairPracticeUpheld,
+                                doc_type,
+                                doc["decision_date"],
+                                description,
+                            )
                         else:
-                            description += "not upheld"
+                            events.add_event(
+                                EventType.UnfairPracticeNotUpheld,
+                                doc_type,
+                                doc["decision_date"],
+                                description,
+                            )
                     else:
-                        description = doc["details"]["description"]
-                    events.add_event(
-                        EventType.AccessDisputed,
-                        doc_type,
-                        doc["decision_date"],
-                        description,
-                    )
+                        events.add_event(
+                            EventType.AccessArrangement,
+                            doc_type,
+                            doc["decision_date"],
+                            doc["details"]["description"],
+                        )
                 case DocumentType.method_agreed:
                     # These sometimes come after a method decision, in which case we ignore them
                     if events.labelled_state() is not OutcomeState.MethodAgreed:

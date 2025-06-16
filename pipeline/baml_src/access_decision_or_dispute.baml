@@ -27,12 +27,3 @@ function ExtractAccessDecisionOrDispute(decision_document: string) -> AccessDeci
     {{ ctx.output_format }}
   "#
 }
-
-test TestName {
-  functions [ExtractAccessDecisionOrDispute]
-  args {
-    decision_document #"
-      hello world
-    "#
-  }
-}
