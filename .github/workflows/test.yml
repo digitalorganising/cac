@@ -45,4 +45,5 @@ jobs:
 
       - name: Run tests
         run: |
+          poetry install --only-root
           poetry run pytest -v -k "not llm_extractors"
