@@ -1,6 +1,4 @@
 from transitions import Machine
-from dateutil.parser import parse as date_parse
-from typing import Optional
 
 from .model import EventType, OutcomeState, Event
 
@@ -115,41 +113,32 @@ class InvalidEventError(Exception):
 
 
 class EventsBuilder(Machine):
-    def __init__(self, fallback_date, document_urls):
+    def __init__(self):
         self.event_list: list[Event] = []
-        self.fallback_date = fallback_date
-        self.document_urls = document_urls
         Machine.__init__(self, **machine_params)
 
     def add_event(
         self,
-        event_type: EventType,
-        source_document_type: DocumentType,
-        event_date: Optional[str] = None,
-        description: Optional[str] = None,
+        event: Event,
     ):
-        d = date_parse(event_date) if event_date else self.fallback_date
-        if is_state_changing(event_type):
-            self.trigger(event_type.value)
-
         prev_event = self.event_list[-1] if self.event_list else None
-        source_document_url = self.document_urls.get(source_document_type)
-        self.event_list.append(
-            Event(
-                type=event_type,
-                date=d.date(),
-                description=description,
-                source_document_url=source_document_url,
-            )
-        )
+
+        if prev_event and event.type == prev_event.type:
+            return
+
+        if is_state_changing(event.type):
+            self.trigger(event.type.value)
+
+        self.event_list.append(event)
+
         if (
             prev_event
-            and is_state_changing(event_type)
+            and is_state_changing(event.type)
             and is_state_changing(prev_event.type)
-            and d.date() < prev_event.date
+            and event.date < prev_event.date
         ):
             raise ValueError(
-                f"Event out of order: {event_type.value} is before ({d}) previous "
+                f"Event out of order: {event.type.value} is before ({event.date}) previous "
                 f"event {prev_event.type.value} ({prev_event.date})"
             )
 
