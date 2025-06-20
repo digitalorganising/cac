@@ -41,7 +41,7 @@ jobs:
       - name: Build BAML client
         run: |
           cd pipeline
-          poetry run baml generate
+          poetry run baml-cli generate
 
       - name: Run tests
         run: |
