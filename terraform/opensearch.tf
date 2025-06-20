@@ -77,12 +77,27 @@ resource "opensearch_role" "augmented_writer" {
   }
 }
 
-resource "opensearch_role" "indexed_writer" {
-  role_name   = "indexed_writer"
-  description = "Read from 'augmented' and write to 'indexed' indices"
+resource "opensearch_role" "merged_writer" {
+  role_name   = "merged_writer"
+  description = "Read from 'augmented' and write to 'merged' indices"
 
   index_permissions {
     index_patterns  = ["*augmented"]
+    allowed_actions = ["read"]
+  }
+
+  index_permissions {
+    index_patterns  = ["*merged"]
+    allowed_actions = ["write"]
+  }
+}
+
+resource "opensearch_role" "indexed_writer" {
+  role_name   = "indexed_writer"
+  description = "Read from 'merged' and write to 'indexed' indices"
+
+  index_permissions {
+    index_patterns  = ["*merged"]
     allowed_actions = ["read"]
   }
 
@@ -105,6 +120,7 @@ locals {
     scraper   = opensearch_role.ingest_writer.role_name
     augmenter = opensearch_role.augmented_writer.role_name
     indexer   = opensearch_role.indexed_writer.role_name
+    merger    = opensearch_role.merged_writer.role_name
   }
 }
 

@@ -4,8 +4,17 @@
     "reference": {
       "type": "keyword"
     },
-    "date": {
-      "type": "date"
+    "union": {
+      "type": "text"
+    },
+    "employer": {
+      "type": "text"
+    },
+    "application_received": {
+      "type": "keyword"
+    },
+    "application_withdrawn": {
+      "type": "keyword"
     }
   }
 }

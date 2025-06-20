@@ -1,9 +1,9 @@
 import argparse
+import os
 from tempfile import NamedTemporaryFile
 
 import bytewax.operators as op
 from bytewax.connectors.files import CSVSource
-from bytewax.connectors.stdio import StdOutSink
 from bytewax.dataflow import Dataflow
 from bytewax.testing import run_main
 
@@ -19,6 +19,27 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+
+class WithdrawalSink(OpensearchSink):
+    def id(self, item):
+        return item["Case Number"]
+
+    def doc(self, item):
+        return {
+            "reference": item["Case Number"],
+            "union": item["Trade Union Name"],
+            "employer": item["Employer Name"],
+            "application_received": item["Date Application Received"],
+            "application_withdrawn": item["Date Application Withdrawn"],
+        }
+
+
+opensearch_sink = WithdrawalSink(
+    cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
+    index="application-withdrawals-raw",
+    mapping_path="pipeline/index_mappings/application_withdrawals.json",
+)
+
 flow = Dataflow("index_withdrawals_spreadsheet")
 
 with NamedTemporaryFile(suffix=".csv", delete_on_close=False) as temp_file:
@@ -26,17 +47,6 @@ with NamedTemporaryFile(suffix=".csv", delete_on_close=False) as temp_file:
     withdrawals_source = CSVSource(temp_file.name)
 
     stream = op.input("withdrawals", flow, withdrawals_source)
-    op.output("print", stream, StdOutSink())
+    non_empty = op.filter("non_empty", stream, lambda x: bool(x["Case Number"]))
+    op.output("index", non_empty, opensearch_sink)
     run_main(flow)
-
-
-# class WithdrawalSink(OpensearchSink):
-#     def id(self, item):
-#         return item["reference"]
-
-
-# opensearch_sink = WithdrawalSink(
-#     cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
-#     index="application-withdrawals-raw",
-#     mapping_path="pipeline/index_mappings/application_withdrawals.json",
-# )

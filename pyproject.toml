@@ -14,7 +14,7 @@ ingest = "pipeline.scrape_outcomes:scrape"
 asyncio_mode = "auto"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
 scrapy = "^2.11.2"
 markdownify = "^1.1.0"
 pymupdf4llm = "^0.0.17"

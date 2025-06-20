@@ -354,7 +354,11 @@
           }
         },
         "application_withdrawn": {
-          "type": "keyword"
+          "properties": {
+            "decision_date": {
+              "type": "keyword"
+            }
+          }
         }
       }
     }

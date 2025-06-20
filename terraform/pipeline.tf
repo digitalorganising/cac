@@ -1,5 +1,5 @@
 locals {
-  pipeline_roles = ["scraper", "augmenter", "indexer"]
+  pipeline_roles = ["scraper", "augmenter", "indexer", "merger"]
 }
 
 resource "aws_iam_role" "pipeline_role" {
