@@ -2672,6 +2672,18 @@ files = [
 ]
 
 [[package]]
+name = "xlsx2csv"
+version = "0.8.4"
+description = "xlsx to csv converter"
+optional = false
+python-versions = "*"
+groups = ["dev"]
+files = [
+    {file = "xlsx2csv-0.8.4-py3-none-any.whl", hash = "sha256:52ab873fc7b2f2ca75d14aee8bd1985a9f5c1bcb3cc7b80df7a5d57a40a67473"},
+    {file = "xlsx2csv-0.8.4.tar.gz", hash = "sha256:2aa809888826f6af5b26c77fc7f613f2bbeada0d8cc09e5a58e0f59684bb6911"},
+]
+
+[[package]]
 name = "yarl"
 version = "1.20.0"
 description = "Yet another URL library"
@@ -2848,4 +2860,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "9f4c61340effdb660c5fd94e21f4b38781cc10560fb975ffb1a87473a0cf4fb9"
+content-hash = "9b11ad605ff31302e242e7068b8dc1b48193ab81579d18a74b1f2678bd17764d"

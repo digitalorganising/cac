@@ -246,9 +246,9 @@ def events_from_decision(
     if recognition_decision.ballot:
         b = recognition_decision.ballot
         ballot_summary = (
-            f"{recognition_decision.form_of_ballot.value} ballot with "
+            f"A {recognition_decision.form_of_ballot.value} ballot with "
             f"{b.eligible_workers} eligible workers "
-            f"running from {b.start_ballot_period} to "
+            f"ran from {b.start_ballot_period} to "
             f"{b.end_ballot_period}."
         )
         events.append(

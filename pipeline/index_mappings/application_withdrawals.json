@@ -1,0 +1,11 @@
+{
+  "dynamic": "strict",
+  "properties": {
+    "reference": {
+      "type": "keyword"
+    },
+    "date": {
+      "type": "date"
+    }
+  }
+}
