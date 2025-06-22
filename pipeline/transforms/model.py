@@ -74,7 +74,9 @@ class Event(BaseModel):
     type: EventType
     date: date
     description: Optional[str] = None
-    source_document_url: HttpUrl = Field(serialization_alias="sourceDocumentUrl")
+    source_document_url: Optional[HttpUrl] = Field(
+        serialization_alias="sourceDocumentUrl"
+    )
 
     @field_serializer("date")
     def serialize_date(self, date: date, _info):

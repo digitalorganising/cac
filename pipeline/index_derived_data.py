@@ -69,12 +69,12 @@ class OutcomeSink(OpensearchSink):
 
 outcomes_source = OpensearchSource(
     cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
-    index="outcomes-augmented-15062025",
+    index="outcomes-merged",
     page_size=25,
 )
 opensearch_sink = OutcomeSink(
     cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
-    index="outcomes-indexed",
+    index="outcomes-merged-indexed",
     mapping_path="pipeline/index_mappings/outcomes_indexed.json",
 )
 

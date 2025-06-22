@@ -128,7 +128,7 @@ def test_events_from_decision_application_withdrawn():
     application_withdrawn_doc = {}  # No specific data needed
 
     source_url = "https://example.com/withdrawn/101"
-    fallback_date = datetime(2024, 1, 15)
+    fallback_date = datetime(2025, 3, 15)  # After the cutoff date of 2025-02-15
     decision = Decision[DocumentType.application_withdrawn](
         application_withdrawn_doc, source_url, fallback_date
     )
@@ -473,7 +473,7 @@ def test_events_from_decision_recognition_decision_recognized_with_ballot():
     assert str(ballot_event.source_document_url) == source_url
     assert (
         ballot_event.description
-        == "Postal ballot with 100 eligible workers running from 2024-07-15 to 2024-07-30."
+        == "A postal ballot with 100 eligible workers ran from 2024-07-15 to 2024-07-30."
     )
 
     # Check UnionRecognized event
@@ -516,7 +516,7 @@ def test_events_from_decision_recognition_decision_not_recognized_with_ballot():
     assert str(ballot_event.source_document_url) == source_url
     assert (
         ballot_event.description
-        == "Workplace ballot with 100 eligible workers running from 2024-07-15 to 2024-07-30."
+        == "A workplace ballot with 100 eligible workers ran from 2024-07-15 to 2024-07-30."
     )
 
     # Check UnionNotRecognized event
@@ -674,13 +674,277 @@ def test_events_from_decision_nullification_decision():
 
 
 def test_events_from_decision_generic_doc():
-    """Test events_from_decision with a generic document (should return empty list)"""
-    generic_doc = {"some": "data"}
+    """Test events_from_decision with a generic document type"""
+    generic_doc = {"decision_date": "2024-01-01"}
 
-    source_url = "https://example.com/generic/1221"
+    source_url = "https://example.com/generic/999"
     decision = Decision(generic_doc, source_url)
 
     events = events_from_decision(decision)
 
-    # Should return empty list for generic documents
+    # Should return empty list for unknown document type
     assert len(events) == 0
+
+
+def test_events_from_decision_null_source_url():
+    """Test events_from_decision with null source URL"""
+    acceptance_doc = {
+        "decision_date": "2024-01-15",
+        "success": True,
+        "rejection_reasons": [],
+        "application_date": "2023-12-01",
+        "end_of_acceptance_period": "2024-01-10",
+        "bargaining_unit": {
+            "description": "All workers at Test Ltd",
+            "size_considered": True,
+            "size": 100,
+            "claimed_membership": 60,
+            "membership": 55,
+        },
+        "bargaining_unit_agreed": True,
+        "petition_signatures": 65,
+    }
+
+    decision = Decision[DocumentType.acceptance_decision](acceptance_doc, None)
+
+    events = events_from_decision(decision)
+
+    # Should return 2 events even with null source URL
+    assert len(events) == 2
+
+    # Check ApplicationReceived event
+    app_received_event = events[0]
+    assert app_received_event.type == EventType.ApplicationReceived
+    assert app_received_event.date == datetime(2023, 12, 1).date()
+    assert app_received_event.source_document_url is None
+    assert app_received_event.description is None
+
+    # Check ApplicationAccepted event
+    app_accepted_event = events[1]
+    assert app_accepted_event.type == EventType.ApplicationAccepted
+    assert app_accepted_event.date == datetime(2024, 1, 15).date()
+    assert app_accepted_event.source_document_url is None
+    assert app_accepted_event.description == "Bargaining unit: All workers at Test Ltd."
+
+
+def test_events_from_decision_missing_decision_date():
+    """Test events_from_decision with missing decision_date in document"""
+    # Use application_withdrawn which doesn't require decision_date
+    application_withdrawn_doc = {}  # No decision_date
+
+    source_url = "https://example.com/withdrawn/999"
+    fallback_date = datetime(2024, 1, 15)
+    decision = Decision[DocumentType.application_withdrawn](
+        application_withdrawn_doc, source_url, fallback_date
+    )
+
+    events = events_from_decision(decision)
+
+    # Should return 1 event using fallback date
+    assert len(events) == 1
+
+    # Check ApplicationWithdrawn event
+    app_withdrawn_event = events[0]
+    assert app_withdrawn_event.type == EventType.ApplicationWithdrawn
+    assert app_withdrawn_event.date == fallback_date.date()
+    assert str(app_withdrawn_event.source_document_url) == source_url
+    assert app_withdrawn_event.description is None
+
+
+def test_events_from_decision_application_withdrawn_before_cutoff():
+    """Test events_from_decision with application withdrawn before cutoff date"""
+    application_withdrawn_doc = {}  # No specific data needed
+
+    source_url = "https://example.com/withdrawn/101"
+    fallback_date = datetime(2024, 1, 15)  # Before the cutoff date of 2025-02-15
+    decision = Decision[DocumentType.application_withdrawn](
+        application_withdrawn_doc, source_url, fallback_date
+    )
+
+    events = events_from_decision(decision)
+
+    # Should return only 1 event: ApplicationWithdrawn (no ApplicationReceived before cutoff)
+    assert len(events) == 1
+
+    # Check ApplicationWithdrawn event
+    app_withdrawn_event = events[0]
+    assert app_withdrawn_event.type == EventType.ApplicationWithdrawn
+    assert app_withdrawn_event.date == fallback_date.date()
+    assert str(app_withdrawn_event.source_document_url) == source_url
+    assert app_withdrawn_event.description is None
+
+
+def test_events_from_decision_application_withdrawn_after_cutoff():
+    """Test events_from_decision with application withdrawn after cutoff date"""
+    application_withdrawn_doc = {}  # No specific data needed
+
+    source_url = "https://example.com/withdrawn/102"
+    fallback_date = datetime(2025, 3, 15)  # After the cutoff date of 2025-02-15
+    decision = Decision[DocumentType.application_withdrawn](
+        application_withdrawn_doc, source_url, fallback_date
+    )
+
+    events = events_from_decision(decision)
+
+    # Should return 2 events: ApplicationReceived and ApplicationWithdrawn (after cutoff)
+    assert len(events) == 2
+
+    # Check ApplicationReceived event
+    app_received_event = events[0]
+    assert app_received_event.type == EventType.ApplicationReceived
+    assert app_received_event.date == fallback_date.date()
+    assert str(app_received_event.source_document_url) == source_url
+    assert app_received_event.description is None
+
+    # Check ApplicationWithdrawn event
+    app_withdrawn_event = events[1]
+    assert app_withdrawn_event.type == EventType.ApplicationWithdrawn
+    assert app_withdrawn_event.date == fallback_date.date()
+    assert str(app_withdrawn_event.source_document_url) == source_url
+    assert app_withdrawn_event.description is None
+
+
+def test_events_from_decision_application_withdrawn_exactly_at_cutoff():
+    """Test events_from_decision with application withdrawn exactly at cutoff date"""
+    application_withdrawn_doc = {}  # No specific data needed
+
+    source_url = "https://example.com/withdrawn/103"
+    fallback_date = datetime(2025, 2, 15)  # Exactly at the cutoff date of 2025-02-15
+    decision = Decision[DocumentType.application_withdrawn](
+        application_withdrawn_doc, source_url, fallback_date
+    )
+
+    events = events_from_decision(decision)
+
+    # Should return 2 events: ApplicationReceived and ApplicationWithdrawn (at cutoff)
+    assert len(events) == 2
+
+    # Check ApplicationReceived event
+    app_received_event = events[0]
+    assert app_received_event.type == EventType.ApplicationReceived
+    assert app_received_event.date == fallback_date.date()
+    assert str(app_received_event.source_document_url) == source_url
+    assert app_received_event.description is None
+
+    # Check ApplicationWithdrawn event
+    app_withdrawn_event = events[1]
+    assert app_withdrawn_event.type == EventType.ApplicationWithdrawn
+    assert app_withdrawn_event.date == fallback_date.date()
+    assert str(app_withdrawn_event.source_document_url) == source_url
+    assert app_withdrawn_event.description is None
+
+
+def test_events_from_decision_recognition_decision_lowercase_ballot_descriptions():
+    """Test events_from_decision with recognition decision to verify lowercase ballot descriptions"""
+    recognition_doc = {
+        "decision_date": "2024-08-01",
+        "union_recognized": True,
+        "form_of_ballot": "Postal",  # Should become "postal" in description
+        "ballot": {
+            "eligible_workers": 100,
+            "spoiled_ballots": 2,
+            "votes_in_favor": 60,
+            "votes_against": 20,
+            "start_ballot_period": "2024-07-15",
+            "end_ballot_period": "2024-07-30",
+        },
+        "good_relations_contested": False,
+    }
+
+    source_url = "https://example.com/recognition/999"
+    decision = Decision[DocumentType.recognition_decision](recognition_doc, source_url)
+
+    events = events_from_decision(decision)
+
+    # Should return 2 events: BallotHeld and UnionRecognized
+    assert len(events) == 2
+
+    # Check BallotHeld event has lowercase description
+    ballot_event = events[0]
+    assert ballot_event.type == EventType.BallotHeld
+    assert ballot_event.date == datetime(2024, 7, 15).date()
+    assert str(ballot_event.source_document_url) == source_url
+    assert (
+        ballot_event.description
+        == "A postal ballot with 100 eligible workers ran from 2024-07-15 to 2024-07-30."
+    )
+
+
+def test_events_from_decision_recognition_decision_workplace_lowercase():
+    """Test events_from_decision with workplace ballot to verify lowercase description"""
+    recognition_doc = {
+        "decision_date": "2024-08-01",
+        "union_recognized": True,
+        "form_of_ballot": "Workplace",  # Should become "workplace" in description
+        "ballot": {
+            "eligible_workers": 100,
+            "spoiled_ballots": 2,
+            "votes_in_favor": 60,
+            "votes_against": 20,
+            "start_ballot_period": "2024-07-15",
+            "end_ballot_period": "2024-07-30",
+        },
+        "good_relations_contested": False,
+    }
+
+    source_url = "https://example.com/recognition/999"
+    decision = Decision[DocumentType.recognition_decision](recognition_doc, source_url)
+
+    events = events_from_decision(decision)
+
+    # Should return 2 events: BallotHeld and UnionRecognized
+    assert len(events) == 2
+
+    # Check BallotHeld event has lowercase description
+    ballot_event = events[0]
+    assert ballot_event.type == EventType.BallotHeld
+    assert ballot_event.date == datetime(2024, 7, 15).date()
+    assert str(ballot_event.source_document_url) == source_url
+    assert (
+        ballot_event.description
+        == "A workplace ballot with 100 eligible workers ran from 2024-07-15 to 2024-07-30."
+    )
+
+
+def test_events_from_decision_empty_document():
+    """Test events_from_decision with empty document"""
+    empty_doc = {}
+
+    source_url = "https://example.com/empty/999"
+    fallback_date = datetime(2024, 1, 15)
+    decision = Decision[DocumentType.application_withdrawn](
+        empty_doc, source_url, fallback_date
+    )
+
+    events = events_from_decision(decision)
+
+    # Should return 1 event using fallback date
+    assert len(events) == 1
+
+    # Check ApplicationWithdrawn event
+    app_withdrawn_event = events[0]
+    assert app_withdrawn_event.type == EventType.ApplicationWithdrawn
+    assert app_withdrawn_event.date == fallback_date.date()
+    assert str(app_withdrawn_event.source_document_url) == source_url
+    assert app_withdrawn_event.description is None
+
+
+def test_events_from_decision_none_document():
+    """Test events_from_decision with None document"""
+    source_url = "https://example.com/none/999"
+    fallback_date = datetime(2024, 1, 15)
+    decision = Decision[DocumentType.application_withdrawn](
+        None, source_url, fallback_date
+    )
+
+    events = events_from_decision(decision)
+
+    # Should return 1 event using fallback date
+    assert len(events) == 1
+
+    # Check ApplicationWithdrawn event
+    app_withdrawn_event = events[0]
+    assert app_withdrawn_event.type == EventType.ApplicationWithdrawn
+    assert app_withdrawn_event.date == fallback_date.date()
+    assert str(app_withdrawn_event.source_document_url) == source_url
+    assert app_withdrawn_event.description is None

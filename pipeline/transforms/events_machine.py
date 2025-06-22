@@ -126,6 +126,13 @@ class EventsBuilder(Machine):
         if prev_event and event.type == prev_event.type:
             return
 
+        if (
+            prev_event
+            and prev_event.type == EventType.MethodDecision
+            and event.type == EventType.MethodAgreed
+        ):
+            return
+
         if is_state_changing(event.type):
             self.trigger(event.type.value)
 

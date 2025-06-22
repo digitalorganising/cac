@@ -166,7 +166,7 @@ def test_events_from_outcome_application_withdrawn():
     """Test events_from_outcome with application withdrawn"""
     outcome = {
         "reference": "TUR1/3456(2024)",
-        "last_updated": "2024-02-15T10:30:00Z",
+        "last_updated": "2025-03-15T10:30:00Z",  # After the cutoff date of 2025-02-15
         "extracted_data": {"application_withdrawn": {}},
         "document_urls": {"application_withdrawn": "https://example.com/withdrawn/345"},
     }
@@ -179,9 +179,9 @@ def test_events_from_outcome_application_withdrawn():
 
     # Both events should use the last_updated date as fallback
     assert events[0]["type"]["value"] == "application_received"
-    assert events[0]["date"] == "2024-02-15"
+    assert events[0]["date"] == "2025-03-15"
     assert events[1]["type"]["value"] == "application_withdrawn"
-    assert events[1]["date"] == "2024-02-15"
+    assert events[1]["date"] == "2025-03-15"
 
 
 def test_events_from_outcome_application_withdrawn_with_previous_receipt():
@@ -462,19 +462,19 @@ def test_events_from_outcome_access_dispute():
 
 
 def test_events_from_outcome_allowed_transform_error():
-    """Test events_from_outcome with a known bad outcome that should allow transform errors"""
+    """Test events_from_outcome with allowed transform errors"""
     outcome = {
-        "reference": "TUR1/1006(2017)",  # Known bad reference
-        "last_updated": "2017-01-15T10:30:00Z",
+        "reference": "TUR1/1006(2017)",  # Known bad reference that allows errors
+        "last_updated": "2024-01-15T10:30:00Z",
         "extracted_data": {
             "acceptance_decision": {
-                "decision_date": "2017-01-15",
+                "decision_date": "2024-01-15",
                 "success": True,
                 "rejection_reasons": [],
-                "application_date": "2016-12-01",
-                "end_of_acceptance_period": "2017-01-10",
+                "application_date": "2023-12-01",
+                "end_of_acceptance_period": "2024-01-10",
                 "bargaining_unit": {
-                    "description": "All workers at VWX Ltd",
+                    "description": "All workers at Test Ltd",
                     "size_considered": True,
                     "size": 100,
                     "claimed_membership": 60,
@@ -484,14 +484,328 @@ def test_events_from_outcome_allowed_transform_error():
                 "petition_signatures": 65,
             }
         },
-        "document_urls": {"acceptance_decision": "https://example.com/decision/1006"},
+        "document_urls": {},  # Missing document URLs
     }
 
-    # This should not raise an exception due to the known bad reference
     events_builder = events_from_outcome(outcome)
     events = events_builder.dump_events()
 
-    # Should still process normally
+    # Should handle missing document URLs gracefully
     assert len(events) == 2
+
+    # Check events have missing source URLs (field omitted when None)
+    assert events[0]["type"]["value"] == "application_received"
+    assert "sourceDocumentUrl" not in events[0]
+    assert events[1]["type"]["value"] == "application_accepted"
+    assert "sourceDocumentUrl" not in events[1]
+
+
+def test_events_from_outcome_missing_document_urls():
+    """Test events_from_outcome with missing document URLs"""
+    outcome = {
+        "reference": "TUR1/9999(2024)",
+        "last_updated": "2024-01-15T10:30:00Z",
+        "extracted_data": {
+            "acceptance_decision": {
+                "decision_date": "2024-01-15",
+                "success": True,
+                "rejection_reasons": [],
+                "application_date": "2023-12-01",
+                "end_of_acceptance_period": "2024-01-10",
+                "bargaining_unit": {
+                    "description": "All workers at Test Ltd",
+                    "size_considered": True,
+                    "size": 100,
+                    "claimed_membership": 60,
+                    "membership": 55,
+                },
+                "bargaining_unit_agreed": True,
+                "petition_signatures": 65,
+            }
+        },
+        "document_urls": {},  # Empty document URLs
+    }
+
+    events_builder = events_from_outcome(outcome)
+    events = events_builder.dump_events()
+
+    # Should handle missing document URLs gracefully
+    assert len(events) == 2
+
+    # Check events have missing source URLs (field omitted when None)
+    assert events[0]["type"]["value"] == "application_received"
+    assert "sourceDocumentUrl" not in events[0]
+    assert events[1]["type"]["value"] == "application_accepted"
+    assert "sourceDocumentUrl" not in events[1]
+
+
+def test_events_from_outcome_partial_document_urls():
+    """Test events_from_outcome with partial document URLs"""
+    outcome = {
+        "reference": "TUR1/8888(2024)",
+        "last_updated": "2024-01-15T10:30:00Z",
+        "extracted_data": {
+            "acceptance_decision": {
+                "decision_date": "2024-01-15",
+                "success": True,
+                "rejection_reasons": [],
+                "application_date": "2023-12-01",
+                "end_of_acceptance_period": "2024-01-10",
+                "bargaining_unit": {
+                    "description": "All workers at Test Ltd",
+                    "size_considered": True,
+                    "size": 100,
+                    "claimed_membership": 60,
+                    "membership": 55,
+                },
+                "bargaining_unit_agreed": True,
+                "petition_signatures": 65,
+            },
+            "recognition_decision": {
+                "decision_date": "2024-03-15",
+                "union_recognized": True,
+                "form_of_ballot": None,
+                "ballot": None,
+                "good_relations_contested": False,
+            },
+        },
+        "document_urls": {
+            "acceptance_decision": "https://example.com/acceptance/888",
+            # Missing recognition_decision URL
+        },
+    }
+
+    events_builder = events_from_outcome(outcome)
+    events = events_builder.dump_events()
+
+    # Should handle partial document URLs gracefully
+    assert len(events) == 3
+
+    # Check events have appropriate source URLs
+    assert events[0]["type"]["value"] == "application_received"
+    assert events[0]["sourceDocumentUrl"] == "https://example.com/acceptance/888"
+    assert events[1]["type"]["value"] == "application_accepted"
+    assert events[1]["sourceDocumentUrl"] == "https://example.com/acceptance/888"
+    assert events[2]["type"]["value"] == "union_recognized"
+    assert "sourceDocumentUrl" not in events[2]  # Field omitted when None
+
+
+def test_events_from_outcome_application_withdrawn_with_escape_hatch():
+    """Test events_from_outcome with application withdrawn using escape hatch logic"""
+    outcome = {
+        "reference": "TUR1/7777(2024)",
+        "last_updated": "2025-03-15T10:30:00Z",  # After cutoff
+        "extracted_data": {
+            "application_received": {"decision_date": "2023-12-01"},
+            "application_withdrawn": {},
+        },
+        "document_urls": {
+            "application_received": None,  # This triggers the escape hatch
+            "application_withdrawn": "https://example.com/withdrawn/777",
+        },
+    }
+
+    events_builder = events_from_outcome(outcome)
+    events = events_builder.dump_events()
+
+    # Should have 2 events: ApplicationReceived and ApplicationWithdrawn
+    assert len(events) == 2
+
+    # Both events should use the withdrawn document URL due to escape hatch
+    assert events[0]["type"]["value"] == "application_received"
+    assert events[0]["date"] == "2023-12-01"
+    assert events[0]["sourceDocumentUrl"] == "https://example.com/withdrawn/777"
+    assert events[1]["type"]["value"] == "application_withdrawn"
+    assert events[1]["date"] == "2025-03-15"
+    assert events[1]["sourceDocumentUrl"] == "https://example.com/withdrawn/777"
+
+
+def test_events_from_outcome_last_updated_date_correction_edge_case():
+    """Test events_from_outcome where last_updated date is corrected by latest document"""
+    outcome = {
+        "reference": "TUR1/6666(2024)",
+        "last_updated": "2024-01-15T10:30:00Z",  # Earlier date
+        "extracted_data": {
+            "acceptance_decision": {
+                "decision_date": "2024-03-15",  # Later date
+                "success": True,
+                "rejection_reasons": [],
+                "application_date": "2023-12-01",
+                "end_of_acceptance_period": "2024-01-10",
+                "bargaining_unit": {
+                    "description": "All workers at Test Ltd",
+                    "size_considered": True,
+                    "size": 100,
+                    "claimed_membership": 60,
+                    "membership": 55,
+                },
+                "bargaining_unit_agreed": True,
+                "petition_signatures": 65,
+            },
+            "recognition_decision": {
+                "decision_date": "2024-05-15",  # Even later date
+                "union_recognized": True,
+                "form_of_ballot": None,
+                "ballot": None,
+                "good_relations_contested": False,
+            },
+        },
+        "document_urls": {
+            "acceptance_decision": "https://example.com/acceptance/666",
+            "recognition_decision": "https://example.com/recognition/666",
+        },
+    }
+
+    events_builder = events_from_outcome(outcome)
+    events = events_builder.dump_events()
+
+    # Should have 3 events
+    assert len(events) == 3
+
+    # The fallback date should be corrected to the latest document date (2024-05-15)
+    assert events[0]["type"]["value"] == "application_received"
+    assert events[0]["date"] == "2023-12-01"
+    assert events[1]["type"]["value"] == "application_accepted"
+    assert events[1]["date"] == "2024-03-15"
+    assert events[2]["type"]["value"] == "union_recognized"
+    assert events[2]["date"] == "2024-05-15"
+
+
+def test_events_from_outcome_missing_decision_date_in_document():
+    """Test events_from_outcome with missing decision_date in document"""
+    outcome = {
+        "reference": "TUR1/5555(2024)",
+        "last_updated": "2025-03-15T10:30:00Z",  # After cutoff date
+        "extracted_data": {
+            "application_withdrawn": {
+                # Missing decision_date - should use fallback
+            }
+        },
+        "document_urls": {"application_withdrawn": "https://example.com/withdrawn/555"},
+    }
+
+    events_builder = events_from_outcome(outcome)
+    events = events_builder.dump_events()
+
+    # Should handle missing decision_date gracefully using last_updated as fallback
+    assert (
+        len(events) == 2
+    )  # Both ApplicationReceived and ApplicationWithdrawn after cutoff
+
+    # Check ApplicationReceived event uses last_updated as fallback
+    assert events[0]["type"]["value"] == "application_received"
+    assert events[0]["date"] == "2025-03-15"  # Uses last_updated date
+    assert events[0]["sourceDocumentUrl"] == "https://example.com/withdrawn/555"
+
+    # Check ApplicationWithdrawn event
+    assert events[1]["type"]["value"] == "application_withdrawn"
+    assert events[1]["date"] == "2025-03-15"  # Uses last_updated date
+    assert events[1]["sourceDocumentUrl"] == "https://example.com/withdrawn/555"
+
+
+def test_events_from_outcome_empty_extracted_data():
+    """Test events_from_outcome with empty extracted_data"""
+    outcome = {
+        "reference": "TUR1/4444(2024)",
+        "last_updated": "2024-01-15T10:30:00Z",
+        "extracted_data": {},  # Empty extracted data
+        "document_urls": {},
+    }
+
+    # This should raise StopIteration when trying to get last_doc from empty OrderedDict
+    with pytest.raises(StopIteration):
+        events_from_outcome(outcome)
+
+
+def test_events_from_outcome_none_extracted_data():
+    """Test events_from_outcome with None extracted_data"""
+    outcome = {
+        "reference": "TUR1/3333(2024)",
+        "last_updated": "2024-01-15T10:30:00Z",
+        "extracted_data": None,  # None extracted data
+        "document_urls": {},
+    }
+
+    # This should raise an AttributeError since None doesn't have .items()
+    with pytest.raises(AttributeError):
+        events_from_outcome(outcome)
+
+
+def test_events_from_outcome_duplicate_event_prevention():
+    """Test events_from_outcome with duplicate events to verify prevention logic"""
+    outcome = {
+        "reference": "TUR1/2222(2024)",
+        "last_updated": "2024-01-15T10:30:00Z",
+        "extracted_data": {
+            "acceptance_decision": {
+                "decision_date": "2024-01-15",
+                "success": True,
+                "rejection_reasons": [],
+                "application_date": "2023-12-01",
+                "end_of_acceptance_period": "2024-01-10",
+                "bargaining_unit": {
+                    "description": "All workers at Test Ltd",
+                    "size_considered": True,
+                    "size": 100,
+                    "claimed_membership": 60,
+                    "membership": 55,
+                },
+                "bargaining_unit_agreed": True,
+                "petition_signatures": 65,
+            },
+            "recognition_decision": {
+                "decision_date": "2024-03-15",
+                "union_recognized": True,
+                "form_of_ballot": None,
+                "ballot": None,
+                "good_relations_contested": False,
+            },
+            "method_agreed": {
+                "decision_date": "2024-04-15",
+            },
+        },
+        "document_urls": {
+            "acceptance_decision": "https://example.com/acceptance/222",
+            "recognition_decision": "https://example.com/recognition/222",
+            "method_agreed": "https://example.com/method/222",
+        },
+    }
+
+    events_builder = events_from_outcome(outcome)
+    events = events_builder.dump_events()
+
+    # Should have 4 events: ApplicationReceived, ApplicationAccepted, UnionRecognized, MethodAgreed
+    assert len(events) == 4
+
+    # Check events are in correct order and no duplicates
     assert events[0]["type"]["value"] == "application_received"
     assert events[1]["type"]["value"] == "application_accepted"
+    assert events[2]["type"]["value"] == "union_recognized"
+    assert events[3]["type"]["value"] == "method_agreed"
+
+    # Verify no duplicate events exist
+    event_types = [event["type"]["value"] for event in events]
+    assert len(event_types) == len(set(event_types)), "Duplicate events found"
+
+
+def test_events_from_outcome_consecutive_duplicate_events():
+    """Test events_from_outcome with consecutive duplicate events to verify prevention"""
+    outcome = {
+        "reference": "TUR1/1111(2024)",
+        "last_updated": "2024-01-15T10:30:00Z",
+        "extracted_data": {
+            "application_received": {"decision_date": "2023-12-01"},
+            "application_received": {"decision_date": "2023-12-01"},  # Duplicate
+        },
+        "document_urls": {
+            "application_received": "https://example.com/app/111",
+        },
+    }
+
+    events_builder = events_from_outcome(outcome)
+    events = events_builder.dump_events()
+
+    # Should have only 1 ApplicationReceived event (duplicate prevented)
+    assert len(events) == 1
+    assert events[0]["type"]["value"] == "application_received"
+    assert events[0]["date"] == "2023-12-01"

@@ -2,6 +2,7 @@ from datetime import datetime
 from pydantic import HttpUrl
 from plum import dispatch, parametric
 from dateutil.parser import parse as date_parse
+from typing import Optional
 
 from ..baml_client import types as baml_types
 from ..document_classifier import DocumentType
@@ -16,7 +17,12 @@ def ensure_period(input: str) -> str:
 
 @parametric
 class Decision:
-    def __init__(self, doc: dict, source_url: str, fallback_date: datetime = None):
+    def __init__(
+        self,
+        doc: dict,
+        source_url: Optional[str] = None,
+        fallback_date: Optional[datetime] = None,
+    ):
         self._doc = doc
         self._source_url = source_url
         self._fallback_date = fallback_date
@@ -27,8 +33,9 @@ class Decision:
     def source_url(self):
         return self._source_url
 
-    def fallback_date(self):
-        return self._fallback_date
+    def decision_date(self):
+        doc_date = self.doc().get("decision_date") if self.doc() else None
+        return date_parse(doc_date) if doc_date else self._fallback_date
 
 
 @dispatch
@@ -82,18 +89,26 @@ def events_from_decision(
 def events_from_decision(
     decision: Decision[DocumentType.application_withdrawn],
 ) -> list[Event]:
-    return [
-        Event(
-            type=EventType.ApplicationReceived,
-            date=decision.fallback_date(),
-            source_document_url=decision.source_url(),
-        ),
+    events = []
+    # TODO: remove this once handling withdrawal state myself
+    withdrawals_data_cutoff = date_parse("2025-02-15")
+    if decision.decision_date() >= withdrawals_data_cutoff:
+        events.append(
+            Event(
+                type=EventType.ApplicationReceived,
+                date=decision.decision_date(),
+                source_document_url=decision.source_url(),
+            )
+        )
+
+    events.append(
         Event(
             type=EventType.ApplicationWithdrawn,
-            date=decision.fallback_date(),
+            date=decision.decision_date(),
             source_document_url=decision.source_url(),
-        ),
-    ]
+        )
+    )
+    return events
 
 
 @dispatch
@@ -132,7 +147,7 @@ def events_from_decision(
     return [
         Event(
             type=EventType.MethodDecision,
-            date=date_parse(decision.doc()["decision_date"]),
+            date=decision.decision_date(),
             source_document_url=decision.source_url(),
         )
     ]
@@ -231,7 +246,7 @@ def events_from_decision(
     return [
         Event(
             type=EventType.CaseClosed,
-            date=date_parse(decision.doc()["decision_date"]),
+            date=decision.decision_date(),
             source_document_url=decision.source_url(),
         )
     ]
@@ -246,7 +261,7 @@ def events_from_decision(
     if recognition_decision.ballot:
         b = recognition_decision.ballot
         ballot_summary = (
-            f"A {recognition_decision.form_of_ballot.value} ballot with "
+            f"A {str(recognition_decision.form_of_ballot.value).lower()} ballot with "
             f"{b.eligible_workers} eligible workers "
             f"ran from {b.start_ballot_period} to "
             f"{b.end_ballot_period}."
@@ -341,7 +356,7 @@ def events_from_decision(
     return [
         Event(
             type=EventType.MethodAgreed,
-            date=date_parse(decision.doc()["decision_date"]),
+            date=decision.decision_date(),
             source_document_url=decision.source_url(),
         )
     ]
@@ -354,7 +369,7 @@ def events_from_decision(
     return [
         Event(
             type=EventType.ApplicationRejected,
-            date=date_parse(decision.doc()["decision_date"]),
+            date=decision.decision_date(),
             source_document_url=decision.source_url(),
         )
     ]

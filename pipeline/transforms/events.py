@@ -61,11 +61,13 @@ def events_from_outcome(outcome):
 
     for doc_type, doc in sorted_docs.items():
         try:
-            decision = Decision[doc_type](doc, document_urls[doc_type], fallback_date)
+            decision = Decision[doc_type](
+                doc, document_urls.get(doc_type), fallback_date
+            )
             for event in events_from_decision(decision):
                 events.add_event(event)
 
-        except (MachineError, ValueError) as e:
+        except (MachineError, ValueError, TypeError) as e:
             if allow_transform_errors(ref):
                 print(f"Allowed error: [{e}] for {ref}")
             else:
