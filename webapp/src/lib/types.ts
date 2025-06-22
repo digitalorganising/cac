@@ -30,7 +30,7 @@ export type OutcomeEvent = {
   };
   date: string;
   description?: string;
-  sourceDocumentUrl: string;
+  sourceDocumentUrl?: string;
 };
 
 export const outcomeStates = [

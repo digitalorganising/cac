@@ -107,13 +107,17 @@ export default function DecisionTimelineItem({ event, ...otherProps }: Props) {
     <TimelineItem
       date={event.date}
       title={
-        <Link
-          href={event.sourceDocumentUrl}
-          target="_blank"
-          className="text-primary hover:underline underline-offset-4"
-        >
-          {event.type.label}
-        </Link>
+        event.sourceDocumentUrl ? (
+          <Link
+            href={event.sourceDocumentUrl}
+            target="_blank"
+            className="text-primary hover:underline underline-offset-4"
+          >
+            {event.type.label}
+          </Link>
+        ) : (
+          <span className="text-primary">{event.type.label}</span>
+        )
       }
       description={event.description}
       icon={getIcon(event.type.value)}

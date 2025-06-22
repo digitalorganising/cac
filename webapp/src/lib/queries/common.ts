@@ -18,7 +18,7 @@ export const client = new Client({
   node: process.env.OPENSEARCH_ENDPOINT!,
 });
 
-export const outcomesIndex = "outcomes-indexed";
+export const outcomesIndex = "outcomes-merged-indexed";
 
 export type PaginationOptions = {
   from: number;
