@@ -3,36 +3,11 @@ import re
 import pymupdf
 import pymupdf4llm
 import scrapy
-from itemadapter import ItemAdapter
 from markdownify import markdownify
-from scrapy.crawler import CrawlerProcess
 from scrapy.exceptions import NotSupported
 
-from .document_classifier import DocumentType, get_document_type, should_get_content
-from .services.opensearch_pipeline import OpensearchPipeline
-
-
-class CacOutcomeOpensearchPipeline(OpensearchPipeline):
-    def skip_item(self, item):
-        match ItemAdapter(item)["document_type"]:
-            case DocumentType.derecognition_decision:
-                return "Skipping a derecognition decision"
-            case _:
-                False
-
-    def id(self, item):
-        return item["reference"]
-
-    def doc(self, item):
-        data = ItemAdapter(item).asdict()
-        document_content = data.pop("document_content", None)
-        document_url = data.pop("document_url", None)
-        document_type = data.pop("document_type")
-        return {
-            **data,
-            "documents": {document_type: document_content},
-            "document_urls": {document_type: document_url},
-        }
+from ..document_classifier import DocumentType, get_document_type, should_get_content
+from ..services.fnv import fnv1a_64
 
 
 class CacOutcomeSpider(scrapy.Spider):
@@ -41,7 +16,7 @@ class CacOutcomeSpider(scrapy.Spider):
     start_year = 2014
     url_prefix = "https://www.gov.uk/government/collections/cac-outcomes-"
 
-    def start_requests(self):
+    async def start(self):
         yield scrapy.Request(
             url=(self.url_prefix + str(self.start_year)),
             callback=self.parse,
@@ -76,17 +51,19 @@ class CacOutcomeSpider(scrapy.Spider):
             r"^CAC Outcome:\s*", "", outcome_title, flags=re.RegexFlag.IGNORECASE
         )
         reference = response.css("section#documents p::text").re_first(
-            r"^Ref:\s*(TUR\d+/\d+[\/\(]\d+\)?).*"
+            r"^Ref:\s*(TUR\d+/\s?\d+[\/\(]\d+\)?).*"
         )
         if not reference:
             self.logger.warning(
                 f"Could not parse reference for '{outcome_title}' at {response.url}"
             )
             reference = response.url
+        else:
+            reference = reference.replace(" ", "")
 
         for document in response.css("section#documents > section"):
-            outcome_link = document.css("h3 a")
-            document_title = outcome_link.css("*::text").get().strip()
+            decision_link = document.css("h3 a")
+            document_title = decision_link.css("*::text").get().strip()
             document_type = get_document_type(document_title)
             common_fields = {
                 "year": year,
@@ -98,20 +75,24 @@ class CacOutcomeSpider(scrapy.Spider):
             }
 
             if not should_get_content(document_type):
+                document_url = response.urljoin(decision_link.attrib["href"])
                 yield {
                     **common_fields,
-                    "document_url": response.urljoin(outcome_link.attrib["href"]),
+                    "document_url": document_url,
+                    "document_fingerprint": document_url,
                 }
             else:
                 yield from response.follow_all(
-                    urls=outcome_link,
+                    urls=decision_link,
                     callback=self.parse_document,
                     cb_kwargs=common_fields,
                 )
 
     def parse_document(self, response, **kwargs):
+        document_fingerprint = response.url
         try:
             content = self.html_content(response)
+            document_fingerprint = fnv1a_64(content)
             # Bit of a hack, oops :)
             if kwargs["document_type"] == DocumentType.method_agreed:
                 published_date = response.css(
@@ -127,6 +108,7 @@ class CacOutcomeSpider(scrapy.Spider):
             **kwargs,
             "document_content": content.strip(),
             "document_url": response.url,
+            "document_fingerprint": document_fingerprint,
         }
 
     def html_content(self, response):
@@ -136,20 +118,3 @@ class CacOutcomeSpider(scrapy.Spider):
     def pdf_content(self, response):
         pdf = pymupdf.open(stream=response.body)
         return pymupdf4llm.to_markdown(pdf)
-
-
-def scrape():
-    process = CrawlerProcess(
-        settings={
-            "REQUEST_FINGERPRINTER_IMPLEMENTATION": "2.7",
-            "TWISTED_REACTOR": "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
-            "LOG_LEVEL": "INFO",
-            "ITEM_PIPELINES": {CacOutcomeOpensearchPipeline: 100},
-            "OPENSEARCH": {
-                "INDEX": "outcomes-raw-2025",
-                "MAPPING_PATH": "./pipeline/index_mappings/outcomes_raw.json",
-            },
-        }
-    )
-    process.crawl(CacOutcomeSpider)
-    process.start()

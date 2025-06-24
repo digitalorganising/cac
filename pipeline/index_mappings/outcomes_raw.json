@@ -102,6 +102,49 @@
           "type": "keyword"
         }
       }
+    },
+    "document_fingerprints": {
+      "properties": {
+        "acceptance_decision": {
+          "type": "unsigned_long"
+        },
+        "access_decision_or_dispute": {
+          "type": "unsigned_long"
+        },
+        "bargaining_unit_decision": {
+          "type": "unsigned_long"
+        },
+        "bargaining_decision": {
+          "type": "unsigned_long"
+        },
+        "form_of_ballot_decision": {
+          "type": "unsigned_long"
+        },
+        "whether_to_ballot_decision": {
+          "type": "unsigned_long"
+        },
+        "validity_decision": {
+          "type": "unsigned_long"
+        },
+        "case_closure": {
+          "type": "unsigned_long"
+        },
+        "nullification_decision": {
+          "type": "unsigned_long"
+        },
+        "recognition_decision": {
+          "type": "unsigned_long"
+        },
+        "application_received": {
+          "type": "unsigned_long"
+        },
+        "method_agreed": {
+          "type": "unsigned_long"
+        },
+        "application_withdrawn": {
+          "type": "unsigned_long"
+        }
+      }
     }
   }
 }

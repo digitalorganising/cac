@@ -5,6 +5,7 @@ import os
 
 from .extractors import get_extracted_data
 from .services.opensearch_connectors import OpensearchSink, OpensearchSource
+from .document_classifier import DocumentType
 
 fast_forward = bool(os.getenv("FAST_FORWARD"))
 
@@ -37,6 +38,11 @@ def flat_map_outcome(outcome):
     outcome_doc = outcome["_source"]
     documents = outcome_doc.pop("documents", {})
     document_urls = outcome_doc.pop("document_urls", {})
+
+    # We don't want any of this
+    if DocumentType.derecognition_decision.value in documents:
+        return
+
     for document_type, content in documents.items():
         yield {
             **outcome_doc,
