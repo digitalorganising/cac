@@ -1,5 +1,4 @@
 from datetime import datetime
-from pydantic import HttpUrl
 from plum import dispatch, parametric
 from dateutil.parser import parse as date_parse
 from typing import Optional

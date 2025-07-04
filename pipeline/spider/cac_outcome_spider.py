@@ -1,4 +1,8 @@
 import re
+from urllib.parse import urlparse
+import os
+from abc import ABC, abstractmethod
+from itemadapter import ItemAdapter
 
 import pymupdf
 import pymupdf4llm
@@ -7,40 +11,65 @@ from markdownify import markdownify
 from scrapy.exceptions import NotSupported
 
 from ..document_classifier import DocumentType, get_document_type, should_get_content
+from ..services.opensearch_pipeline import OpensearchPipeline
 from ..services.fnv import fnv1a_64
 
 
-class CacOutcomeSpider(scrapy.Spider):
-    name = "cac-outcomes"
+class CacOutcomeOpensearchPipeline(OpensearchPipeline):
+    def fingerprint(self, item):
+        data = ItemAdapter(item).asdict()
+        document_type = data["document_type"]
+        document_url = data["document_url"]
+        document_content = data.get("document_content")
+        if (
+            not should_get_content(document_type)
+            or document_url.endswith(".pdf")
+            or not document_content
+        ):
+            return fnv1a_64(document_url)
+        return fnv1a_64(document_content)
 
-    start_year = 2014
-    url_prefix = "https://www.gov.uk/government/collections/cac-outcomes-"
+    async def skip_item(self, item):
+        match ItemAdapter(item)["document_type"]:
+            case DocumentType.derecognition_decision:
+                return "Skipping a derecognition decision"
+            case _:
+                False
 
+    def id(self, item):
+        return item["reference"]
+
+    def doc(self, item):
+        data = ItemAdapter(item).asdict()
+        document_content = data.pop("document_content", None)
+        document_url = data.pop("document_url", None)
+        document_type = data.pop("document_type")
+        document_fingerprint = self.fingerprint(item)
+        return {
+            **data,
+            "documents": {document_type: document_content},
+            "document_urls": {document_type: document_url},
+            "document_fingerprints": {document_type: document_fingerprint},
+        }
+
+
+class CacOutcomeSpider(scrapy.Spider, ABC):
+    outcome_url_prefix = "https://www.gov.uk/government/publications/cac-outcome"
+    list_url_prefix = "https://www.gov.uk/government/collections/cac-outcomes-"
+
+    @abstractmethod
     async def start(self):
-        yield scrapy.Request(
-            url=(self.url_prefix + str(self.start_year)),
-            callback=self.parse,
-            meta={"year": self.start_year},
-        )
+        pass
 
-    def parse(self, response):
-        outcome_links = response.css(
-            "h3#trade-union-recognition + " "div + div > ul > li div a"
-        )
-        yield from response.follow_all(
-            urls=outcome_links,
-            callback=self.parse_outcome,
-            cb_kwargs={"year": response.meta["year"]},
-        )
+    def parse(self, response, **kwargs):
+        if response.url.startswith(self.outcome_url_prefix) and os.path.basename(
+            urlparse(response.url).path
+        ).startswith("cac-outcome"):
+            yield from self.parse_outcome(response, **kwargs)
+        else:
+            yield from self.parse_document(response, **kwargs)
 
-        maybe_next_year = response.meta["year"] + 1
-        yield response.follow(
-            url=(self.url_prefix + str(maybe_next_year)),
-            callback=self.parse,
-            meta={"year": maybe_next_year},
-        )
-
-    def parse_outcome(self, response, year):
+    def parse_outcome(self, response):
         last_updated = (
             response.css("meta[name='govuk:public-updated-at']::attr(content)")
             .get()
@@ -66,7 +95,6 @@ class CacOutcomeSpider(scrapy.Spider):
             document_title = decision_link.css("*::text").get().strip()
             document_type = get_document_type(document_title)
             common_fields = {
-                "year": year,
                 "reference": reference,
                 "last_updated": last_updated,
                 "outcome_url": response.url,
@@ -79,20 +107,16 @@ class CacOutcomeSpider(scrapy.Spider):
                 yield {
                     **common_fields,
                     "document_url": document_url,
-                    "document_fingerprint": document_url,
                 }
             else:
                 yield from response.follow_all(
                     urls=decision_link,
-                    callback=self.parse_document,
                     cb_kwargs=common_fields,
                 )
 
     def parse_document(self, response, **kwargs):
-        document_fingerprint = response.url
         try:
             content = self.html_content(response)
-            document_fingerprint = fnv1a_64(content)
             # Bit of a hack, oops :)
             if kwargs["document_type"] == DocumentType.method_agreed:
                 published_date = response.css(
@@ -108,7 +132,6 @@ class CacOutcomeSpider(scrapy.Spider):
             **kwargs,
             "document_content": content.strip(),
             "document_url": response.url,
-            "document_fingerprint": document_fingerprint,
         }
 
     def html_content(self, response):

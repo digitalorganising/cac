@@ -9,6 +9,7 @@ packages = [{ include = "pipeline" }]
 
 [tool.poetry.scripts]
 ingest = "pipeline.spider.scrape_outcomes:scrape"
+ingest-updated = "pipeline.spider.scrape_updated_outcomes:scrape"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -28,6 +29,8 @@ pre-commit = "^3.8.0"
 transitions = "^0.9.2"
 boto3 = "^1.38.18"
 plum-dispatch = "^2.5.7"
+pydantic = "^2.11.7"
+networkx = "^3.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.1"

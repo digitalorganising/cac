@@ -1,10 +1,6 @@
 {
   "dynamic": "strict",
   "properties": {
-    "year": {
-      "type": "date",
-      "format": "yyyy"
-    },
     "reference": {
       "type": "keyword"
     },

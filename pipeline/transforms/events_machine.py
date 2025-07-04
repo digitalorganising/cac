@@ -91,6 +91,23 @@ transitions = [
 ]
 
 
+def find_leaf_nodes(transitions_list):
+    # Single pass: track all states and those with outgoing edges
+    all_states = set()
+    states_with_outgoing = set()
+
+    for transition in transitions_list:
+        from_state = transition[1]
+        to_state = transition[2]
+
+        all_states.add(from_state)
+        all_states.add(to_state)
+        states_with_outgoing.add(from_state)
+
+    # Leaf nodes are states that have no outgoing edges
+    return all_states - states_with_outgoing
+
+
 def is_state_changing(event_type: EventType):
     # Access disputes are effectively stateless
     return (
@@ -106,6 +123,9 @@ machine_params = {
     "initial": OutcomeState.Initial.value,
     "auto_transitions": False,
 }
+
+terminal_states = find_leaf_nodes(transitions)
+unterminated_states = [s for s in OutcomeState if s not in terminal_states]
 
 
 class InvalidEventError(Exception):
