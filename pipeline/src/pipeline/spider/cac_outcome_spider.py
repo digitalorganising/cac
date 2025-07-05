@@ -10,7 +10,11 @@ import scrapy
 from markdownify import markdownify
 from scrapy.exceptions import NotSupported
 
-from ..document_classifier import DocumentType, get_document_type, should_get_content
+from ..transforms.document_classifier import (
+    DocumentType,
+    get_document_type,
+    should_get_content,
+)
 from ..services.opensearch_pipeline import OpensearchPipeline
 from ..services.fnv import fnv1a_64
 

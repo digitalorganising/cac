@@ -7,43 +7,36 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - "pipeline/**"
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./pipeline
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version-file: "pyproject.toml"
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: latest
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v3
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
 
       - name: Build BAML client
         run: |
-          cd pipeline
-          poetry run baml-cli generate
+          uv run baml-cli generate
 
       - name: Run tests
         run: |
-          poetry install --only-root
-          poetry run pytest -v -k "not llm_extractors"
+          uv run pytest -v -k "not llm_extractors"

@@ -2,9 +2,24 @@ import json
 import re
 
 from pydantic import ValidationError
+from baml_client import types as baml_types
 
 from .events import EventsBuilder, EventType, OutcomeState, events_from_outcome
-from ..baml_client import types as baml_types
+from .known_bad_data import override_reference
+
+
+def outcome_reference_key(d):
+    reference = override_reference(d["reference"])
+    # Extract the number after TUR1/ and everything after it
+    match = re.search(r"TUR1\/(\d+)(.+)", reference)
+    if match:
+        ref_no = match.group(1)
+        suffix = match.group(2)
+        # Zero-pad to 4 digits if less than 4 digits
+        padded_ref_no = ref_no.zfill(4)
+        # Reconstruct the reference with the zero-padded number
+        return f"TUR1/{padded_ref_no}{suffix}"
+    return reference
 
 
 def get_parties(outcome):

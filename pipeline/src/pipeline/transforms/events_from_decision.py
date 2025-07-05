@@ -3,8 +3,8 @@ from plum import dispatch, parametric
 from dateutil.parser import parse as date_parse
 from typing import Optional
 
-from ..baml_client import types as baml_types
-from ..document_classifier import DocumentType
+from baml_client import types as baml_types
+from .document_classifier import DocumentType
 from .model import Event, EventType
 
 

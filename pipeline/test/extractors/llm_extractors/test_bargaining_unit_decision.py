@@ -1,7 +1,7 @@
 from difflib import SequenceMatcher as SM
 
 import pytest
-from pipeline.baml_client.async_client import b
+from baml_client.async_client import b
 from pipeline.services import anthropic_rate_limit
 from tenacity import retry
 from . import date_eq

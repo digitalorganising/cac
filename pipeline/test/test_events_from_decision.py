@@ -3,7 +3,7 @@ from datetime import datetime
 
 from pipeline.transforms.events_from_decision import events_from_decision, Decision
 from pipeline.transforms.model import EventType
-from pipeline.document_classifier import DocumentType
+from pipeline.transforms.document_classifier import DocumentType
 
 
 def test_events_from_decision_acceptance_decision_success():

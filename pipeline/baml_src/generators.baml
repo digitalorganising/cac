@@ -7,6 +7,6 @@ generator target {
     // Valid values: "python/pydantic", "typescript", "ruby/sorbet"
     output_type "python/pydantic"
     // Where the generated code will be saved (relative to baml_src/)
-    output_dir "../"
+    output_dir "../src/"
     default_client_mode "sync"
 }

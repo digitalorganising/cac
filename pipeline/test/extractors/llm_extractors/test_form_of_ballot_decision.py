@@ -1,9 +1,10 @@
 import pytest
-from pipeline.baml_client.async_client import b
-from pipeline.baml_client.types import FormOfBallot
+from baml_client.async_client import b
+from baml_client.types import FormOfBallot
 from pipeline.services import anthropic_rate_limit
 from tenacity import retry
 from . import date_eq
+
 
 @retry(**anthropic_rate_limit)
 async def ExtractFormOfBallotDecision(content):

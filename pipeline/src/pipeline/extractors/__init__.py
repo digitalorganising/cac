@@ -1,5 +1,9 @@
-from ..baml_client import b
-from ..document_classifier import DocumentType, should_get_content, should_skip
+from baml_client import b
+from ..transforms.document_classifier import (
+    DocumentType,
+    should_get_content,
+    should_skip,
+)
 from .date_extractor import extract_date
 
 

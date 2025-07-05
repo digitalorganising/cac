@@ -6,7 +6,7 @@ import bytewax.operators as op
 from bytewax.dataflow import Dataflow
 
 from .services.opensearch_connectors import OpensearchSource, OpensearchSink
-from .transforms.known_bad_data import override_reference
+from .transforms import outcome_reference_key
 
 
 def merge_withdrawals(keyed_stream_value):
@@ -61,21 +61,6 @@ opensearch_sink = OutcomeSink(
 )
 
 flow = Dataflow("final_index_derived")
-
-
-def outcome_reference_key(d):
-    reference = override_reference(d["reference"])
-    # Extract the number after TUR1/ and everything after it
-    match = re.search(r"TUR1\/(\d+)(.+)", reference)
-    if match:
-        ref_no = match.group(1)
-        suffix = match.group(2)
-        # Zero-pad to 4 digits if less than 4 digits
-        padded_ref_no = ref_no.zfill(4)
-        # Reconstruct the reference with the zero-padded number
-        return f"TUR1/{padded_ref_no}{suffix}"
-    return reference
-
 
 outcomes_stream = op.input("outcome_docs", flow, outcomes_source)
 outcomes_docs = op.map("outcomes_source", outcomes_stream, lambda d: d["_source"])

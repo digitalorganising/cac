@@ -1,4 +1,4 @@
-from pipeline.merge_withdrawals import outcome_reference_key
+from pipeline.transforms import outcome_reference_key
 
 
 def test_outcome_reference_key_different_years():

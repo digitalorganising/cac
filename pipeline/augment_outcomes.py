@@ -5,7 +5,7 @@ import os
 
 from .extractors import get_extracted_data
 from .services.opensearch_connectors import OpensearchSink, OpensearchSource
-from .document_classifier import DocumentType
+from .transforms.document_classifier import DocumentType
 
 fast_forward = bool(os.getenv("FAST_FORWARD"))
 

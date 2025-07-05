@@ -2,7 +2,7 @@ from transitions import MachineError
 from collections import OrderedDict
 from dateutil.parser import parse as date_parse
 
-from ..document_classifier import DocumentType
+from .document_classifier import DocumentType
 from .model import EventType, OutcomeState
 from .events_machine import EventsBuilder, InvalidEventError
 from .events_from_decision import events_from_decision, Decision
