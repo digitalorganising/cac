@@ -6,6 +6,7 @@ from pipeline.spider.cac_outcome_spider import CacOutcomeOpensearchPipeline
 
 
 def handler(event, context):
+    index = event.get("index", "outcomes-raw")
     process = CrawlerProcess(
         settings={
             "LOG_LEVEL": "INFO",
@@ -13,8 +14,8 @@ def handler(event, context):
             "ITEM_PIPELINES": {CacOutcomeOpensearchPipeline: 100},
             "CONCURRENT_ITEMS": 10,
             "OPENSEARCH": {
-                "INDEX": "outcomes-raw-20250624",
-                "MAPPING_PATH": "./pipeline/index_mappings/outcomes_raw.json",
+                "INDEX": index,
+                "MAPPING_PATH": "./index_mappings/outcomes_raw.json",
             },
         }
     )
