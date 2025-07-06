@@ -63,8 +63,6 @@ jobs:
           cd ..
 
           zip -q -r lambda_package.zip ./baml_src ./src ./lambdas
-          pwd
-          ls -lah
 
       - name: Authenticate with AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -74,6 +72,4 @@ jobs:
 
       - name: Upload Lambda archive
         run: |
-          pwd
-          ls -lah
-          aws s3 sync lambda_package.zip s3://digitalorganising-cac-pipeline/lambda_package.zip
+          aws s3 cp lambda_package.zip s3://digitalorganising-cac-pipeline/lambda_package.zip
