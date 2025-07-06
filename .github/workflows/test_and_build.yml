@@ -68,7 +68,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::510900713680:role/github-actions
-          aws-region: eu-west-1cp
+          aws-region: eu-west-1
 
       - name: Upload Lambda archive
         run: |
