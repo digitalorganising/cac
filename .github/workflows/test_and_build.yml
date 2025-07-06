@@ -55,13 +55,13 @@ jobs:
             -r requirements.txt
 
           cd packages
-          zip -r ../package.zip .
+          zip -q -r ../package.zip .
           cd ..
 
-          zip -r package.zip ./src ./lambdas
+          zip -q -r package.zip ./src ./lambdas
 
       - name: Upload Lambda archive
         uses: actions/upload-artifact@v4
         with:
           name: package
-          path: package.zip
+          path: pipeline/package.zip
