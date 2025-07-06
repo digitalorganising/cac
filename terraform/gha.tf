@@ -30,24 +30,36 @@ data "aws_iam_policy_document" "github_actions_trust_policy" {
   }
 }
 
-data "aws_iam_policy_document" "s3_package_write" {
+data "aws_iam_policy_document" "ecr_push" {
   statement {
-    effect  = "Allow"
-    actions = ["s3:PutObject", "s3:GetObject", "s3:DeleteObject", "s3:ListBucket"]
-    resources = [
-      aws_s3_bucket.pipeline_app.arn,
-      "${aws_s3_bucket.pipeline_app.arn}/*"
+    effect = "Allow"
+    actions = [
+      "ecr:CompleteLayerUpload",
+      "ecr:UploadLayerPart",
+      "ecr:InitiateLayerUpload",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:PutImage",
+      "ecr:BatchGetImage"
     ]
+    resources = [aws_ecr_repository.pipeline.arn]
+  }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "ecr:GetAuthorizationToken"
+    ]
+    resources = ["*"]
   }
 }
 
-resource "aws_iam_policy" "s3_package_policy" {
-  name        = "s3-package-policy"
-  description = "Allow writes to the pipeline-app bucket"
-  policy      = data.aws_iam_policy_document.s3_package_write.json
+resource "aws_iam_policy" "ecr_push" {
+  name        = "ecr-push"
+  description = "Allow pushes to the pipeline ECR repository"
+  policy      = data.aws_iam_policy_document.ecr_push.json
 }
 
-resource "aws_iam_role_policy_attachment" "s3_package_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "ecr_push" {
   role       = aws_iam_role.github_actions.name
-  policy_arn = aws_iam_policy.s3_package_policy.arn
+  policy_arn = aws_iam_policy.ecr_push.arn
 }

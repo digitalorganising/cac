@@ -11,12 +11,9 @@ on:
       - "pipeline/**"
 
 jobs:
-  test_build_push:
-    name: Run tests and build Lambda archive
+  test:
+    name: Run tests
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     defaults:
       run:
         working-directory: ./pipeline
@@ -46,23 +43,21 @@ jobs:
         run: |
           uv run pytest -v -k "not llm_extractors"
 
-      - name: Build Lambda archive
+      - name: Upload Lambda archive
         run: |
-          uv export --quiet --frozen --no-dev --no-editable -o requirements.txt
-          uv pip install \
-            --quiet \
-            --no-installer-metadata \
-            --no-compile-bytecode \
-            --python-platform x86_64-manylinux_2_31 \
-            --python 3.12 \
-            --target packages \
-            -r requirements.txt
+          aws s3 cp lambda_package.zip s3://digitalorganising-cac-pipeline/lambda_package.zip
 
-          cd packages
-          zip -q -r ../lambda_package.zip .
-          cd ..
+  build_and_push:
+    name: Build and push container image
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
 
-          zip -q -r lambda_package.zip ./baml_src ./src ./lambdas
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Authenticate with AWS
         uses: aws-actions/configure-aws-credentials@v4
@@ -70,6 +65,26 @@ jobs:
           role-to-assume: arn:aws:iam::510900713680:role/github-actions
           aws-region: eu-west-1
 
-      - name: Upload Lambda archive
-        run: |
-          aws s3 cp lambda_package.zip s3://digitalorganising-cac-pipeline/lambda_package.zip
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push pipeline image
+        id: build-push
+        uses: docker/build-push-action@v5
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        with:
+          context: ./pipeline
+          file: ./pipeline/lambda.Dockerfile
+          push: true
+          provenance: false
+          platform: linux/amd64
+          tags: |
+            ${{ env.ECR_REGISTRY }}/cac-pipeline:${{ github.sha }}
+            ${{ env.ECR_REGISTRY }}/cac-pipeline:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

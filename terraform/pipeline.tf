@@ -29,13 +29,38 @@ data "aws_iam_policy_document" "pipeline_role_trust_policy" {
   }
 }
 
-resource "aws_s3_bucket" "pipeline_app" {
-  bucket = "digitalorganising-cac-pipeline"
+resource "aws_ecr_repository" "pipeline" {
+  name = "cac-pipeline"
 }
 
-resource "aws_s3_bucket_versioning" "pipeline_app" {
-  bucket = aws_s3_bucket.pipeline_app.id
-  versioning_configuration {
-    status = "Enabled"
-  }
+resource "aws_ecr_lifecycle_policy" "pipeline" {
+  repository = aws_ecr_repository.pipeline.name
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep only the last 2 images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 2
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
 }
+
+# resource "aws_lambda_function" "scraper" {
+#   function_name = "pipeline-scraper"
+#   role          = aws_iam_role.pipeline_role["scraper"].arn
+#   timeout       = 60 * 5
+
+#   package_type = "Image"
+#   image_uri    = "${aws_ecr_repository.pipeline.repository_url}:latest"
+#   image_config {
+#     command = ["lambda_functions.scrape_all_outcomes_handler"]
+#   }
+# }
