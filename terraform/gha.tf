@@ -70,13 +70,17 @@ data "aws_iam_policy_document" "lambda_update" {
     actions = [
       "lambda:UpdateFunctionCode"
     ]
-    resources = [module.scraper.function.arn]
+    resources = [
+      module.scraper.function.arn,
+      module.augmenter.function.arn,
+      module.indexer.function.arn
+    ]
   }
 }
 
 resource "aws_iam_policy" "lambda_update" {
   name        = "lambda-update"
-  description = "Allow updates to the pipeline Lambda function"
+  description = "Allow updates to the pipeline Lambda functions"
   policy      = data.aws_iam_policy_document.lambda_update.json
 }
 

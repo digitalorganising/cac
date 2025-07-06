@@ -63,7 +63,7 @@ resource "opensearch_role" "ingest_writer" {
 }
 
 resource "opensearch_role" "augmented_writer" {
-  role_name   = "ingest_writer"
+  role_name   = "augmented_writer"
   description = "Read from 'raw' and write to 'augmented' indices"
 
   index_permissions {

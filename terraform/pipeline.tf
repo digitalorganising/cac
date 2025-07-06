@@ -59,3 +59,21 @@ module "indexer" {
     OPENSEARCH_ENDPOINT = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
   }
 }
+
+module "step-functions" {
+  source  = "terraform-aws-modules/step-functions/aws"
+  version = "5.0.1"
+
+  name       = "cac-pipeline"
+  definition = templatefile("${path.module}/state-machine/pipeline.asl.json", {})
+  service_integrations = {
+    lambda = {
+      lambda = [
+        module.scraper.function.arn,
+        module.augmenter.function.arn,
+        module.indexer.function.arn
+      ]
+    }
+  }
+  cloudwatch_log_group_retention_in_days = 3
+}
