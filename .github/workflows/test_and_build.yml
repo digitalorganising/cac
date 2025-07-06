@@ -78,10 +78,14 @@ jobs:
           file: ./pipeline/lambda.Dockerfile
           push: true
           provenance: false
-          platforms:
-            - linux/amd64
           tags: |
             ${{ env.ECR_REGISTRY }}/cac-pipeline:${{ github.sha }}
             ${{ env.ECR_REGISTRY }}/cac-pipeline:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Update Lambda
+        run: |
+          aws lambda update-function-code \
+            --function-name pipeline-scraper \
+            --image-uri ${{ steps.login-ecr.outputs.registry }}/cac-pipeline:latest

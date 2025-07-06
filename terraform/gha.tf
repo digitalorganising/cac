@@ -63,3 +63,24 @@ resource "aws_iam_role_policy_attachment" "ecr_push" {
   role       = aws_iam_role.github_actions.name
   policy_arn = aws_iam_policy.ecr_push.arn
 }
+
+data "aws_iam_policy_document" "lambda_update" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "lambda:UpdateFunctionCode"
+    ]
+    resources = [aws_lambda_function.scraper.arn]
+  }
+}
+
+resource "aws_iam_policy" "lambda_update" {
+  name        = "lambda-update"
+  description = "Allow updates to the pipeline Lambda function"
+  policy      = data.aws_iam_policy_document.lambda_update.json
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_update" {
+  role       = aws_iam_role.github_actions.name
+  policy_arn = aws_iam_policy.lambda_update.arn
+}
