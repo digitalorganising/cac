@@ -53,14 +53,14 @@ resource "aws_ecr_lifecycle_policy" "pipeline" {
   })
 }
 
-# resource "aws_lambda_function" "scraper" {
-#   function_name = "pipeline-scraper"
-#   role          = aws_iam_role.pipeline_role["scraper"].arn
-#   timeout       = 60 * 5
+resource "aws_lambda_function" "scraper" {
+  function_name = "pipeline-scraper"
+  role          = aws_iam_role.pipeline_role["scraper"].arn
+  timeout       = 60 * 5
 
-#   package_type = "Image"
-#   image_uri    = "${aws_ecr_repository.pipeline.repository_url}:latest"
-#   image_config {
-#     command = ["lambda_functions.scrape_all_outcomes_handler"]
-#   }
-# }
+  package_type = "Image"
+  image_uri    = "${aws_ecr_repository.pipeline.repository_url}:latest"
+  image_config {
+    command = ["lambda_functions.scrape_all_outcomes_handler"]
+  }
+}

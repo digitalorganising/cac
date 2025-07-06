@@ -78,7 +78,8 @@ jobs:
           file: ./pipeline/lambda.Dockerfile
           push: true
           provenance: false
-          platform: linux/amd64
+          platforms:
+            - linux/amd64
           tags: |
             ${{ env.ECR_REGISTRY }}/cac-pipeline:${{ github.sha }}
             ${{ env.ECR_REGISTRY }}/cac-pipeline:latest

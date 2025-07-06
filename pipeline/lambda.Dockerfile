@@ -1,22 +1,34 @@
-FROM public.ecr.aws/lambda/python:3.12
+FROM ghcr.io/astral-sh/uv AS uv
 
-# Install uv
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# First, bundle the dependencies into the task root.
+FROM public.ecr.aws/lambda/python:3.12 AS builder
 
-WORKDIR ${LAMBDA_TASK_ROOT}
+# Enable bytecode compilation, to improve cold-start performance.
+ENV UV_COMPILE_BYTECODE=1
 
-# Install dependencies
-RUN --mount=type=cache,target=/root/.cache/uv \
+# Disable installer metadata, to create a deterministic layer.
+ENV UV_NO_INSTALLER_METADATA=1
+
+# Enable copy mode to support bind mount caching.
+ENV UV_LINK_MODE=copy
+
+# Bundle the dependencies into the Lambda task root via `uv pip install --target`.
+#
+# Omit any local packages (`--no-emit-workspace`) and development dependencies (`--no-dev`).
+# This ensures that the Docker layer cache is only invalidated when the `pyproject.toml` or `uv.lock`
+# files change, but remains robust to changes in the application code.
+RUN --mount=from=uv,source=/uv,target=/bin/uv \
+    --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project
+    uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt && \
+    uv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
 
-# Generate BAML client
-COPY baml_src/ baml_src/
-RUN uv run baml-cli generate
+FROM public.ecr.aws/lambda/python:3.12
 
-COPY . .
+# Copy the runtime dependencies from the builder stage.
+COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
 
-# Install the project
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked
+# Copy the application code.
+COPY index_mappings ${LAMBDA_TASK_ROOT}/index_mappings
+COPY ./src ${LAMBDA_TASK_ROOT}
