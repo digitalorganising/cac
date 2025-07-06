@@ -1,8 +1,6 @@
 from scrapy import Request
-from scrapy.crawler import CrawlerProcess
 
-from . import QuietDroppedLogFormatter
-from .cac_outcome_spider import CacOutcomeSpider, CacOutcomeOpensearchPipeline
+from .cac_outcome_spider import CacOutcomeSpider
 
 
 class AllOutcomesSpider(CacOutcomeSpider):
@@ -28,24 +26,3 @@ class AllOutcomesSpider(CacOutcomeSpider):
             meta={"year": maybe_next_year},
             callback=self.parse_outcomes_list,
         )
-
-
-def scrape():
-    process = CrawlerProcess(
-        settings={
-            "LOG_LEVEL": "INFO",
-            "LOG_FORMATTER": QuietDroppedLogFormatter,
-            "ITEM_PIPELINES": {CacOutcomeOpensearchPipeline: 100},
-            "CONCURRENT_ITEMS": 10,
-            "OPENSEARCH": {
-                "INDEX": "outcomes-raw-20250624",
-                "MAPPING_PATH": "./pipeline/index_mappings/outcomes_raw.json",
-            },
-        }
-    )
-    process.crawl(AllOutcomesSpider)
-    process.start()
-
-
-if __name__ == "__main__":
-    scrape()
