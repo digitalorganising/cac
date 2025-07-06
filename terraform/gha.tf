@@ -70,7 +70,7 @@ data "aws_iam_policy_document" "lambda_update" {
     actions = [
       "lambda:UpdateFunctionCode"
     ]
-    resources = [aws_lambda_function.scraper.arn]
+    resources = [module.scraper.function.arn]
   }
 }
 

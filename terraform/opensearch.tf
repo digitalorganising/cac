@@ -115,20 +115,26 @@ resource "opensearch_roles_mapping" "cac_webapp_vercel" {
   ]
 }
 
-locals {
-  pipeline_role_mappings = {
-    scraper   = opensearch_role.ingest_writer.role_name
-    augmenter = opensearch_role.augmented_writer.role_name
-    indexer   = opensearch_role.indexed_writer.role_name
-    merger    = opensearch_role.merged_writer.role_name
-  }
+resource "opensearch_roles_mapping" "scraper" {
+  role_name   = opensearch_role.ingest_writer.role_name
+  description = "Mapping Scraper role to OpenSearch role"
+  backend_roles = [
+    module.scraper.role.arn
+  ]
 }
 
-resource "opensearch_roles_mapping" "pipeline_role_mappings" {
-  for_each    = local.pipeline_role_mappings
-  role_name   = each.value
-  description = "Mapping ${each.key} pipeline role to OpenSearch role"
+resource "opensearch_roles_mapping" "augmenter" {
+  role_name   = opensearch_role.augmented_writer.role_name
+  description = "Mapping Augmenter role to OpenSearch role"
   backend_roles = [
-    aws_iam_role.pipeline_role[each.key].arn
+    module.augmenter.role.arn
+  ]
+}
+
+resource "opensearch_roles_mapping" "indexer" {
+  role_name   = opensearch_role.indexed_writer.role_name
+  description = "Mapping Indexer role to OpenSearch role"
+  backend_roles = [
+    module.indexer.role.arn
   ]
 }

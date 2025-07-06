@@ -84,8 +84,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Update Lambda
+      - name: Update Lambdas
         run: |
-          aws lambda update-function-code \
-            --function-name pipeline-scraper \
-            --image-uri ${{ steps.login-ecr.outputs.registry }}/cac-pipeline:latest
+          for lambda in pipeline-scraper pipeline-augmenter pipeline-indexer; do
+            aws lambda update-function-code \
+              --function-name $lambda \
+              --image-uri ${{ steps.login-ecr.outputs.registry }}/cac-pipeline:latest
+          done

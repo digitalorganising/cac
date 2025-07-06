@@ -1,34 +1,3 @@
-locals {
-  pipeline_roles = ["scraper", "augmenter", "indexer", "merger"]
-}
-
-resource "aws_iam_role" "pipeline_role" {
-  for_each           = toset(local.pipeline_roles)
-  name               = "pipeline-${each.value}"
-  assume_role_policy = data.aws_iam_policy_document.pipeline_role_trust_policy.json
-}
-
-data "aws_iam_policy_document" "pipeline_role_trust_policy" {
-  statement {
-    effect = "Allow"
-    principals {
-      type = "AWS"
-      identifiers = [
-        "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-      ]
-    }
-    actions = ["sts:AssumeRole"]
-  }
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-    actions = ["sts:AssumeRole"]
-  }
-}
-
 resource "aws_ecr_repository" "pipeline" {
   name = "cac-pipeline"
 }
@@ -53,14 +22,40 @@ resource "aws_ecr_lifecycle_policy" "pipeline" {
   })
 }
 
-resource "aws_lambda_function" "scraper" {
-  function_name = "pipeline-scraper"
-  role          = aws_iam_role.pipeline_role["scraper"].arn
+module "scraper" {
+  source        = "./modules/lambda"
+  name          = "pipeline-scraper"
+  image_uri     = "${aws_ecr_repository.pipeline.repository_url}:latest"
+  image_command = ["lambdas.scraper.handler"]
   timeout       = 60 * 15
+  memory_size   = 512
+  environment = {
+    OPENSEARCH_ENDPOINT = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
+  }
+}
 
-  package_type = "Image"
-  image_uri    = "${aws_ecr_repository.pipeline.repository_url}:latest"
-  image_config {
-    command = ["lambdas.scraper.handler"]
+
+module "augmenter" {
+  source        = "./modules/lambda"
+  name          = "pipeline-augmenter"
+  image_uri     = "${aws_ecr_repository.pipeline.repository_url}:latest"
+  image_command = ["lambdas.augmenter.handler"]
+  timeout       = 60 * 15
+  memory_size   = 512
+  environment = {
+    OPENSEARCH_ENDPOINT = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
+  }
+}
+
+
+module "indexer" {
+  source        = "./modules/lambda"
+  name          = "pipeline-indexer"
+  image_uri     = "${aws_ecr_repository.pipeline.repository_url}:latest"
+  image_command = ["lambdas.indexer.handler"]
+  timeout       = 60 * 15
+  memory_size   = 512
+  environment = {
+    OPENSEARCH_ENDPOINT = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
   }
 }
