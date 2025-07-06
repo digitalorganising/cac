@@ -1,0 +1,87 @@
+name: Run tests and build images
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "pipeline/**"
+
+jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./pipeline
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          working-directory: ./pipeline
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: pipeline/pyproject.toml
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Build BAML client
+        run: |
+          uv run baml-cli generate
+
+      - name: Run tests
+        run: |
+          uv run pytest -v -k "not llm_extractors"
+
+  build-lambda:
+    name: Build and push pipeline image
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push pipeline image
+        id: build-push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./pipeline
+          file: ./pipeline/lambda.Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/pipeline:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/pipeline:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ghcr.io/${{ github.repository }}/pipeline
+          subject-digest: ${{ steps.build-push.outputs.digest }}
+          push-to-registry: true
