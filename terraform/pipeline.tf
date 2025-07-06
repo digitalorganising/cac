@@ -56,7 +56,7 @@ resource "aws_ecr_lifecycle_policy" "pipeline" {
 resource "aws_lambda_function" "scraper" {
   function_name = "pipeline-scraper"
   role          = aws_iam_role.pipeline_role["scraper"].arn
-  timeout       = 60 * 5
+  timeout       = 60 * 15
 
   package_type = "Image"
   image_uri    = "${aws_ecr_repository.pipeline.repository_url}:latest"
