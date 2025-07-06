@@ -21,13 +21,21 @@ RUN --mount=from=uv,source=/uv,target=/bin/uv \
     --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --no-dev --locked --no-install-project && \
     uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt && \
     uv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
+
+# Generate BAML client
+RUN --mount=from=uv,source=/uv,target=/bin/uv \
+    --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=baml_src,target=baml_src \
+    uv run baml-cli generate
 
 FROM public.ecr.aws/lambda/python:3.12
 
 # Copy the runtime dependencies from the builder stage.
 COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
+COPY --from=builder ${LAMBDA_TASK_ROOT}/src/baml_client ${LAMBDA_TASK_ROOT}/baml_client
 
 # Copy the application code.
 COPY index_mappings ${LAMBDA_TASK_ROOT}/index_mappings
