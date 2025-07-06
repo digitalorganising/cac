@@ -43,10 +43,6 @@ jobs:
         run: |
           uv run pytest -v -k "not llm_extractors"
 
-      - name: Upload Lambda archive
-        run: |
-          aws s3 cp lambda_package.zip s3://digitalorganising-cac-pipeline/lambda_package.zip
-
   build_and_push:
     name: Build and push container image
     needs: test
