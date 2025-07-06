@@ -12,8 +12,11 @@ on:
 
 jobs:
   test_build_push:
-    name: Run tests
+    name: Run tests and build Lambda archive
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     defaults:
       run:
         working-directory: ./pipeline
@@ -45,8 +48,9 @@ jobs:
 
       - name: Build Lambda archive
         run: |
-          uv export --frozen --no-dev --no-editable -o requirements.txt
+          uv export --quiet --frozen --no-dev --no-editable -o requirements.txt
           uv pip install \
+            --quiet \
             --no-installer-metadata \
             --no-compile-bytecode \
             --python-platform x86_64-manylinux_2_31 \
@@ -55,13 +59,17 @@ jobs:
             -r requirements.txt
 
           cd packages
-          zip -q -r ../package.zip .
+          zip -q -r ../lambda_package.zip .
           cd ..
 
-          zip -q -r package.zip ./src ./lambdas
+          zip -q -r lambda_package.zip ./baml_src ./src ./lambdas
+
+      - name: Authenticate with AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::510900713680:role/github-actions
+          aws-region: eu-west-1cp
 
       - name: Upload Lambda archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: package
-          path: pipeline/package.zip
+        run: |
+          aws s3 sync lambda_package.zip s3://digitalorganising-cac-pipeline/lambda_package.zip

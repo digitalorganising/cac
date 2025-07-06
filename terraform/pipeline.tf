@@ -28,3 +28,14 @@ data "aws_iam_policy_document" "pipeline_role_trust_policy" {
     actions = ["sts:AssumeRole"]
   }
 }
+
+resource "aws_s3_bucket" "pipeline_app" {
+  bucket = "digitalorganising-cac-pipeline"
+}
+
+resource "aws_s3_bucket_versioning" "pipeline_app" {
+  bucket = aws_s3_bucket.pipeline_app.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
