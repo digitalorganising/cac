@@ -64,10 +64,6 @@ module "indexer" {
   }
 }
 
-locals {
-  pipeline_batch_size = 25
-}
-
 module "pipeline_step_function" {
   source  = "terraform-aws-modules/step-functions/aws"
   version = "5.0.1"

@@ -1,5 +1,5 @@
 resource "aws_sqs_queue" "scraped_items" {
-  name                        = "cac-pipeline-scraped-items"
+  name                        = "cac-pipeline-scraped-items.fifo"
   fifo_queue                  = true
   content_based_deduplication = true
 
@@ -10,7 +10,7 @@ resource "aws_sqs_queue" "scraped_items" {
 }
 
 resource "aws_sqs_queue" "scraped_items_dlq" {
-  name                        = "cac-pipeline-scraped-items-dlq"
+  name                        = "cac-pipeline-scraped-items-dlq.fifo"
   fifo_queue                  = true
   content_based_deduplication = true
 }
@@ -18,9 +18,8 @@ resource "aws_sqs_queue" "scraped_items_dlq" {
 resource "aws_sqs_queue_redrive_allow_policy" "scraped_items" {
   queue_url = aws_sqs_queue.scraped_items_dlq.id
   redrive_allow_policy = jsonencode({
-    redriveAllowPolicy = {
-      sourceQueueArns = [aws_sqs_queue.scraped_items.arn]
-    }
+    redrivePermission = "byQueue"
+    sourceQueueArns   = [aws_sqs_queue.scraped_items.arn]
   })
 }
 
@@ -104,13 +103,6 @@ resource "aws_pipes_pipe" "scraped_items" {
   role_arn = aws_iam_role.scraped_items_pipe_role.arn
   source   = aws_sqs_queue.scraped_items.arn
   target   = module.pipeline_step_function.state_machine_arn
-
-  source_parameters {
-    sqs_queue_parameters {
-      batch_size                         = local.pipeline_batch_size
-      maximum_batching_window_in_seconds = 25
-    }
-  }
 
   target_parameters {
     step_function_state_machine_parameters {

@@ -13,7 +13,7 @@ for log_handler in root_logger.handlers:
 
 
 def handler(event, context):
-    index = event.get("index", "outcomes-raw")
+    index_suffix = event.get("indexSuffix")
     process = CrawlerProcess(
         settings={
             "LOG_LEVEL": "INFO",
@@ -24,7 +24,9 @@ def handler(event, context):
             },
             "CONCURRENT_ITEMS": 10,
             "OPENSEARCH": {
-                "INDEX": index,
+                "INDEX": (
+                    f"outcomes-raw-{index_suffix}" if index_suffix else "outcomes-raw"
+                ),
                 "MAPPING_PATH": "./index_mappings/outcomes_raw.json",
             },
             "SQS": {

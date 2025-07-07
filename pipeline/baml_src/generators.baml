@@ -8,5 +8,5 @@ generator target {
     output_type "python/pydantic"
     // Where the generated code will be saved (relative to baml_src/)
     output_dir "../src/"
-    default_client_mode "sync"
+    default_client_mode "async"
 }
