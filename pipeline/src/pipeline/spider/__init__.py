@@ -21,5 +21,21 @@ class QuietDroppedLogFormatter(LogFormatter):
 
 
 class ReferenceSQSPipeline(SQSPipeline):
+    def __init__(self, index, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.index = index
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        settings = crawler.settings.get("SQS")
+        return cls(
+            index=settings.get("INDEX"),
+            queue_url=settings.get("QUEUE_URL"),
+            group_id=settings.get("GROUP_ID"),
+        )
+
     def message(self, item):
-        return {"reference": item["reference"]}
+        return {
+            "_id": item["reference"],
+            "_index": self.index,
+        }

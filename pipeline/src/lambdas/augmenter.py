@@ -1,61 +1,20 @@
 import asyncio
-import os
 
-from pipeline.services.opensearch_utils import (
-    create_client,
-    get_auth,
-    ensure_index_mapping,
-)
 from pipeline.transforms.augmentation import augment_doc
 
-from . import get_index_suffix
-
-
-client = create_client(
-    cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
-    auth=get_auth(),
-    async_client=True,
-)
-
-
-async def get_docs(refs):
-    response = await client.mget(body={"docs": refs})
-    for hit in response["docs"]:
-        if hit["found"]:
-            yield hit["_index"], hit["_source"]
+from . import get_docs
 
 
 async def process_batch(refs):
-    seen_indices = set()
     saved_refs = []
-    async for index, doc in get_docs(refs):
+    async for update_doc, doc in get_docs(
+        refs,
+        destination_index_namespace="outcomes-augmented",
+        destination_index_mapping="./index_mappings/outcomes_augmented.json",
+    ):
         augmented_doc = await augment_doc(doc)
-        if index not in seen_indices:
-            await ensure_index_mapping(
-                client, index, "./index_mappings/outcomes_augmented.json"
-            )
-            seen_indices.add(index)
-        save_index_suffix = get_index_suffix(index)
-        save_index = (
-            f"outcomes-augmented-{save_index_suffix}"
-            if save_index_suffix
-            else "outcomes-augmented"
-        )
-        res = await client.update(
-            index=save_index,
-            id=doc["reference"],
-            body={
-                "doc": augmented_doc,
-                "doc_as_upsert": True,
-            },
-            retry_on_conflict=3,
-        )
-        saved_refs.append(
-            {
-                "_id": res["_id"],
-                "_index": res["_index"],
-            }
-        )
+        saved_ref = await update_doc(augmented_doc)
+        saved_refs.append(saved_ref)
     return saved_refs
 
 

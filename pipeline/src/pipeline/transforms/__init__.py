@@ -140,3 +140,51 @@ def flatten_facets(facets):
             flat[k] = flatten(v)
 
     return flat
+
+
+def transform_for_index(outcome):
+    parties = get_parties(outcome)
+    events = events_from_outcome(outcome)
+    key_dates = get_key_dates(events)
+    bu = get_bargaining_unit(outcome)
+    ballot = get_ballot_result(outcome)
+    state = events.labelled_state()
+    events_json = events.dump_events()
+    json_state = {"value": state.value, "label": state.label}
+
+    return {
+        "id": outcome["reference"],
+        "documents": outcome["documents"],
+        "display": {
+            "title": outcome["outcome_title"],
+            "reference": outcome["reference"],
+            "cacUrl": outcome["outcome_url"],
+            "lastUpdated": outcome["last_updated"],
+            "state": json_state,
+            "parties": parties,
+            "bargainingUnit": bu,
+            "ballot": ballot,
+            "events": events_json,
+            "keyDates": key_dates,
+        },
+        "filter": {
+            "lastUpdated": outcome["last_updated"],
+            "reference": outcome["reference"],
+            "state": state.value,
+            "parties.unions": parties["unions"],
+            "parties.employer": parties["employer"],
+            "bargainingUnit.size": bu["size"] if bu else None,
+            "events.type": [e["type"]["value"] for e in events_json],
+            "events.date": [e["date"] for e in events_json],
+            "keyDates.applicationReceived": key_dates["applicationReceived"],
+            "keyDates.outcomeConcluded": key_dates["outcomeConcluded"],
+        },
+        "facet": flatten_facets(
+            {
+                "state": json_state,
+                "parties.unions": parties["unions"],
+                "events.type": [e["type"] for e in events_json],
+            }
+        )
+        | {"bargainingUnit.size": bu["size"] if bu else None},
+    }

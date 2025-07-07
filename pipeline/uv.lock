@@ -632,7 +632,6 @@ source = { editable = "." }
 dependencies = [
     { name = "baml-py" },
     { name = "boto3" },
-    { name = "bytewax" },
     { name = "httpx" },
     { name = "markdownify" },
     { name = "opensearch-py", extra = ["async"] },
@@ -648,6 +647,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "bytewax" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
@@ -658,7 +658,6 @@ dev = [
 requires-dist = [
     { name = "baml-py", specifier = ">=0.90.1,<0.91" },
     { name = "boto3", specifier = ">=1.38.18,<2" },
-    { name = "bytewax", specifier = ">=0.21.1,<0.22" },
     { name = "httpx", specifier = ">=0.27.0,<0.28" },
     { name = "markdownify", specifier = ">=1.1.0,<2" },
     { name = "opensearch-py", extras = ["async"], specifier = ">=2.6.0,<3" },
@@ -674,6 +673,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "bytewax", specifier = ">=0.21.1,<0.22" },
     { name = "pre-commit", specifier = ">=3.8.0,<4" },
     { name = "pytest", specifier = ">=8.3.1,<9" },
     { name = "pytest-asyncio", specifier = ">=0.23.7,<0.24" },
