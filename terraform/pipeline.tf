@@ -22,6 +22,10 @@ resource "aws_ecr_lifecycle_policy" "pipeline" {
   })
 }
 
+locals {
+  opensearch_endpoint = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
+}
+
 module "scraper" {
   source        = "./modules/lambda"
   name          = "pipeline-scraper"
@@ -30,10 +34,10 @@ module "scraper" {
   timeout       = 60 * 15
   memory_size   = 512
   environment = {
-    OPENSEARCH_ENDPOINT = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
+    OPENSEARCH_ENDPOINT = local.opensearch_endpoint
+    SQS_QUEUE_URL       = aws_sqs_queue.scraped_items.id
   }
 }
-
 
 module "augmenter" {
   source        = "./modules/lambda"
@@ -43,7 +47,7 @@ module "augmenter" {
   timeout       = 60 * 15
   memory_size   = 512
   environment = {
-    OPENSEARCH_ENDPOINT = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
+    OPENSEARCH_ENDPOINT = local.opensearch_endpoint
   }
 }
 
@@ -56,11 +60,15 @@ module "indexer" {
   timeout       = 60 * 15
   memory_size   = 512
   environment = {
-    OPENSEARCH_ENDPOINT = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
+    OPENSEARCH_ENDPOINT = local.opensearch_endpoint
   }
 }
 
-module "step-functions" {
+locals {
+  pipeline_batch_size = 25
+}
+
+module "pipeline_step_function" {
   source  = "terraform-aws-modules/step-functions/aws"
   version = "5.0.1"
 
@@ -69,7 +77,6 @@ module "step-functions" {
   service_integrations = {
     lambda = {
       lambda = [
-        module.scraper.function.arn,
         module.augmenter.function.arn,
         module.indexer.function.arn
       ]

@@ -2,6 +2,7 @@ import logging
 import os
 from scrapy.exceptions import DropItem
 from scrapy.logformatter import LogFormatter
+from ..services.sqs_pipeline import SQSPipeline
 
 
 class QuietDroppedLogFormatter(LogFormatter):
@@ -17,3 +18,8 @@ class QuietDroppedLogFormatter(LogFormatter):
             }
         else:
             return super().dropped(item, exception, response, spider)
+
+
+class ReferenceSQSPipeline(SQSPipeline):
+    def message(self, item):
+        return {"reference": item["reference"]}
