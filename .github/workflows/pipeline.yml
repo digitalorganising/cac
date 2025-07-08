@@ -97,7 +97,9 @@ jobs:
 
       - name: Install the project
         working-directory: ./pipeline
-        run: uv sync --locked --dev
+        run: |
+          uv sync --locked --dev
+          uv run baml-cli generate
 
       - name: Bootstrap localstack
         run: |
