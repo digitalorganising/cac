@@ -1,4 +1,4 @@
-name: Run tests and build images
+name: "Pipeline: run tests and build images"
 
 on:
   push:
@@ -39,12 +39,12 @@ jobs:
         run: |
           uv run baml-cli generate
 
-      - name: Run tests
+      - name: Run unit and integration tests
         run: |
-          uv run pytest -v -k "not llm_extractors"
+          uv run pytest -v test/unit_integration
 
-  build_and_push:
-    name: Build and push container image
+  build:
+    name: Build container image
     needs: test
     runs-on: ubuntu-latest
     permissions:
