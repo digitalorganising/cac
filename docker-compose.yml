@@ -8,7 +8,7 @@ services:
       - "9000:8080"
     environment:
       - OPENSEARCH_ENDPOINT=http://opensearch:9200
-      - SQS_QUEUE_URL=http://localstack:4566/000000000000/cac-pipeline-scraped-items.fifo
+      - SQS_QUEUE_URL=http://localstack:4566/000000000000/test-queue
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=eu-west-1
