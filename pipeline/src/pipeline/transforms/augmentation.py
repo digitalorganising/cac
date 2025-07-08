@@ -1,4 +1,5 @@
 import asyncio
+import os
 from baml_client import b
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 from .document_classifier import (
@@ -43,6 +44,10 @@ async def get_extracted_data(doc_type_string, content):
             return {"decision_date": extract_date(content)}
         case DocumentType.nullification_decision:
             return None
+
+
+if os.getenv("MOCK_LLM"):
+    from .mock_augmentation import get_extracted_data
 
 
 async def augment_doc(doc):

@@ -19,6 +19,7 @@ dependencies = [
     "pydantic>=2.11.7,<3",
     "httpx>=0.27.0,<0.28",
     "crochet>=2.1.1",
+    "polyfactory>=2.22.0",
 ]
 
 [dependency-groups]

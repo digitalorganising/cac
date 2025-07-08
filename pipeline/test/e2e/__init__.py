@@ -1,8 +1,10 @@
 import random
 import string
 import httpx
+from typing import Optional
 from contextlib import asynccontextmanager
 from opensearchpy import AsyncOpenSearch
+
 
 lambda_ports = {
     "scraper": 9000,
@@ -38,32 +40,24 @@ async def index_populated(index_name) -> bool:
     exists = await opensearch_client.indices.exists(index=index_name)
     if not exists:
         return False
+    await opensearch_client.indices.refresh(index=index_name)
     count_response = await opensearch_client.count(index=index_name)
     return count_response["count"] > 0
 
 
 @asynccontextmanager
-async def with_index(namespace: str):
-    """
-    Context manager that provides an index namespace with a random suffix.
+async def index_for_test(
+    namespace: str, *, suffix: Optional[str] = None, no_suffix: bool = False
+):
+    if not suffix:
+        suffix = random_string()
+    index_name = f"{namespace}-{suffix}"
 
-    Args:
-        namespace: The base namespace for the index
-
-    Yields:
-        str: The full index name with random suffix
-
-    Example:
-        async with index_namespace("outcomes-raw") as index_name:
-            # Use index_name for testing
-            pass
-        # Index is automatically deleted after the context exits
-    """
-    index_suffix = random_string()
-    index_name = f"{namespace}-{index_suffix}"
+    if no_suffix:
+        index_name = namespace
 
     try:
-        yield index_name, index_suffix
+        yield index_name, suffix
     finally:
         # Clean up: delete the index if it exists
         try:

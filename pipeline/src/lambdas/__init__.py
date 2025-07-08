@@ -1,4 +1,5 @@
 import os
+from pydantic import BaseModel, Field
 
 from pipeline.services.opensearch_utils import (
     create_client,
@@ -23,43 +24,52 @@ def get_index_suffix(index_name):
     return parts[-1] if len(parts) > 1 else None
 
 
+class DocumentRef(BaseModel):
+    id: str = Field(alias="_id")
+    index: str = Field(alias="_index")
+
+
+class RefsEvent(BaseModel):
+    refs: list[DocumentRef]
+
+
 async def get_docs(refs, *, destination_index_namespace, destination_index_mapping):
-    response = await client.mget(body={"docs": refs})
+    response = await client.mget(
+        body={"docs": [ref.model_dump(by_alias=True) for ref in refs]}
+    )
     seen_indices = set()
-    try:
-        for hit in response["docs"]:
-            if hit["found"]:
-                index = hit["_index"]
-                original_doc = hit["_source"]
-                id = hit["_id"]
-                index_suffix = get_index_suffix(index)
+    for hit in response["docs"]:
+        if hit["found"]:
+            index = hit["_index"]
+            original_doc = hit["_source"]
+            id = hit["_id"]
+            index_suffix = get_index_suffix(index)
 
-                dest_index = (
-                    f"{destination_index_namespace}-{index_suffix}"
-                    if index_suffix
-                    else destination_index_namespace
+            dest_index = (
+                f"{destination_index_namespace}-{index_suffix}"
+                if index_suffix
+                else destination_index_namespace
+            )
+            if dest_index not in seen_indices:
+                await ensure_index_mapping(
+                    client, dest_index, destination_index_mapping
                 )
-                if dest_index not in seen_indices:
-                    await ensure_index_mapping(
-                        client, dest_index, destination_index_mapping
-                    )
-                    seen_indices.add(dest_index)
+                seen_indices.add(dest_index)
 
-                async def update_doc(updated_doc):
-                    res = await client.update(
-                        index=dest_index,
-                        id=id,
-                        body={
-                            "doc": updated_doc,
-                            "doc_as_upsert": True,
-                        },
-                        retry_on_conflict=3,
-                    )
-                    return {
-                        "_id": res["_id"],
-                        "_index": res["_index"],
-                    }
+            async def update_doc(updated_doc):
+                res = await client.update(
+                    index=dest_index,
+                    id=id,
+                    body={
+                        "doc": updated_doc,
+                        "doc_as_upsert": True,
+                    },
+                    retry_on_conflict=3,
+                )
+                print(res)
+                return DocumentRef(
+                    _id=res["_id"],
+                    _index=res["_index"],
+                )
 
-                yield update_doc, original_doc
-    finally:
-        await client.close()
+            yield update_doc, original_doc

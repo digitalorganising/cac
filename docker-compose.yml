@@ -25,6 +25,8 @@ services:
   augmenter:
     extends: scraper
     command: "lambdas.augmenter.handler"
+    environment:
+      - MOCK_LLM=true
     ports: !override
       - "9001:8080"
 

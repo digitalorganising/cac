@@ -4,7 +4,7 @@ from opensearchpy import helpers
 from pipeline.transforms.augmentation import augment_doc
 from pipeline.transforms.withdrawals import merge_withdrawal
 
-from . import get_docs, client
+from . import get_docs, client, RefsEvent
 
 
 # Small enough that I don't mind storing this in memory
@@ -19,10 +19,14 @@ async def get_withdrawals(withdrawals_index):
     return w
 
 
-withdrawals = asyncio.run(get_withdrawals("application-withdrawals"))
+withdrawals = None
 
 
 async def process_batch(refs):
+    global withdrawals
+    if withdrawals is None:
+        withdrawals = await get_withdrawals("application-withdrawals")
+
     saved_refs = []
     async for update_doc, doc in get_docs(
         refs,
@@ -34,10 +38,13 @@ async def process_batch(refs):
             withdrawal = withdrawals[augmented_doc["reference"]]
             augmented_doc = merge_withdrawal(withdrawal, augmented_doc)
         saved_ref = await update_doc(augmented_doc)
-        saved_refs.append(saved_ref)
+        saved_refs.append(saved_ref.model_dump(by_alias=True))
     return saved_refs
 
 
-# Event is an array of { "_id": str, "_index": str }
 def handler(event, context):
-    return asyncio.run(process_batch(event))
+    augmenter_event = RefsEvent.model_validate(event)
+    loop = asyncio.get_event_loop()
+    if loop.is_closed():  # I don't know why
+        loop = asyncio.new_event_loop()
+    return loop.run_until_complete(process_batch(augmenter_event.refs))
