@@ -57,7 +57,7 @@ resource "opensearch_role" "ingest_writer" {
   description = "Write to 'raw' indices"
 
   index_permissions {
-    index_patterns  = ["*raw"]
+    index_patterns  = ["outcomes-raw*"]
     allowed_actions = ["write"]
   }
 }
@@ -67,42 +67,27 @@ resource "opensearch_role" "augmented_writer" {
   description = "Read from 'raw' and write to 'augmented' indices"
 
   index_permissions {
-    index_patterns  = ["*raw"]
+    index_patterns  = ["outcomes-raw*"]
     allowed_actions = ["read"]
   }
 
   index_permissions {
-    index_patterns  = ["*augmented"]
-    allowed_actions = ["write"]
-  }
-}
-
-resource "opensearch_role" "merged_writer" {
-  role_name   = "merged_writer"
-  description = "Read from 'augmented' and write to 'merged' indices"
-
-  index_permissions {
-    index_patterns  = ["*augmented"]
-    allowed_actions = ["read"]
-  }
-
-  index_permissions {
-    index_patterns  = ["*merged"]
+    index_patterns  = ["outcomes-augmented*"]
     allowed_actions = ["write"]
   }
 }
 
 resource "opensearch_role" "indexed_writer" {
   role_name   = "indexed_writer"
-  description = "Read from 'merged' and write to 'indexed' indices"
+  description = "Read from 'augmented' and write to 'indexed' indices"
 
   index_permissions {
-    index_patterns  = ["*merged"]
+    index_patterns  = ["outcomes-augmented*"]
     allowed_actions = ["read"]
   }
 
   index_permissions {
-    index_patterns  = ["*indexed"]
+    index_patterns  = ["outcomes-indexed*"]
     allowed_actions = ["write"]
   }
 }

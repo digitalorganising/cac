@@ -1,15 +1,19 @@
 import argparse
+import asyncio
+import csv
 import os
 from tempfile import NamedTemporaryFile
 
-import bytewax.operators as op
-from bytewax.connectors.files import CSVSource
-from bytewax.dataflow import Dataflow
-from bytewax.testing import run_main
-
+from opensearchpy import helpers
+from tqdm.asyncio import tqdm
 from xlsx2csv import Xlsx2csv
 
-from services.opensearch_connectors import OpensearchSink
+from pipeline.services.opensearch_utils import (
+    create_client,
+    get_auth,
+    ensure_index_mapping,
+)
+from pipeline.transforms import normalize_reference
 
 parser = argparse.ArgumentParser(
     description="Index application withdrawals from a spreadsheet"
@@ -17,36 +21,60 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--infile", type=str, help="Path to the spreadsheet file", required=True
 )
+parser.add_argument(
+    "--index", type=str, help="OpenSearch index to write to", required=True
+)
 args = parser.parse_args()
 
 
-class WithdrawalSink(OpensearchSink):
-    def id(self, item):
-        return item["Case Number"]
-
-    def doc(self, item):
-        return {
-            "reference": item["Case Number"],
-            "union": item["Trade Union Name"],
-            "employer": item["Employer Name"],
-            "application_received": item["Date Application Received"],
-            "application_withdrawn": item["Date Application Withdrawn"],
+def withdrawals_to_actions(withdrawals, index):
+    for withdrawal in withdrawals:
+        if not withdrawal["Case Number"]:
+            continue
+        reference = normalize_reference(withdrawal["Case Number"])
+        yield {
+            "_id": reference,
+            "_index": index,
+            "_op_type": "update",
+            "doc_as_upsert": True,
+            "doc": {
+                "reference": reference,
+                "union": withdrawal["Trade Union Name"],
+                "employer": withdrawal["Employer Name"],
+                "application_received": withdrawal["Date Application Received"],
+                "application_withdrawn": withdrawal["Date Application Withdrawn"],
+            },
         }
 
 
-opensearch_sink = WithdrawalSink(
+client = create_client(
     cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
-    index="application-withdrawals-raw",
-    mapping_path="pipeline/index_mappings/application_withdrawals.json",
+    auth=get_auth(),
+    async_client=True,
 )
 
-flow = Dataflow("index_withdrawals_spreadsheet")
 
-with NamedTemporaryFile(suffix=".csv", delete_on_close=False) as temp_file:
-    Xlsx2csv(args.infile, outputencoding="utf-8").convert(temp_file.name)
-    withdrawals_source = CSVSource(temp_file.name)
+async def index_withdrawals(infile, index):
+    await ensure_index_mapping(
+        client, index, "./index_mappings/application_withdrawals.json"
+    )
 
-    stream = op.input("withdrawals", flow, withdrawals_source)
-    non_empty = op.filter("non_empty", stream, lambda x: bool(x["Case Number"]))
-    op.output("index", non_empty, opensearch_sink)
-    run_main(flow)
+    with NamedTemporaryFile(
+        suffix=".csv", mode="w+t", encoding="utf-8", delete_on_close=False
+    ) as temp_file:
+        Xlsx2csv(infile, outputencoding="utf-8").convert(temp_file.name)
+        withdrawals = csv.DictReader(temp_file)
+        index_actions = withdrawals_to_actions(withdrawals, index)
+        async for _ in tqdm(
+            helpers.async_streaming_bulk(
+                client,
+                index_actions,
+            )
+        ):
+            pass
+
+    await client.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(index_withdrawals(args.infile, args.index))

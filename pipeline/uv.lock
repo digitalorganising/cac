@@ -163,23 +163,6 @@ wheels = [
 ]
 
 [[package]]
-name = "bytewax"
-version = "0.21.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "prometheus-client" },
-    { name = "typing-extensions" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/41/eb/ee253e60ab676e2a70aa306cffee67d6a6a40993c8467d3b83ea8bb91e99/bytewax-0.21.1-cp312-cp312-macosx_10_12_x86_64.whl", hash = "sha256:62f5edef91908e555b70f3794271cd29ff29132a63b0b5cd367c5f53695a3c14", size = 6140409, upload-time = "2024-11-25T20:09:56.772Z" },
-    { url = "https://files.pythonhosted.org/packages/38/ef/4dd07083f32f9b019101837a10dc97806fbe3455c70f8cd976eb987dedab/bytewax-0.21.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:e3ab20069f323ffe508249d72c8c708cac05fddea11b74943103c623676785b6", size = 6041464, upload-time = "2024-11-25T20:09:58.244Z" },
-    { url = "https://files.pythonhosted.org/packages/20/1c/41b84d0de3949d75dd52b4b04341bed1c72250c4c1e017b527d7f7570f0b/bytewax-0.21.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ed8da9bfceb3299df8cf4e8e7efbbda924dbbfea990dff50c8602a059dc8b9cf", size = 7953966, upload-time = "2024-11-25T20:09:59.709Z" },
-    { url = "https://files.pythonhosted.org/packages/87/f2/57829eea0d188bd1d54e2555a11ecfd3589ec66d710c8163fb7010a0c82e/bytewax-0.21.1-cp312-cp312-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:ba078e8bc7c6f1e7d7c99c4c07433977717b949112fc53377a0b0f3289398072", size = 7681915, upload-time = "2024-11-25T20:10:01.819Z" },
-    { url = "https://files.pythonhosted.org/packages/1f/66/47d1dbdd2a035074b2be3eac983d15742cc2749fee24aa3cc0c505277622/bytewax-0.21.1-cp312-cp312-manylinux_2_31_x86_64.whl", hash = "sha256:a118a61a5fc5a1849605e062f80e897922dbdadd37790cf8379e8f1e000d463c", size = 7983932, upload-time = "2024-11-25T20:10:03.284Z" },
-    { url = "https://files.pythonhosted.org/packages/de/bc/82686047e63fa709dc084399230c430c4fd2f2f2de3cf8be8d339ebd3f21/bytewax-0.21.1-cp312-none-win_amd64.whl", hash = "sha256:9b3c44984fe76da1fbac941392103610f884523a733a43fcd74543927c179854", size = 5183365, upload-time = "2024-11-25T20:10:04.676Z" },
-]
-
-[[package]]
 name = "certifi"
 version = "2025.4.26"
 source = { registry = "https://pypi.org/simple" }
@@ -647,10 +630,10 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "bytewax" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "tqdm" },
     { name = "xlsx2csv" },
 ]
 
@@ -673,10 +656,10 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "bytewax", specifier = ">=0.21.1,<0.22" },
     { name = "pre-commit", specifier = ">=3.8.0,<4" },
     { name = "pytest", specifier = ">=8.3.1,<9" },
     { name = "pytest-asyncio", specifier = ">=0.23.7,<0.24" },
+    { name = "tqdm", specifier = ">=4.67.1" },
     { name = "xlsx2csv", specifier = ">=0.8.4,<0.9" },
 ]
 
@@ -726,15 +709,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/64/10/97ee2fa54dff1e9da9badbc5e35d0bbaef0776271ea5907eccf64140f72f/pre_commit-3.8.0.tar.gz", hash = "sha256:8bb6494d4a20423842e198980c9ecf9f96607a07ea29549e180eef9ae80fe7af", size = 177815, upload-time = "2024-07-28T19:59:01.538Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/07/92/caae8c86e94681b42c246f0bca35c059a2f0529e5b92619f6aba4cf7e7b6/pre_commit-3.8.0-py2.py3-none-any.whl", hash = "sha256:9a90a53bf82fdd8778d58085faf8d83df56e40dfe18f45b19446e26bf1b3a63f", size = 204643, upload-time = "2024-07-28T19:58:59.335Z" },
-]
-
-[[package]]
-name = "prometheus-client"
-version = "0.21.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/62/14/7d0f567991f3a9af8d1cd4f619040c93b68f09a02b6d0b6ab1b2d1ded5fe/prometheus_client-0.21.1.tar.gz", hash = "sha256:252505a722ac04b0456be05c05f75f45d760c2911ffc45f2a06bcaed9f3ae3fb", size = 78551, upload-time = "2024-12-03T14:59:12.164Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ff/c2/ab7d37426c179ceb9aeb109a85cda8948bb269b7561a0be870cc656eefe4/prometheus_client-0.21.1-py3-none-any.whl", hash = "sha256:594b45c410d6f4f8888940fe80b5cc2521b305a1fafe1c58609ef715a001f301", size = 54682, upload-time = "2024-12-03T14:59:10.935Z" },
 ]
 
 [[package]]
@@ -1133,6 +1107,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/97/78/182641ea38e3cfd56e9c7b3c0d48a53d432eea755003aa544af96403d4ac/tldextract-5.3.0.tar.gz", hash = "sha256:b3d2b70a1594a0ecfa6967d57251527d58e00bb5a91a74387baa0d87a0678609", size = 128502, upload-time = "2025-04-22T06:19:37.491Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/67/7c/ea488ef48f2f544566947ced88541bc45fae9e0e422b2edbf165ee07da99/tldextract-5.3.0-py3-none-any.whl", hash = "sha256:f70f31d10b55c83993f55e91ecb7c5d84532a8972f22ec578ecfbe5ea2292db2", size = 107384, upload-time = "2025-04-22T06:19:36.304Z" },
+]
+
+[[package]]
+name = "tqdm"
+version = "4.67.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a8/4b/29b4ef32e036bb34e4ab51796dd745cdba7ed47ad142a9f4a1eb8e0c744d/tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2", size = 169737, upload-time = "2024-11-24T20:12:22.481Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl", hash = "sha256:26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2", size = 78540, upload-time = "2024-11-24T20:12:19.698Z" },
 ]
 
 [[package]]

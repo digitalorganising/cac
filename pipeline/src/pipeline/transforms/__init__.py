@@ -8,8 +8,8 @@ from .events import EventsBuilder, EventType, OutcomeState, events_from_outcome
 from .known_bad_data import override_reference
 
 
-def outcome_reference_key(d):
-    reference = override_reference(d["reference"])
+def normalize_reference(raw_reference):
+    reference = override_reference(raw_reference)
     # Extract the number after TUR1/ and everything after it
     match = re.search(r"TUR1\/(\d+)(.+)", reference)
     if match:

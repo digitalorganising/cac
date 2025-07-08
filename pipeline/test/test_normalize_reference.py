@@ -1,8 +1,8 @@
-from pipeline.transforms import outcome_reference_key
+from pipeline.transforms import normalize_reference
 
 
-def test_outcome_reference_key_different_years():
-    """Test outcome_reference_key with different years"""
+def test_normalize_reference_different_years():
+    """Test normalize_reference with different years"""
     test_cases = [
         ("TUR1/123(2017)", "TUR1/0123(2017)"),
         ("TUR1/0123(2017)", "TUR1/0123(2017)"),
@@ -16,8 +16,7 @@ def test_outcome_reference_key_different_years():
     ]
 
     for input_ref, expected in test_cases:
-        doc = {"reference": input_ref}
-        result = outcome_reference_key(doc)
+        result = normalize_reference(input_ref)
         assert (
             result == expected
         ), f"Failed for {input_ref}: expected {expected}, got {result}"

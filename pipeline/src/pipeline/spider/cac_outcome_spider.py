@@ -15,6 +15,7 @@ from ..transforms.document_classifier import (
     get_document_type,
     should_get_content,
 )
+from ..transforms import normalize_reference
 from ..services.opensearch_pipeline import OpensearchPipeline
 from ..services.fnv import fnv1a_64
 
@@ -93,6 +94,8 @@ class CacOutcomeSpider(scrapy.Spider, ABC):
             reference = response.url
         else:
             reference = reference.replace(" ", "")
+
+        reference = normalize_reference(reference)
 
         for document in response.css("section#documents > section"):
             decision_link = document.css("h3 a")
