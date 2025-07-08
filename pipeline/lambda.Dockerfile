@@ -35,7 +35,6 @@ FROM public.ecr.aws/lambda/python:3.12
 
 # Copy the runtime dependencies from the builder stage.
 COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
-COPY --from=builder ${LAMBDA_TASK_ROOT}/src/baml_client ${LAMBDA_TASK_ROOT}/baml_client
 
 # Copy the application code.
 COPY index_mappings ${LAMBDA_TASK_ROOT}/index_mappings

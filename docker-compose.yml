@@ -1,6 +1,50 @@
 services:
+  scraper:
+    build:
+      context: ./pipeline
+      dockerfile: lambda.Dockerfile
+    command: "lambdas.scraper.handler"
+    ports:
+      - "9000:8080"
+    environment:
+      - OPENSEARCH_ENDPOINT=http://opensearch:9200
+      - SQS_QUEUE_URL=http://localstack:4566/000000000000/cac-pipeline-scraped-items.fifo
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=eu-west-1
+      - AWS_ENDPOINT_URL=http://localstack:4566
+    volumes:
+      - ./pipeline/index_mappings:/var/task/index_mappings
+      - ./pipeline/src/lambdas:/var/task/lambdas
+      - ./pipeline/src/pipeline:/var/task/pipeline
+      - ./pipeline/src/baml_client:/var/task/baml_client
+    networks:
+      - opensearch-net
+      - localstack-net
+
+  augmenter:
+    extends: scraper
+    command: "lambdas.augmenter.handler"
+    ports: !override
+      - "9001:8080"
+
+  indexer:
+    extends: scraper
+    command: "lambdas.indexer.handler"
+    ports: !override
+      - "9002:8080"
+
+  localstack:
+    image: localstack/localstack
+    ports:
+      - "4566:4566" # LocalStack Gateway
+    environment:
+      - SERVICES=sqs,s3,sts
+    networks:
+      - localstack-net
+
   opensearch:
-    image: opensearchproject/opensearch:2.15.0
+    image: opensearchproject/opensearch:2.19.2
     container_name: opensearch
     environment:
       - discovery.type=single-node
@@ -40,3 +84,4 @@ volumes:
 
 networks:
   opensearch-net:
+  localstack-net:

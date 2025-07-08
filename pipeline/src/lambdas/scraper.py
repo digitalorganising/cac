@@ -1,5 +1,7 @@
 import os
 import logging
+from typing import Optional
+from pydantic import BaseModel
 from scrapy.crawler import CrawlerProcess
 
 from pipeline.spider import QuietDroppedLogFormatter, ReferenceSQSPipeline
@@ -12,8 +14,14 @@ for log_handler in root_logger.handlers:
     root_logger.removeHandler(log_handler)
 
 
+class ScraperEvent(BaseModel):
+    indexSuffix: Optional[str] = None
+    limitItems: Optional[int] = None
+
+
 def handler(event, context):
-    index_suffix = event.get("indexSuffix")
+    scraper_event = ScraperEvent.model_validate(event)
+    index_suffix = scraper_event.indexSuffix
     index = f"outcomes-raw-{index_suffix}" if index_suffix else "outcomes-raw"
     process = CrawlerProcess(
         settings={
@@ -23,7 +31,7 @@ def handler(event, context):
                 CacOutcomeOpensearchPipeline: 100,
                 ReferenceSQSPipeline: 200,
             },
-            "CONCURRENT_ITEMS": 10,
+            "CONCURRENT_ITEMS": 5,
             "OPENSEARCH": {
                 "INDEX": index,
                 "MAPPING_PATH": "./index_mappings/outcomes_raw.json",
@@ -33,6 +41,10 @@ def handler(event, context):
                 "GROUP_ID": "crawled-outcomes",
                 "INDEX": index,
             },
+            "EXTENSIONS": {
+                "scrapy.extensions.closespider.CloseSpider": 100,
+            },
+            "CLOSESPIDER_ITEMCOUNT": scraper_event.limitItems,
         }
     )
     process.crawl(AllOutcomesSpider)
