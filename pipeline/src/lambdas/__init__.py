@@ -1,3 +1,4 @@
+import asyncio
 import os
 from pydantic import BaseModel, Field
 
@@ -13,6 +14,14 @@ client = create_client(
     auth=get_auth(),
     async_client=True,
 )
+
+
+# https://stackoverflow.com/a/74988928
+def lambda_friendly_run_async(awaitable):
+    loop = asyncio.get_event_loop()
+    if loop.is_closed():  # I don't know why
+        loop = asyncio.new_event_loop()
+    return loop.run_until_complete(awaitable)
 
 
 def get_index_suffix(index_name):

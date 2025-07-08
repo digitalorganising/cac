@@ -2,7 +2,7 @@ import asyncio
 
 from pipeline.transforms import transform_for_index
 
-from . import get_docs
+from . import get_docs, RefsEvent, lambda_friendly_run_async
 
 
 async def process_batch(refs):
@@ -19,4 +19,5 @@ async def process_batch(refs):
 
 
 def handler(event, context):
-    return asyncio.run(process_batch(event))
+    indexer_event = RefsEvent.model_validate(event)
+    return lambda_friendly_run_async(process_batch(indexer_event.refs))

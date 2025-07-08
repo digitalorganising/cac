@@ -4,7 +4,7 @@ from opensearchpy import helpers
 from pipeline.transforms.augmentation import augment_doc
 from pipeline.transforms.withdrawals import merge_withdrawal
 
-from . import get_docs, client, RefsEvent
+from . import get_docs, client, RefsEvent, lambda_friendly_run_async
 
 
 # Small enough that I don't mind storing this in memory
@@ -44,7 +44,4 @@ async def process_batch(refs):
 
 def handler(event, context):
     augmenter_event = RefsEvent.model_validate(event)
-    loop = asyncio.get_event_loop()
-    if loop.is_closed():  # I don't know why
-        loop = asyncio.new_event_loop()
-    return loop.run_until_complete(process_batch(augmenter_event.refs))
+    return lambda_friendly_run_async(process_batch(augmenter_event.refs))
