@@ -75,10 +75,6 @@ jobs:
         with:
           up-flags: --wait
 
-      - name: Bootstrap localstack
-        run: |
-          ../bootstrap-localstack.sh
-
       - name: Run e2e tests
         run: |
           uv run pytest -v test/e2e
