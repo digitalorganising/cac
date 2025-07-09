@@ -2,7 +2,6 @@ from dateutil.parser import parse as date_parse
 
 
 def merge_withdrawal(withdrawal, outcome):
-    print("UFKC", withdrawal)
     withdrawal_date = date_parse(
         withdrawal["application_withdrawn"], dayfirst=True  # God save the Queen
     )

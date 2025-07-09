@@ -3,7 +3,6 @@ import string
 import httpx
 from typing import Optional
 from contextlib import asynccontextmanager
-from opensearchpy import AsyncOpenSearch
 
 
 lambda_ports = {
@@ -29,14 +28,7 @@ async def invoke_lambda(lambda_name, event):
         return response.json()
 
 
-opensearch_client = AsyncOpenSearch(
-    hosts=["http://localhost:9200"],
-    verify_certs=False,
-    ssl_show_warn=False,
-)
-
-
-async def index_populated(index_name) -> bool:
+async def index_populated(opensearch_client, index_name) -> bool:
     exists = await opensearch_client.indices.exists(index=index_name)
     if not exists:
         return False
@@ -45,25 +37,28 @@ async def index_populated(index_name) -> bool:
     return count_response["count"] > 0
 
 
-@asynccontextmanager
-async def index_for_test(
-    namespace: str, *, suffix: Optional[str] = None, no_suffix: bool = False
-):
-    if not suffix:
-        suffix = random_string()
-    index_name = f"{namespace}-{suffix}"
+def indexer(opensearch_client):
+    @asynccontextmanager
+    async def index_for_test(
+        namespace: str, *, suffix: Optional[str] = None, no_suffix: bool = False
+    ):
+        if not suffix:
+            suffix = random_string()
+        index_name = f"{namespace}-{suffix}"
 
-    if no_suffix:
-        index_name = namespace
+        if no_suffix:
+            index_name = namespace
 
-    try:
-        yield index_name, suffix
-    finally:
-        # Clean up: delete the index if it exists
         try:
-            exists = await opensearch_client.indices.exists(index=index_name)
-            if exists:
-                await opensearch_client.indices.delete(index=index_name)
-        except Exception as e:
-            # Log but don't raise - cleanup failures shouldn't break tests
-            print(f"Warning: Failed to delete index {index_name}: {e}")
+            yield index_name, suffix
+        finally:
+            # Clean up: delete the index if it exists
+            try:
+                exists = await opensearch_client.indices.exists(index=index_name)
+                if exists:
+                    await opensearch_client.indices.delete(index=index_name)
+            except Exception as e:
+                # Log but don't raise - cleanup failures shouldn't break tests
+                print(f"Warning: Failed to delete index {index_name}: {e}")
+
+    return index_for_test

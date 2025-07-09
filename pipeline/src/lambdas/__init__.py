@@ -75,7 +75,6 @@ async def get_docs(refs, *, destination_index_namespace, destination_index_mappi
                     },
                     retry_on_conflict=3,
                 )
-                print(res)
                 return DocumentRef(
                     _id=res["_id"],
                     _index=res["_index"],

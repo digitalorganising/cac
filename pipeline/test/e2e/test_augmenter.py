@@ -1,4 +1,4 @@
-from . import invoke_lambda, index_populated, index_for_test, opensearch_client
+from . import invoke_lambda, index_populated, indexer
 from pipeline.services.opensearch_utils import ensure_index_mapping
 
 test_docs = [
@@ -25,7 +25,8 @@ test_withdrawals = [
 ]
 
 
-async def test_augmenter():
+async def test_augmenter(opensearch_client):
+    index_for_test = indexer(opensearch_client)
     async with index_for_test("outcomes-raw") as (
         raw_index,
         index_suffix,
@@ -57,7 +58,7 @@ async def test_augmenter():
 
         refs = [{"_id": t["reference"], "_index": raw_index} for t in test_docs]
         await invoke_lambda("augmenter", {"refs": refs})
-        assert await index_populated(augmented_index)
+        assert await index_populated(opensearch_client, augmented_index)
 
         results = await opensearch_client.search(index=augmented_index)
         hits = results["hits"]["hits"]
