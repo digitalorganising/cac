@@ -4,6 +4,11 @@ services:
       context: ./pipeline
       dockerfile: lambda.Dockerfile
     command: "lambdas.scraper.handler"
+    depends_on:
+      opensearch:
+        condition: service_healthy
+      localstack:
+        condition: service_started
     ports:
       - "9000:8080"
     environment:
@@ -47,6 +52,12 @@ services:
   opensearch:
     image: opensearchproject/opensearch:2.19.2
     container_name: opensearch
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 2s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
     environment:
       - discovery.type=single-node
       - bootstrap.memory_lock=true # Disable JVM heap memory swapping
@@ -67,18 +78,20 @@ services:
       - 9600:9600 # Performance Analyzer
     networks:
       - opensearch-net # All of the containers will join the same Docker bridge network
-  opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:2.15.0
-    container_name: opensearch-dashboards
-    ports:
-      - 5601:5601 # Map host port 5601 to container port 5601
-    expose:
-      - "5601" # Expose port 5601 for web access to OpenSearch Dashboards
-    environment:
-      - 'OPENSEARCH_HOSTS=["http://opensearch:9200"]'
-      - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true" # disables security dashboards plugin in OpenSearch Dashboards
-    networks:
-      - opensearch-net
+
+  # !!! UNCOMMENT FOR DEV !!!
+  # opensearch-dashboards:
+  #   image: opensearchproject/opensearch-dashboards:2.15.0
+  #   container_name: opensearch-dashboards
+  #   ports:
+  #     - 5601:5601 # Map host port 5601 to container port 5601
+  #   expose:
+  #     - "5601" # Expose port 5601 for web access to OpenSearch Dashboards
+  #   environment:
+  #     - 'OPENSEARCH_HOSTS=["http://opensearch:9200"]'
+  #     - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true" # disables security dashboards plugin in OpenSearch Dashboards
+  #   networks:
+  #     - opensearch-net
 
 volumes:
   opensearch-data:
