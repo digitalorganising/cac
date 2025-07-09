@@ -59,14 +59,11 @@ test_doc = {
 
 async def test_indexer(opensearch_client):
     index_for_test = indexer(opensearch_client)
-    async with index_for_test("outcomes-augmented") as (
-        augmented_index,
-        index_suffix,
-    ), index_for_test("outcomes-indexed", suffix=index_suffix) as (
-        indexed_index,
-        _,
-    ):
-        await load_docs(opensearch_client, augmented_index, [test_doc])
-        refs = [{"_id": test_doc["reference"], "_index": augmented_index}]
+    async with index_for_test(
+        "outcomes-augmented", initial_docs=[test_doc]
+    ) as augmented, index_for_test(
+        "outcomes-indexed", suffix=augmented.suffix
+    ) as indexed:
+        refs = [{"_id": test_doc["reference"], "_index": augmented.index_name}]
         await invoke_lambda("indexer", {"refs": refs})
-        assert await index_populated(opensearch_client, indexed_index)
+        assert await index_populated(opensearch_client, indexed.index_name)

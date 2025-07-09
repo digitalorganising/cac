@@ -26,26 +26,18 @@ test_withdrawals = [
 
 async def test_augmenter(opensearch_client):
     index_for_test = indexer(opensearch_client)
-    async with index_for_test("outcomes-raw") as (
-        raw_index,
-        index_suffix,
-    ), index_for_test("outcomes-augmented", suffix=index_suffix) as (
-        augmented_index,
-        _,
-    ), index_for_test(
-        "application-withdrawals", no_suffix=True
-    ) as (
-        withdrawals_index,
-        _,
-    ):
-        await load_docs(opensearch_client, raw_index, test_docs)
-        await load_docs(opensearch_client, withdrawals_index, test_withdrawals)
-
-        refs = [{"_id": t["reference"], "_index": raw_index} for t in test_docs]
+    async with index_for_test(
+        "outcomes-raw", initial_docs=test_docs
+    ) as raw, index_for_test(
+        "outcomes-augmented", suffix=raw.suffix
+    ) as augmented, index_for_test(
+        "application-withdrawals", no_suffix=True, initial_docs=test_withdrawals
+    ) as _:
+        refs = [{"_id": t["reference"], "_index": raw.index_name} for t in test_docs]
         await invoke_lambda("augmenter", {"refs": refs})
-        assert await index_populated(opensearch_client, augmented_index)
+        assert await index_populated(opensearch_client, augmented.index_name)
 
-        results = await opensearch_client.search(index=augmented_index)
+        results = await opensearch_client.search(index=augmented.index_name)
         hits = results["hits"]["hits"]
         acceptance_outcome = next(h for h in hits if h["_id"] == "test1")["_source"]
         withdrawn_outcome = next(h for h in hits if h["_id"] == "test2")["_source"]

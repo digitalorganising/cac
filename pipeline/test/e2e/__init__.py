@@ -3,6 +3,7 @@ import string
 import httpx
 from typing import Optional
 from contextlib import asynccontextmanager
+from pydantic import BaseModel
 
 from pipeline.services.opensearch_utils import ensure_index_mapping
 
@@ -56,10 +57,19 @@ async def load_docs(opensearch_client, index_name, docs):
     await opensearch_client.indices.refresh(index=index_name)
 
 
+class IndexForTest(BaseModel):
+    index_name: str
+    suffix: Optional[str]
+
+
 def indexer(opensearch_client):
     @asynccontextmanager
     async def index_for_test(
-        namespace: str, *, suffix: Optional[str] = None, no_suffix: bool = False
+        namespace: str,
+        *,
+        suffix: Optional[str] = None,
+        no_suffix: bool = False,
+        initial_docs: Optional[list] = None,
     ):
         if not suffix:
             suffix = random_string()
@@ -69,7 +79,9 @@ def indexer(opensearch_client):
             index_name = namespace
 
         try:
-            yield index_name, suffix
+            if initial_docs:
+                await load_docs(opensearch_client, index_name, initial_docs)
+            yield IndexForTest(index_name=index_name, suffix=suffix)
         finally:
             # Clean up: delete the index if it exists
             try:
