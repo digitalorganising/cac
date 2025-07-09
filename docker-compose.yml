@@ -17,7 +17,6 @@ services:
       - ./pipeline/index_mappings:/var/task/index_mappings
       - ./pipeline/src/lambdas:/var/task/lambdas
       - ./pipeline/src/pipeline:/var/task/pipeline
-      - ./pipeline/src/baml_client:/var/task/baml_client
     networks:
       - opensearch-net
       - localstack-net

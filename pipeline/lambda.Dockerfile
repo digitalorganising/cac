@@ -29,7 +29,8 @@ RUN --mount=from=uv,source=/uv,target=/bin/uv \
 RUN --mount=from=uv,source=/uv,target=/bin/uv \
     --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=baml_src,target=baml_src \
-    uv run baml-cli generate
+    uv run baml-cli generate && \
+    mv ./src/baml_client ${LAMBDA_TASK_ROOT}/baml_client
 
 FROM public.ecr.aws/lambda/python:3.12
 
