@@ -1,5 +1,4 @@
-from . import invoke_lambda, index_populated, indexer
-from pipeline.services.opensearch_utils import ensure_index_mapping
+from . import invoke_lambda, index_populated, indexer, load_docs
 
 test_docs = [
     {
@@ -39,22 +38,8 @@ async def test_augmenter(opensearch_client):
         withdrawals_index,
         _,
     ):
-        await ensure_index_mapping(
-            opensearch_client, raw_index, "./index_mappings/outcomes_raw.json"
-        )
-        await ensure_index_mapping(
-            opensearch_client,
-            withdrawals_index,
-            "./index_mappings/application_withdrawals.json",
-        )
-        for doc in test_docs:
-            await opensearch_client.index(
-                index=raw_index, id=doc["reference"], body=doc
-            )
-        for withdrawal in test_withdrawals:
-            await opensearch_client.index(
-                index=withdrawals_index, id=withdrawal["reference"], body=withdrawal
-            )
+        await load_docs(opensearch_client, raw_index, test_docs)
+        await load_docs(opensearch_client, withdrawals_index, test_withdrawals)
 
         refs = [{"_id": t["reference"], "_index": raw_index} for t in test_docs]
         await invoke_lambda("augmenter", {"refs": refs})

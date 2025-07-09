@@ -7,8 +7,8 @@ services:
     depends_on:
       opensearch:
         condition: service_healthy
-      localstack:
-        condition: service_started
+      bootstrap_localstack:
+        condition: service_completed_successfully
     ports:
       - "9000:8080"
     environment:
@@ -46,6 +46,19 @@ services:
       - "4566:4566" # LocalStack Gateway
     environment:
       - SERVICES=sqs,s3,sts
+    networks:
+      - localstack-net
+
+  bootstrap_localstack:
+    image: localstack/localstack
+    entrypoint: /bin/bash
+    command: /opt/bootstrap-localstack.sh
+    volumes:
+      - type: bind
+        source: ./bootstrap-localstack.sh
+        target: /opt/bootstrap-localstack.sh
+    depends_on:
+      - localstack
     networks:
       - localstack-net
 

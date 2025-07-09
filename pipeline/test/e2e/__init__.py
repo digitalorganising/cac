@@ -4,6 +4,8 @@ import httpx
 from typing import Optional
 from contextlib import asynccontextmanager
 
+from pipeline.services.opensearch_utils import ensure_index_mapping
+
 
 lambda_ports = {
     "scraper": 9000,
@@ -35,6 +37,23 @@ async def index_populated(opensearch_client, index_name) -> bool:
     await opensearch_client.indices.refresh(index=index_name)
     count_response = await opensearch_client.count(index=index_name)
     return count_response["count"] > 0
+
+
+async def load_docs(opensearch_client, index_name, docs):
+    if index_name.startswith("outcomes-raw"):
+        mapping = "./index_mappings/outcomes_raw.json"
+    elif index_name.startswith("outcomes-augmented"):
+        mapping = "./index_mappings/outcomes_augmented.json"
+    elif index_name.startswith("outcomes-indexed"):
+        mapping = "./index_mappings/outcomes_indexed.json"
+    elif index_name.startswith("application-withdrawals"):
+        mapping = "./index_mappings/application_withdrawals.json"
+    else:
+        raise ValueError(f"Unknown index name: {index_name}")
+    await ensure_index_mapping(opensearch_client, index_name, mapping)
+    for doc in docs:
+        await opensearch_client.index(index=index_name, body=doc, id=doc["reference"])
+    await opensearch_client.indices.refresh(index=index_name)
 
 
 def indexer(opensearch_client):

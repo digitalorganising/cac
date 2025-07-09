@@ -1,5 +1,5 @@
-from . import invoke_lambda, index_populated, indexer
-from pipeline.services.opensearch_utils import ensure_index_mapping
+from . import invoke_lambda, index_populated, indexer, load_docs
+
 
 test_doc = {
     "reference": "TUR1/1057(2018)",
@@ -66,14 +66,7 @@ async def test_indexer(opensearch_client):
         indexed_index,
         _,
     ):
-        await ensure_index_mapping(
-            opensearch_client,
-            augmented_index,
-            "./index_mappings/outcomes_augmented.json",
-        )
-        await opensearch_client.index(
-            index=augmented_index, id=test_doc["reference"], body=test_doc
-        )
+        await load_docs(opensearch_client, augmented_index, [test_doc])
         refs = [{"_id": test_doc["reference"], "_index": augmented_index}]
         await invoke_lambda("indexer", {"refs": refs})
         assert await index_populated(opensearch_client, indexed_index)

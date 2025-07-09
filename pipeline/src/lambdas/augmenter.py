@@ -16,6 +16,7 @@ async def get_withdrawals(withdrawals_index):
             "application_withdrawn": src["application_withdrawn"],
             "application_received": src["application_received"],
         }
+    print(f"Successfully loaded {len(w)} withdrawals")
     return w
 
 
