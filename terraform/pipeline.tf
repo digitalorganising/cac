@@ -64,12 +64,20 @@ module "indexer" {
   }
 }
 
+locals {
+  step_function_type = "EXPRESS"
+}
+
 module "pipeline_step_function" {
   source  = "terraform-aws-modules/step-functions/aws"
   version = "5.0.1"
 
-  name       = "cac-pipeline"
-  definition = templatefile("${path.module}/state-machine/pipeline.asl.json", {})
+  name = "cac-pipeline"
+  type = local.step_function_type
+  definition = templatefile("${path.module}/state-machine/pipeline.asl.json", {
+    augmenter_lambda_arn = module.augmenter.function.arn
+    indexer_lambda_arn   = module.indexer.function.arn
+  })
   service_integrations = {
     lambda = {
       lambda = [
@@ -79,4 +87,8 @@ module "pipeline_step_function" {
     }
   }
   cloudwatch_log_group_retention_in_days = 3
+  logging_configuration = {
+    include_execution_data = true
+    level                  = "ALL"
+  }
 }

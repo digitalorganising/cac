@@ -21,25 +21,25 @@ async def get_extracted_data(doc_type_string, content):
         return None
     match document_type:
         case DocumentType.acceptance_decision:
-            return await b.ExtractAcceptanceDecision(content).model_dump()
+            return (await b.ExtractAcceptanceDecision(content)).model_dump()
         case DocumentType.bargaining_unit_decision:
-            return await b.ExtractBargainingUnitDecision(content).model_dump()
+            return (await b.ExtractBargainingUnitDecision(content)).model_dump()
         case DocumentType.bargaining_decision:
-            return await b.ExtractBargainingDecision(content).model_dump()
+            return (await b.ExtractBargainingDecision(content)).model_dump()
         case DocumentType.form_of_ballot_decision:
-            return await b.ExtractFormOfBallotDecision(content).model_dump()
+            return (await b.ExtractFormOfBallotDecision(content)).model_dump()
         case DocumentType.whether_to_ballot_decision:
-            return await b.ExtractWhetherToBallotDecision(content).model_dump()
+            return (await b.ExtractWhetherToBallotDecision(content)).model_dump()
         case DocumentType.validity_decision:
-            return await b.ExtractValidityDecision(content).model_dump()
+            return (await b.ExtractValidityDecision(content)).model_dump()
         case DocumentType.case_closure:
             return {"decision_date": extract_date(content)}
         case DocumentType.recognition_decision:
-            return await b.ExtractRecognitionDecision(content).model_dump()
+            return (await b.ExtractRecognitionDecision(content)).model_dump()
         case DocumentType.application_received:
             return {"decision_date": extract_date(content)}
         case DocumentType.access_decision_or_dispute:
-            return await b.ExtractAccessDecisionOrDispute(content).model_dump()
+            return (await b.ExtractAccessDecisionOrDispute(content)).model_dump()
         case DocumentType.method_agreed:
             return {"decision_date": extract_date(content)}
         case DocumentType.nullification_decision:
@@ -51,8 +51,10 @@ if os.getenv("MOCK_LLM"):
 
 
 async def augment_doc(doc):
-    decision_documents = doc.pop("documents", {})
+    decision_documents = doc.get("documents", {})
     doc["extracted_data"] = {}
+    doc.pop("document_fingerprints", None)
+
     if DocumentType.derecognition_decision.value in decision_documents:
         return
 

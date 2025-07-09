@@ -92,7 +92,8 @@ data "aws_iam_policy_document" "scraped_items_pipe_target_policy" {
   statement {
     effect = "Allow"
     actions = [
-      "states:StartExecution"
+      "states:StartExecution",
+      "states:StartSyncExecution"
     ]
     resources = [module.pipeline_step_function.state_machine_arn]
   }
@@ -104,9 +105,47 @@ resource "aws_pipes_pipe" "scraped_items" {
   source   = aws_sqs_queue.scraped_items.arn
   target   = module.pipeline_step_function.state_machine_arn
 
-  target_parameters {
-    step_function_state_machine_parameters {
-      invocation_type = "REQUEST_RESPONSE"
+  source_parameters {
+    sqs_queue_parameters {
+      batch_size = 10
     }
+  }
+
+  target_parameters {
+    input_template = "{\"ref\": <$.body>}"
+    step_function_state_machine_parameters {
+      invocation_type = local.step_function_type == "EXPRESS" ? "REQUEST_RESPONSE" : "FIRE_AND_FORGET"
+    }
+  }
+
+  log_configuration {
+    level                  = "INFO"
+    include_execution_data = ["ALL"]
+    cloudwatch_logs_log_destination {
+      log_group_arn = aws_cloudwatch_log_group.scraped_items_pipe.arn
+    }
+  }
+}
+
+resource "aws_cloudwatch_log_group" "scraped_items_pipe" {
+  name              = "/aws/vendedlogs/pipes/scraped-items"
+  retention_in_days = 3
+
+  tags = {
+    Name = "scraped-items-pipe"
+  }
+}
+
+resource "aws_iam_role_policy" "scraped_items_pipe_log_group_policy" {
+  name   = "scraped-items-pipe-logging"
+  role   = aws_iam_role.scraped_items_pipe_role.id
+  policy = data.aws_iam_policy_document.scraped_items_pipe_log_group_policy.json
+}
+
+data "aws_iam_policy_document" "scraped_items_pipe_log_group_policy" {
+  statement {
+    effect    = "Allow"
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["${aws_cloudwatch_log_group.scraped_items_pipe.arn}:*"]
   }
 }

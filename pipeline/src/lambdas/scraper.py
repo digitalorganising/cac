@@ -12,6 +12,11 @@ from pipeline.spider import QuietDroppedLogFormatter, ReferenceSQSPipeline
 from pipeline.spider.all_outcomes import AllOutcomesSpider
 from pipeline.spider.cac_outcome_spider import CacOutcomeOpensearchPipeline
 
+# https://github.com/scrapy/scrapy/issues/3587#issuecomment-456842238
+root_logger = logging.getLogger()
+for log_handler in root_logger.handlers:
+    root_logger.removeHandler(log_handler)
+
 # Install the asyncio reactor for Lambda compatibility
 install_reactor("twisted.internet.asyncioreactor.AsyncioSelectorReactor")
 crochet.setup()
@@ -22,10 +27,6 @@ configure_logging(
         "LOG_FORMATTER": QuietDroppedLogFormatter,
     }
 )
-# https://github.com/scrapy/scrapy/issues/3587#issuecomment-456842238
-root_logger = logging.getLogger()
-for log_handler in root_logger.handlers:
-    root_logger.removeHandler(log_handler)
 
 
 class ScraperEvent(BaseModel):
