@@ -10,6 +10,13 @@ session = boto3.Session()
 secrets_client = session.client("secretsmanager")
 secrets_store = SecretCache(client=secrets_client)
 
-authenticated_client = b.with_options(
-    env={"GOOGLE_API_KEY": env_key or secrets_store.get_secret_string(secret_name)}
-)
+
+def _get_api_key():
+    if env_key:
+        return env_key
+    if secret_name:
+        return secrets_store.get_secret_string(secret_name)
+    return None
+
+
+authenticated_client = b.with_options(env={"GOOGLE_API_KEY": _get_api_key()})
