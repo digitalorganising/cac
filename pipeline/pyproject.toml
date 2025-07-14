@@ -20,6 +20,7 @@ dependencies = [
     "httpx>=0.27.0,<0.28",
     "crochet>=2.1.1",
     "polyfactory>=2.22.0",
+    "aws-secretsmanager-caching (>=1.1.3,<2.0.0)",
 ]
 
 [dependency-groups]

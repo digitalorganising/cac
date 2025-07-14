@@ -1,6 +1,6 @@
 import asyncio
 import os
-from baml_client import b
+from ..services.baml import authenticated_client as b
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 from .document_classifier import (
     DocumentType,

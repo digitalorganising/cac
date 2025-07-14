@@ -2,9 +2,6 @@ import boto3
 import json
 from abc import ABC, abstractmethod
 
-sqs = boto3.client("sqs")
-
-
 class SQSPipeline(ABC):
     @abstractmethod
     def message(self, item):
@@ -24,14 +21,15 @@ class SQSPipeline(ABC):
 
     def process_item(self, item, spider):
         msg = self.message(item)
-        sqs.send_message(
+        self.client.send_message(
             QueueUrl=self.queue_url,
             MessageBody=json.dumps(msg),
             MessageGroupId=self.group_id,
         )
 
     def open_spider(self, spider):
-        pass
+        session = boto3.Session()
+        self.client = session.client("sqs")
 
     def close_spider(self, spider):
         pass

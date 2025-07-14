@@ -22,6 +22,8 @@ resource "aws_ecr_lifecycle_policy" "pipeline" {
   })
 }
 
+
+
 locals {
   opensearch_endpoint = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
 }
@@ -47,7 +49,8 @@ module "augmenter" {
   timeout       = 60 * 15
   memory_size   = 512
   environment = {
-    OPENSEARCH_ENDPOINT = local.opensearch_endpoint
+    OPENSEARCH_ENDPOINT   = local.opensearch_endpoint
+    GOOGLE_API_KEY_SECRET = aws_secretsmanager_secret.google_api_key.arn
   }
 }
 

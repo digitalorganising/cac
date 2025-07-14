@@ -44,7 +44,7 @@ provider "vercel" {
 }
 
 provider "opensearch" {
-  url                 = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
+  url                 = local.opensearch_endpoint
   aws_assume_role_arn = aws_iam_role.opensearch_master_user.arn
   aws_profile         = local.profile
   aws_region          = local.region
