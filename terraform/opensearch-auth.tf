@@ -1,21 +1,50 @@
-data "aws_caller_identity" "current" {}
+resource "aws_cognito_user_pool" "digitalorganising_users" {
+  name = "digitalorganising-users"
 
-data "aws_iam_policy_document" "opensearch_domain_access_policy" {
-  statement {
-    effect = "Allow"
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-    actions   = ["es:ESHttp*"]
-    resources = ["${aws_opensearch_domain.cac_search.arn}/*"]
+  admin_create_user_config {
+    allow_admin_create_user_only = true
+  }
+
+  password_policy {
+    minimum_length    = 8
+    require_lowercase = true
+    require_numbers   = true
+    require_symbols   = true
+    require_uppercase = true
   }
 }
 
-resource "aws_opensearch_domain_policy" "opensearch_domain_policy" {
-  domain_name     = aws_opensearch_domain.cac_search.domain_name
-  access_policies = data.aws_iam_policy_document.opensearch_domain_access_policy.json
+resource "aws_cognito_user_pool_domain" "digitalorganising_users_domain" {
+  domain       = "digitalorganising-users"
+  user_pool_id = aws_cognito_user_pool.digitalorganising_users.id
 }
+
+resource "aws_cognito_identity_pool" "opensearch_identity_pool" {
+  identity_pool_name               = "opensearch-identity-pool"
+  allow_unauthenticated_identities = false
+
+  lifecycle {
+    ignore_changes = [
+      cognito_identity_providers
+    ]
+  }
+}
+
+resource "aws_cognito_managed_user_pool_client" "opensearch_managed_client" {
+  name_prefix  = "AmazonOpenSearchService-${aws_opensearch_domain.cac_search.domain_name}"
+  user_pool_id = aws_cognito_user_pool.digitalorganising_users.id
+
+  depends_on = [aws_opensearch_domain.cac_search]
+}
+
+resource "aws_cognito_identity_pool_roles_attachment" "opensearch" {
+  identity_pool_id = aws_cognito_identity_pool.opensearch_identity_pool.id
+  roles = {
+    "authenticated" = aws_iam_role.opensearch_master_user.arn
+  }
+}
+
+data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role" "opensearch_master_user" {
   name               = "opensearch-master-user"
@@ -73,36 +102,4 @@ data "aws_iam_policy_document" "opensearch_cognito_role_trust_policy" {
 resource "aws_iam_role_policy_attachment" "opensearch_cognito_role_policy_attachment" {
   role       = aws_iam_role.opensearch_cognito_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonOpenSearchServiceCognitoAccess"
-}
-
-data "aws_iam_policy_document" "opensearch_cognito_additional_policy" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "ec2:DescribeVpcs",
-      "cognito-identity:ListIdentityPools",
-      "cognito-idp:ListUserPools"
-    ]
-    resources = ["*"]
-  }
-
-  statement {
-    effect = "Allow"
-    actions = [
-      "iam:GetRole",
-      "iam:PassRole"
-    ]
-    resources = [aws_iam_role.opensearch_cognito_role.arn]
-  }
-}
-
-resource "aws_iam_policy" "opensearch_cognito_additional_policy" {
-  name        = "opensearch-cognito-additional-policy"
-  description = "Additional policy for OpenSearch Cognito role"
-  policy      = data.aws_iam_policy_document.opensearch_cognito_additional_policy.json
-}
-
-resource "aws_iam_role_policy_attachment" "opensearch_cognito_additional_policy_attachment" {
-  role       = aws_iam_role.opensearch_cognito_role.name
-  policy_arn = aws_iam_policy.opensearch_cognito_additional_policy.arn
 }

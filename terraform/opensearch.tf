@@ -1,5 +1,5 @@
 resource "aws_opensearch_domain" "cac_search" {
-  domain_name    = "cac-search"
+  domain_name    = "cac-cluster"
   engine_version = "OpenSearch_2.19"
 
   cluster_config {
@@ -18,6 +18,11 @@ resource "aws_opensearch_domain" "cac_search" {
 
   node_to_node_encryption {
     enabled = true
+  }
+
+  domain_endpoint_options {
+    enforce_https       = true
+    tls_security_policy = "Policy-Min-TLS-1-2-2019-07"
   }
 
   advanced_security_options {
@@ -40,6 +45,28 @@ resource "aws_opensearch_domain" "cac_search" {
   }
 
   ip_address_type = "dualstack"
+
+  depends_on = [
+    aws_cognito_user_pool_domain.digitalorganising_users_domain,
+    aws_iam_role_policy_attachment.opensearch_cognito_role_policy_attachment
+  ]
+}
+
+data "aws_iam_policy_document" "opensearch_domain_access_policy" {
+  statement {
+    effect = "Allow"
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+    actions   = ["es:*"]
+    resources = ["${aws_opensearch_domain.cac_search.arn}/*"]
+  }
+}
+
+resource "aws_opensearch_domain_policy" "opensearch_domain_policy" {
+  domain_name     = aws_opensearch_domain.cac_search.domain_name
+  access_policies = data.aws_iam_policy_document.opensearch_domain_access_policy.json
 }
 
 resource "opensearch_role" "indexed_reader" {
@@ -58,7 +85,7 @@ resource "opensearch_role" "ingest_writer" {
 
   index_permissions {
     index_patterns  = ["outcomes-raw*"]
-    allowed_actions = ["write"]
+    allowed_actions = ["write", "manage"]
   }
 }
 
@@ -73,7 +100,7 @@ resource "opensearch_role" "augmented_writer" {
 
   index_permissions {
     index_patterns  = ["outcomes-augmented*"]
-    allowed_actions = ["write"]
+    allowed_actions = ["write", "manage"]
   }
 }
 
@@ -88,7 +115,7 @@ resource "opensearch_role" "indexed_writer" {
 
   index_permissions {
     index_patterns  = ["outcomes-indexed*"]
-    allowed_actions = ["write"]
+    allowed_actions = ["write", "manage"]
   }
 }
 
