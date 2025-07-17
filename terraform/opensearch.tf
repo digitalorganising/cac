@@ -79,74 +79,25 @@ resource "opensearch_role" "indexed_reader" {
   }
 }
 
-resource "opensearch_role" "ingest_writer" {
-  role_name   = "ingest_writer"
-  description = "Write to 'raw' indices"
-
-  index_permissions {
-    index_patterns  = ["outcomes-raw*"]
-    allowed_actions = ["write", "manage"]
-  }
+module "mapped_role_scraper" {
+  source         = "./modules/mapped_role"
+  service_name   = "scraper"
+  write_prefixes = ["outcomes-raw"]
+  backend_role   = module.scraper.role.arn
 }
 
-resource "opensearch_role" "augmented_writer" {
-  role_name   = "augmented_writer"
-  description = "Read from 'raw' and write to 'augmented' indices"
-
-  index_permissions {
-    index_patterns  = ["outcomes-raw*"]
-    allowed_actions = ["read"]
-  }
-
-  index_permissions {
-    index_patterns  = ["outcomes-augmented*"]
-    allowed_actions = ["write", "manage"]
-  }
+module "mapped_role_augmenter" {
+  source         = "./modules/mapped_role"
+  service_name   = "augmenter"
+  read_prefixes  = ["outcomes-raw", "application-withdrawals"]
+  write_prefixes = ["outcomes-augmented"]
+  backend_role   = module.augmenter.role.arn
 }
 
-resource "opensearch_role" "indexed_writer" {
-  role_name   = "indexed_writer"
-  description = "Read from 'augmented' and write to 'indexed' indices"
-
-  index_permissions {
-    index_patterns  = ["outcomes-augmented*"]
-    allowed_actions = ["read"]
-  }
-
-  index_permissions {
-    index_patterns  = ["outcomes-indexed*"]
-    allowed_actions = ["write", "manage"]
-  }
-}
-
-resource "opensearch_roles_mapping" "cac_webapp_vercel" {
-  role_name   = opensearch_role.indexed_reader.role_name
-  description = "Mapping Vercel role to OpenSearch role"
-  backend_roles = [
-    aws_iam_role.cac_webapp_vercel.arn
-  ]
-}
-
-resource "opensearch_roles_mapping" "scraper" {
-  role_name   = opensearch_role.ingest_writer.role_name
-  description = "Mapping Scraper role to OpenSearch role"
-  backend_roles = [
-    module.scraper.role.arn
-  ]
-}
-
-resource "opensearch_roles_mapping" "augmenter" {
-  role_name   = opensearch_role.augmented_writer.role_name
-  description = "Mapping Augmenter role to OpenSearch role"
-  backend_roles = [
-    module.augmenter.role.arn
-  ]
-}
-
-resource "opensearch_roles_mapping" "indexer" {
-  role_name   = opensearch_role.indexed_writer.role_name
-  description = "Mapping Indexer role to OpenSearch role"
-  backend_roles = [
-    module.indexer.role.arn
-  ]
+module "mapped_role_indexer" {
+  source         = "./modules/mapped_role"
+  service_name   = "indexer"
+  read_prefixes  = ["outcomes-augmented"]
+  write_prefixes = ["outcomes-indexed"]
+  backend_role   = module.indexer.role.arn
 }

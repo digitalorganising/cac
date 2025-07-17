@@ -111,5 +111,8 @@ async def ensure_index_mapping(
             # Update existing index mapping
             await client.indices.put_mapping(index=index, body=mapping)
     except exceptions.OpenSearchException as e:
+        if "resource_already_exists_exception" in str(e):
+            # This is due to a race condition where the index is created after the exists check
+            return
         print(f"Failed to ensure index mapping: {e}")
         raise RuntimeError(f"Failed to ensure index mapping: {e}") from e

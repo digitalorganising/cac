@@ -14,7 +14,7 @@ async def process_batch(refs):
     ):
         indexable = transform_for_index(doc)
         saved_ref = await update_doc(indexable)
-        saved_refs.append(saved_ref)
+        saved_refs.append(saved_ref.model_dump(by_alias=True))
     return saved_refs
 
 
