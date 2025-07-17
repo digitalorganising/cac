@@ -1,8 +1,8 @@
 {
   "Comment": "Pipeline for batching, augmenting and indexing outcomes",
-  "StartAt": "Augmenter",
+  "StartAt": "Scraper",
   "States": {
-    "Augmenter": {
+    "Scraper": {
       "Type": "Task",
       "Resource": "arn:aws:states:::lambda:invoke",
       "Retry": [
@@ -19,40 +19,80 @@
           "JitterStrategy": "FULL"
         }
       ],
+      "Next": "Map",
       "QueryLanguage": "JSONata",
       "Arguments": {
-        "FunctionName": "${augmenter_lambda_arn}",
-        "Payload": {
-          "refs": "{% $states.input.ref[] %}"
-        }
+        "FunctionName": "${scraper_lambda_arn}",
+        "Payload": "{% $states.input %}"
       },
-      "Next": "Indexer"
+      "Output": "{% $partition($states.result.Payload, ${batch_size}) %}"
     },
-    "Indexer": {
-      "Type": "Task",
-      "Resource": "arn:aws:states:::lambda:invoke",
-      "Retry": [
-        {
-          "ErrorEquals": [
-            "Lambda.ServiceException",
-            "Lambda.AWSLambdaException",
-            "Lambda.SdkClientException",
-            "Lambda.TooManyRequestsException"
-          ],
-          "IntervalSeconds": 1,
-          "MaxAttempts": 3,
-          "BackoffRate": 2,
-          "JitterStrategy": "FULL"
-        }
-      ],
-      "QueryLanguage": "JSONata",
-      "Arguments": {
-        "Payload": {
-          "refs": "$"
+    "Map": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
         },
-        "FunctionName": "${indexer_lambda_arn}"
+        "StartAt": "Augmenter",
+        "States": {
+          "Augmenter": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "QueryLanguage": "JSONata",
+            "Arguments": {
+              "FunctionName": "${augmenter_lambda_arn}",
+              "Payload": {
+                "refs": "{% $states.input.ref[] %}"
+              }
+            },
+            "Output": {
+              "refs": "{% $states.result.Payload[] %}"
+            },
+            "Next": "Indexer"
+          },
+          "Indexer": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "QueryLanguage": "JSONata",
+            "Arguments": {
+              "Payload": "{% $states.input %}",
+              "FunctionName": "${indexer_lambda_arn}"
+            },
+            "End": true
+          }
+        }
       },
-      "Next": "Success"
+      "Next": "Success",
+      "QueryLanguage": "JSONata",
+      "MaxConcurrency": 1
     },
     "Success": {
       "Type": "Succeed"

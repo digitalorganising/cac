@@ -37,7 +37,6 @@ module "scraper" {
   memory_size   = 512
   environment = {
     OPENSEARCH_ENDPOINT = local.opensearch_endpoint
-    SQS_QUEUE_URL       = aws_sqs_queue.scraped_items.id
   }
 }
 
@@ -67,28 +66,30 @@ module "indexer" {
   }
 }
 
-locals {
-  step_function_type = "EXPRESS"
-}
-
 module "pipeline_step_function" {
   source  = "terraform-aws-modules/step-functions/aws"
   version = "5.0.1"
 
   name = "cac-pipeline"
-  type = local.step_function_type
+  type = "STANDARD"
+
   definition = templatefile("${path.module}/state-machine/pipeline.asl.json", {
+    batch_size           = 10
+    scraper_lambda_arn   = module.scraper.function.arn
     augmenter_lambda_arn = module.augmenter.function.arn
     indexer_lambda_arn   = module.indexer.function.arn
   })
+
   service_integrations = {
     lambda = {
       lambda = [
+        module.scraper.function.arn,
         module.augmenter.function.arn,
         module.indexer.function.arn
       ]
     }
   }
+
   cloudwatch_log_group_retention_in_days = 3
   logging_configuration = {
     include_execution_data = true

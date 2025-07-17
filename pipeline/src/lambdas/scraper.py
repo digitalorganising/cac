@@ -42,7 +42,7 @@ def handler(event, context):
                 CacOutcomeOpensearchPipeline: 100,
                 ReferencePipeline: 200,
             },
-            "CONCURRENT_ITEMS": 5,
+            "CONCURRENT_ITEMS": 1,
             "OPENSEARCH": {
                 "INDEX": index,
                 "MAPPING_PATH": "./index_mappings/outcomes_raw.json",

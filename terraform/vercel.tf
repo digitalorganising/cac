@@ -12,26 +12,36 @@ locals {
   vercel_envs = ["production", "preview", "development"]
 }
 
-resource "vercel_project_environment_variables" "cac_webapp" {
+resource "vercel_project_environment_variable" "cac_webapp_opensearch_endpoint" {
   project_id = vercel_project.cac_webapp.id
+  key        = "OPENSEARCH_ENDPOINT"
+  value      = "https://${aws_opensearch_domain.cac_search.endpoint}"
+  target     = local.vercel_envs
+}
 
-  variables = [
-    {
-      key    = "OPENSEARCH_ENDPOINT"
-      value  = "https://${aws_opensearch_domain.cac_search.endpoint}",
-      target = local.vercel_envs
-    },
-    {
-      key    = "AWS_REGION"
-      value  = local.region,
-      target = local.vercel_envs
-    },
-    {
-      key    = "AWS_ROLE_ARN"
-      value  = aws_iam_role.cac_webapp_vercel.arn,
-      target = local.vercel_envs
-    }
-  ]
+resource "vercel_project_environment_variable" "cac_webapp_outcomes_index" {
+  project_id = vercel_project.cac_webapp.id
+  key        = "OUTCOMES_INDEX"
+  value      = "outcomes-indexed"
+  target     = local.vercel_envs
+
+  lifecycle {
+    ignore_changes = [value]
+  }
+}
+
+resource "vercel_project_environment_variable" "cac_webapp_aws_region" {
+  project_id = vercel_project.cac_webapp.id
+  key        = "AWS_REGION"
+  value      = local.region
+  target     = local.vercel_envs
+}
+
+resource "vercel_project_environment_variable" "cac_webapp_aws_role_arn" {
+  project_id = vercel_project.cac_webapp.id
+  key        = "AWS_ROLE_ARN"
+  value      = aws_iam_role.cac_webapp_vercel.arn
+  target     = local.vercel_envs
 }
 
 resource "vercel_project_domain" "cac_digitalorganising" {
