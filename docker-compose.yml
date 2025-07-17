@@ -7,13 +7,10 @@ services:
     depends_on:
       opensearch:
         condition: service_healthy
-      bootstrap_localstack:
-        condition: service_completed_successfully
     ports:
       - "9000:8080"
     environment:
       - OPENSEARCH_ENDPOINT=http://opensearch:9200
-      - SQS_QUEUE_URL=http://sqs.eu-west-1.localhost.localstack.cloud:4566/000000000000/test-queue.fifo
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=eu-west-1
@@ -24,7 +21,6 @@ services:
       - ./pipeline/src/pipeline:/var/task/pipeline
     networks:
       - opensearch-net
-      - localstack-net
 
   augmenter:
     extends: scraper
@@ -39,28 +35,6 @@ services:
     command: "lambdas.indexer.handler"
     ports: !override
       - "9002:8080"
-
-  localstack:
-    image: localstack/localstack
-    ports:
-      - "4566:4566" # LocalStack Gateway
-    environment:
-      - SERVICES=sqs,s3,sts
-    networks:
-      - localstack-net
-
-  bootstrap_localstack:
-    image: localstack/localstack
-    entrypoint: /bin/bash
-    command: /opt/bootstrap-localstack.sh
-    volumes:
-      - type: bind
-        source: ./bootstrap-localstack.sh
-        target: /opt/bootstrap-localstack.sh
-    depends_on:
-      - localstack
-    networks:
-      - localstack-net
 
   opensearch:
     image: opensearchproject/opensearch:2.19.2
@@ -111,4 +85,3 @@ volumes:
 
 networks:
   opensearch-net:
-  localstack-net:

@@ -2,7 +2,6 @@ import logging
 import os
 from scrapy.exceptions import DropItem
 from scrapy.logformatter import LogFormatter
-from ..services.sqs_pipeline import SQSPipeline
 
 
 class QuietDroppedLogFormatter(LogFormatter):
@@ -20,21 +19,18 @@ class QuietDroppedLogFormatter(LogFormatter):
             return super().dropped(item, exception, response, spider)
 
 
-class ReferenceSQSPipeline(SQSPipeline):
-    def __init__(self, index, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+class ReferencePipeline:
+    def __init__(self, index):
         self.index = index
 
     @classmethod
     def from_crawler(cls, crawler):
-        settings = crawler.settings.get("SQS")
+        opensearch_settings = crawler.settings.get("OPENSEARCH")
         return cls(
-            index=settings.get("INDEX"),
-            queue_url=settings.get("QUEUE_URL"),
-            group_id=settings.get("GROUP_ID"),
+            index=opensearch_settings.get("INDEX"),
         )
 
-    def message(self, item):
+    def process_item(self, item, spider):
         return {
             "_id": item["reference"],
             "_index": self.index,
