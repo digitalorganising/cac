@@ -218,3 +218,27 @@ async def test_prospect_babcock_offshore(cac_document_contents):
         claimed_membership=47,
         membership=41,
     )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://assets.publishing.service.gov.uk/media/"
+        "5a80619de5274a2e8ab4fd1e/Acceptance_Decision.pdf"
+    ],
+)
+async def test_iwgb_ocean_integrated_services(cac_document_contents):
+    ad = await ExtractAcceptanceDecision(cac_document_contents)
+
+    assert date_eq(ad.decision_date, "8 June 2015")
+    assert not ad.success
+    assert RejectionReason.AnotherUnionAlreadyRecognized in ad.rejection_reasons
+    assert ad.application_date == "20 May 2015"
+    assert not ad.bargaining_unit_agreed
+    assert ad.bargaining_unit == BargainingUnit(
+        description="All employees of Ocean Integrated Services Ltd. at the Royal College of Music site",
+        size=0,
+        size_considered=False,
+        claimed_membership=None,
+        membership=None,
+    )

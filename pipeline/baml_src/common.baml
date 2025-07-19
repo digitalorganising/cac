@@ -1,23 +1,24 @@
 template_string BargainingUnitThinkingPrompt() #"
-    You have a particular interest in the bargaining unit and what is said about it.
-
-    There may be a small number of cases where the number of workers in the bargaining unit is not available in the decision document.
-    For example, there may be preliminary issues which preclude looking at this.
-    In only these cases, n_workers_stated is false, and n_workers is 0.
+    There may be a small number of cases where the number of workers in the bargaining unit is not available to you in the decision document.
+    For example, there may be preliminary issues which preclude looking at it.
+    In these cases where you do not know the number of workers, n_workers_in_decision is false, and n_workers is 0.
     
     There may also be cases where you do not feel that n_workers was verified: in this case, use the best number you can.
 
     Before you answer, outline the following step by step with reference to the document.
     Make sure to distinguish between claimed numbers and numbers verified by the case manager.
    
-    - The number of workers in the bargaining unit (verified) [n_workers]
+    - The number of workers in the bargaining unit (verified) [n_workers], if they were stated [n_workers_in_decision]
     - The number of union members in the bargaining unit (verified) [n_verified_union_members]
     - The first (based on what we know) number of union members claimed (unverified, usually just from the membership list supplied) [n_stated_union_members]
+
+    Next, check whether you've obeyed these rules:
+    - If n_workers_in_decision is true, then n_workers cannot be zero (and vice versa)
 "#
 
 class BargainingUnit {
   description string @description("The defined bargaining unit exactly as written but excluding any address")
-  size_considered bool @alias("n_workers_stated")
+  size_considered bool @alias("n_workers_in_decision")
   size int @alias("n_workers") 
   claimed_membership int? @alias("n_stated_union_members")
   membership int? @alias("n_verified_union_members")
