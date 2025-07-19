@@ -35,14 +35,20 @@ def handler(event, context):
     index_suffix = scraper_event.indexSuffix
     index = f"outcomes-raw-{index_suffix}" if index_suffix else "outcomes-raw"
 
+    references = []
+
+    def add_ref(ref):
+        references.append(ref)
+
     @crochet.wait_for(timeout=60 * 60)  # More than the maximum possible lambda timeout
-    def run_spider(outfile_path):
+    def run_spider():
         settings = {
             "ITEM_PIPELINES": {
                 CacOutcomeOpensearchPipeline: 100,
                 ReferencePipeline: 200,
             },
             "CONCURRENT_ITEMS": 1,
+            "ADD_REFERENCE": add_ref,
             "OPENSEARCH": {
                 "INDEX": index,
                 "MAPPING_PATH": "./index_mappings/outcomes_raw.json",
@@ -52,20 +58,11 @@ def handler(event, context):
             },
             "CLOSESPIDER_ITEMCOUNT": scraper_event.limitItems,
             "CLOSESPIDER_ERRORCOUNT": 5,
-            "FEEDS": {
-                outfile_path: {
-                    "format": "json",
-                    "overwrite": True,
-                    "encoding": "utf-8",
-                    "item_export_kwargs": {"separators": (",", ":")},
-                },
-            },
             **log_settings,
         }
         runner = CrawlerRunner(settings)
         return runner.crawl(AllOutcomesSpider)
 
-    with tempfile.NamedTemporaryFile(mode="w+", encoding="utf-8") as outfile:
-        run_spider(outfile.name)
-        outfile.seek(0)
-        return json.load(outfile)
+    run_spider()
+    logging.info(f"Scraped {len(references)} outcomes")
+    return references
