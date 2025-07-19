@@ -34,7 +34,7 @@ module "scraper" {
   image_uri     = "${aws_ecr_repository.pipeline.repository_url}:latest"
   image_command = ["lambdas.scraper.handler"]
   timeout       = 60 * 15
-  memory_size   = 512
+  memory_size   = 3008
   environment = {
     OPENSEARCH_ENDPOINT = local.opensearch_endpoint
   }

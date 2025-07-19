@@ -8,4 +8,8 @@ def fnv1a_64(string_data, encoding="utf-8"):
         hash_val = hash_val ^ byte
         hash_val = (hash_val * fnv_64_prime) % 2**64
 
-    return hash_val
+    return to_signed_64(hash_val)
+
+
+def to_signed_64(hash_val):
+    return hash_val - 2**63 if hash_val >= 2**63 else hash_val

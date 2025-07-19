@@ -56,7 +56,7 @@
             "Arguments": {
               "FunctionName": "${augmenter_lambda_arn}",
               "Payload": {
-                "refs": "{% $states.input.ref[] %}"
+                "refs": "{% $states.input[] %}"
               }
             },
             "Output": {

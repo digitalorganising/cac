@@ -4,6 +4,7 @@ import os
 
 import scrapy
 from twisted.internet.defer import Deferred
+from opensearchpy import helpers
 
 from .opensearch_utils import get_auth, create_client, ensure_index_mapping
 
@@ -13,7 +14,14 @@ def deferred(coroutine):
     return Deferred.fromFuture(loop.create_task(coroutine))
 
 
+# Really quite hard to inject this properly so I'm using the env var here
+batch_size = int(os.getenv("OPENSEARCH_BATCH_SIZE", 15))
+
+
 class OpensearchPipeline(ABC):
+    _global_queue = asyncio.Queue(maxsize=batch_size)
+    _global_flush_lock = asyncio.Lock()
+
     async def skip_item(self, item):
         return False
 
@@ -71,16 +79,39 @@ class OpensearchPipeline(ABC):
 
         return deferred(shutdown())
 
+    async def flush_queue(self):
+        async with self._global_flush_lock:
+
+            def queue_iter():
+                try:
+                    while True:
+                        yield self._global_queue.get_nowait()
+                except asyncio.QueueEmpty:
+                    return
+
+            async for ok, result in helpers.async_streaming_bulk(
+                client=self.client, actions=queue_iter()
+            ):
+                self._global_queue.task_done()
+                if not ok:
+                    raise Exception("Failed to index item", result)
+
     async def process_item(self, item, spider):
         if await self.skip_item(item):
             raise scrapy.exceptions.DropItem("skip")
-        await self.client.update(
-            index=self.index,
-            id=self.id(item),
-            body={
-                "doc": self.doc(item),
-                "doc_as_upsert": True,
-            },
-            retry_on_conflict=3,
-        )
+
+        action = {
+            "_op_type": "update",
+            "_index": self.index,
+            "_id": self.id(item),
+            "doc": self.doc(item),
+            "doc_as_upsert": True,
+            "retry_on_conflict": 3,
+        }
+        try:
+            self._global_queue.put_nowait(action)
+        except asyncio.QueueFull:
+            await self.flush_queue()
+            await self._global_queue.put(action)
+
         return item

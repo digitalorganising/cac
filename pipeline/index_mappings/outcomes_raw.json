@@ -102,43 +102,43 @@
     "document_fingerprints": {
       "properties": {
         "acceptance_decision": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "access_decision_or_dispute": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "bargaining_unit_decision": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "bargaining_decision": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "form_of_ballot_decision": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "whether_to_ballot_decision": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "validity_decision": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "case_closure": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "nullification_decision": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "recognition_decision": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "application_received": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "method_agreed": {
-          "type": "unsigned_long"
+          "type": "long"
         },
         "application_withdrawn": {
-          "type": "unsigned_long"
+          "type": "long"
         }
       }
     }

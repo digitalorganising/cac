@@ -14,7 +14,7 @@ services:
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
       - AWS_DEFAULT_REGION=eu-west-1
-      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_LAMBDA_FUNCTION_TIMEOUT=900
     volumes:
       - ./pipeline/index_mappings:/var/task/index_mappings
       - ./pipeline/src/lambdas:/var/task/lambdas

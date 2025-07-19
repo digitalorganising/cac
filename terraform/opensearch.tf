@@ -1,5 +1,5 @@
 resource "aws_opensearch_domain" "cac_search" {
-  domain_name    = "cac-cluster"
+  domain_name    = "cac-cluster-190725"
   engine_version = "OpenSearch_2.19"
 
   cluster_config {
