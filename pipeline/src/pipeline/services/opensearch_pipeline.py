@@ -75,6 +75,7 @@ class OpensearchPipeline(ABC):
 
     def close_spider(self, spider):
         async def shutdown():
+            await self.flush_queue()
             await self.client.close()
 
         return deferred(shutdown())
