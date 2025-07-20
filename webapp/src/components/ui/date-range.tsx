@@ -17,13 +17,7 @@ type Props = {
   loading?: boolean;
 };
 
-function CalendarBadge({
-  selected,
-  loading,
-}: {
-  selected: boolean;
-  loading?: boolean;
-}) {
+function CalendarBadge({ selected }: { selected: boolean }) {
   return (
     <span
       className={cn(
@@ -31,16 +25,12 @@ function CalendarBadge({
         selected ? "bg-slate-600" : "bg-transparent",
       )}
     >
-      {loading ? (
-        <UpdateIcon className="animate-spin" />
-      ) : (
-        <CalendarIcon
-          className={cn(
-            "size-3",
-            selected ? "text-white" : "text-muted-foreground",
-          )}
-        />
-      )}
+      <CalendarIcon
+        className={cn(
+          "size-3",
+          selected ? "text-white" : "text-muted-foreground",
+        )}
+      />
     </span>
   );
 }
@@ -59,8 +49,9 @@ export function DateRange({
 }: Props) {
   return (
     <span
+      aria-disabled={loading}
       className={cn(
-        "flex cursor-pointer border-input w-fit items-center justify-between rounded-md border bg-white text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none",
+        "flex cursor-pointer border-input w-fit items-center justify-between rounded-md border bg-white text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50",
         className,
       )}
     >
@@ -77,11 +68,9 @@ export function DateRange({
         <InputTriggerButton
           className="border-none flex-row-reverse pl-2 pr-3 gap-1"
           title="Start date"
-          disabled={disabled === "start" || disabled === true || loading}
+          disabled={disabled === "start" || disabled === true}
           loading={loading}
-          icon={
-            <CalendarBadge selected={start !== undefined} loading={loading} />
-          }
+          icon={<CalendarBadge selected={start !== undefined} />}
         >
           Start
         </InputTriggerButton>
@@ -101,11 +90,9 @@ export function DateRange({
         <InputTriggerButton
           className="border-none flex-row-reverse pl-2 pr-3 gap-1"
           title="End date"
-          disabled={disabled === "end" || disabled === true || loading}
+          disabled={disabled === "end" || disabled === true}
           loading={loading}
-          icon={
-            <CalendarBadge selected={end !== undefined} loading={loading} />
-          }
+          icon={<CalendarBadge selected={end !== undefined} />}
         >
           End
         </InputTriggerButton>

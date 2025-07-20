@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Form from "next/form";
+import Link from "next/link";
 import NextTopLoader from "nextjs-toploader";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import SearchInputs from "@/components/SearchInputs";
@@ -35,7 +36,7 @@ export default function RootLayout({
           />
           <main className="container max-w-(--breakpoint-xl) px-4 xs:px-5 sm:px-6 pb-6">
             <h1 className="text-5xl font-extrabold text-center mt-8 xs:mt-10 sm:mt-12">
-              CAC Outcomes
+              <Link href="/">CAC Outcomes</Link>
             </h1>
             <Form
               action=""
