@@ -1,6 +1,7 @@
 import asyncio
 import os
 from pydantic import BaseModel, Field
+from opensearchpy import helpers
 
 from pipeline.services.opensearch_utils import (
     create_client,
@@ -42,42 +43,47 @@ class RefsEvent(BaseModel):
     refs: list[DocumentRef]
 
 
-async def get_docs(refs, *, destination_index_namespace, destination_index_mapping):
-    response = await client.mget(
+def destination_index(*, source_index, dest_namespace):
+    index_suffix = get_index_suffix(source_index)
+    dest_index = f"{dest_namespace}-{index_suffix}" if index_suffix else dest_namespace
+    return dest_index
+
+
+async def map_docs(refs, f, *, dest_namespace, dest_mapping):
+    res = await client.mget(
         body={"docs": [ref.model_dump(by_alias=True) for ref in refs]}
     )
+    source_docs = (hit["_source"] for hit in res["docs"])
     seen_indices = set()
-    for hit in response["docs"]:
-        if hit["found"]:
-            index = hit["_index"]
-            original_doc = hit["_source"]
-            id = hit["_id"]
-            index_suffix = get_index_suffix(index)
+    processed_docs = ((await f(doc), ref) for doc, ref in zip(source_docs, refs))
 
-            dest_index = (
-                f"{destination_index_namespace}-{index_suffix}"
-                if index_suffix
-                else destination_index_namespace
+    async def update_actions():
+        async for doc, ref in processed_docs:
+            dest_index = destination_index(
+                source_index=ref.index, dest_namespace=dest_namespace
             )
             if dest_index not in seen_indices:
-                await ensure_index_mapping(
-                    client, dest_index, destination_index_mapping
-                )
+                await ensure_index_mapping(client, dest_index, dest_mapping)
                 seen_indices.add(dest_index)
+            yield {
+                "_op_type": "update",
+                "_index": dest_index,
+                "_id": ref.id,
+                "doc": doc,
+                "doc_as_upsert": True,
+                "retry_on_conflict": 3,
+            }
 
-            async def update_doc(updated_doc):
-                res = await client.update(
-                    index=dest_index,
-                    id=id,
-                    body={
-                        "doc": updated_doc,
-                        "doc_as_upsert": True,
-                    },
-                    retry_on_conflict=3,
-                )
-                return DocumentRef(
-                    _id=res["_id"],
-                    _index=res["_index"],
-                )
-
-            yield update_doc, original_doc
+    results = []
+    async for ok, result in helpers.async_streaming_bulk(
+        client, update_actions(), index=dest_namespace
+    ):
+        if not ok:
+            raise Exception("Failed to index item", result)
+        results.append(
+            DocumentRef(
+                _id=result["_id"],
+                _index=result["_index"],
+            ).model_dump(by_alias=True)
+        )
+    return results

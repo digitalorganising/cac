@@ -4,7 +4,7 @@ from opensearchpy import helpers
 from pipeline.transforms.augmentation import augment_doc
 from pipeline.transforms.withdrawals import merge_withdrawal
 
-from . import get_docs, client, RefsEvent, lambda_friendly_run_async
+from . import map_docs, client, RefsEvent, lambda_friendly_run_async
 
 
 # Small enough that I don't mind storing this in memory
@@ -28,19 +28,19 @@ async def process_batch(refs):
     if withdrawals is None:
         withdrawals = await get_withdrawals("application-withdrawals")
 
-    saved_refs = []
-    async for update_doc, doc in get_docs(
-        refs,
-        destination_index_namespace="outcomes-augmented",
-        destination_index_mapping="./index_mappings/outcomes_augmented.json",
-    ):
+    async def augment(doc):
         augmented_doc = await augment_doc(doc)
         if augmented_doc["reference"] in withdrawals:
             withdrawal = withdrawals[augmented_doc["reference"]]
             augmented_doc = merge_withdrawal(withdrawal, augmented_doc)
-        saved_ref = await update_doc(augmented_doc)
-        saved_refs.append(saved_ref.model_dump(by_alias=True))
-    return saved_refs
+        return augmented_doc
+
+    return await map_docs(
+        refs,
+        augment,
+        dest_namespace="outcomes-augmented",
+        dest_mapping="./index_mappings/outcomes_augmented.json",
+    )
 
 
 def handler(event, context):
