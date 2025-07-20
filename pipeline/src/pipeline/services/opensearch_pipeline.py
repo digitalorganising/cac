@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 import os
 
 import scrapy
+from scrapy.exceptions import DropItem
 from twisted.internet.defer import Deferred
 from opensearchpy import helpers
 
@@ -96,6 +97,8 @@ class OpensearchPipeline(ABC):
                 self._global_queue.task_done()
                 if not ok:
                     raise Exception("Failed to index item", result)
+                if result["update"]["result"] == "noop":
+                    raise DropItem("duplicate - cluster reported noop update")
 
     async def process_item(self, item, spider):
         if await self.skip_item(item):

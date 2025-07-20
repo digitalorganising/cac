@@ -53,7 +53,6 @@ if os.getenv("MOCK_LLM"):
 async def augment_doc(doc):
     decision_documents = doc.get("documents", {})
     doc["extracted_data"] = {}
-    doc.pop("document_fingerprints", None)
 
     if DocumentType.derecognition_decision.value in decision_documents:
         return

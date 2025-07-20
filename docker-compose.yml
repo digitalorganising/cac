@@ -10,6 +10,8 @@ services:
     ports:
       - "9000:8080"
     environment:
+      - API_BASE=http://fake_api:3001/api
+      - UNTERMINATED_OUTCOMES_AGE_LIMIT_DAYS=365
       - OPENSEARCH_ENDPOINT=http://opensearch:9200
       - AWS_ACCESS_KEY_ID=test
       - AWS_SECRET_ACCESS_KEY=test
@@ -21,6 +23,7 @@ services:
       - ./pipeline/src/pipeline:/var/task/pipeline
     networks:
       - opensearch-net
+      - api-net
 
   augmenter:
     extends: scraper
@@ -35,6 +38,12 @@ services:
     command: "lambdas.indexer.handler"
     ports: !override
       - "9002:8080"
+
+  fake_api:
+    build:
+      context: ./pipeline/test/fake_api
+    networks:
+      - api-net
 
   opensearch:
     image: opensearchproject/opensearch:2.19.2
@@ -85,3 +94,4 @@ volumes:
 
 networks:
   opensearch-net:
+  api-net:

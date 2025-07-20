@@ -17,23 +17,9 @@ from ..transforms.document_classifier import (
 )
 from ..transforms import normalize_reference
 from ..services.opensearch_pipeline import OpensearchPipeline
-from ..services.fnv import fnv1a_64
 
 
 class CacOutcomeOpensearchPipeline(OpensearchPipeline):
-    def fingerprint(self, item):
-        data = ItemAdapter(item).asdict()
-        document_type = data["document_type"]
-        document_url = data["document_url"]
-        document_content = data.get("document_content")
-        if (
-            not should_get_content(document_type)
-            or document_url.endswith(".pdf")
-            or not document_content
-        ):
-            return fnv1a_64(document_url)
-        return fnv1a_64(document_content)
-
     async def skip_item(self, item):
         match ItemAdapter(item)["document_type"]:
             case DocumentType.derecognition_decision:
@@ -49,12 +35,10 @@ class CacOutcomeOpensearchPipeline(OpensearchPipeline):
         document_content = data.pop("document_content", None)
         document_url = data.pop("document_url", None)
         document_type = data.pop("document_type")
-        document_fingerprint = self.fingerprint(item)
         return {
             **data,
             "documents": {document_type: document_content},
             "document_urls": {document_type: document_url},
-            "document_fingerprints": {document_type: document_fingerprint},
         }
 
 

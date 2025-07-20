@@ -5,8 +5,16 @@ from scrapy.logformatter import LogFormatter
 
 
 class QuietDroppedLogFormatter(LogFormatter):
+    def should_suppress(self, exception):
+        if isinstance(exception, DropItem):
+            if str(exception) == "skip":
+                return True
+            if "duplicate" in str(exception):
+                return True
+        return False
+
     def dropped(self, item, exception, response, spider):
-        if isinstance(exception, DropItem) and str(exception) == "skip":
+        if self.should_suppress(exception):
             return {
                 "level": logging.DEBUG,
                 "msg": "Dropped: %(exception)s" + os.linesep + "%(item)s",
@@ -28,7 +36,7 @@ class ReferencePipeline:
     @classmethod
     def from_crawler(cls, crawler):
         opensearch_settings = crawler.settings.get("OPENSEARCH")
-        add_reference = crawler.settings.get("ADD_REFERENCE")
+        add_reference = crawler.settings.get("OUTCOMES", {}).get("ADD_REFERENCE")
         return cls(
             index=opensearch_settings.get("INDEX"),
             add_reference=add_reference,

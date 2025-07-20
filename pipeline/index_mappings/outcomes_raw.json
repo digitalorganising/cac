@@ -98,49 +98,6 @@
           "type": "keyword"
         }
       }
-    },
-    "document_fingerprints": {
-      "properties": {
-        "acceptance_decision": {
-          "type": "long"
-        },
-        "access_decision_or_dispute": {
-          "type": "long"
-        },
-        "bargaining_unit_decision": {
-          "type": "long"
-        },
-        "bargaining_decision": {
-          "type": "long"
-        },
-        "form_of_ballot_decision": {
-          "type": "long"
-        },
-        "whether_to_ballot_decision": {
-          "type": "long"
-        },
-        "validity_decision": {
-          "type": "long"
-        },
-        "case_closure": {
-          "type": "long"
-        },
-        "nullification_decision": {
-          "type": "long"
-        },
-        "recognition_decision": {
-          "type": "long"
-        },
-        "application_received": {
-          "type": "long"
-        },
-        "method_agreed": {
-          "type": "long"
-        },
-        "application_withdrawn": {
-          "type": "long"
-        }
-      }
     }
   }
 }

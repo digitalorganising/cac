@@ -36,7 +36,9 @@ module "scraper" {
   timeout       = 60 * 15
   memory_size   = 3008
   environment = {
-    OPENSEARCH_ENDPOINT = local.opensearch_endpoint
+    OPENSEARCH_ENDPOINT                  = local.opensearch_endpoint
+    API_BASE                             = "https://${vercel_project_domain.cac_digitalorganising.domain}/api"
+    UNTERMINATED_OUTCOMES_AGE_LIMIT_DAYS = 365 * 2 # 2 years
   }
 }
 

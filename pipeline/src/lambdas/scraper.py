@@ -1,6 +1,6 @@
-import json
 import logging
-import tempfile
+import os
+from datetime import timedelta
 from typing import Optional
 
 import crochet
@@ -10,7 +10,7 @@ from scrapy.utils.reactor import install_reactor
 from scrapy.utils.log import configure_logging
 
 from pipeline.spider import QuietDroppedLogFormatter, ReferencePipeline
-from pipeline.spider.all_outcomes import AllOutcomesSpider
+from pipeline.spider.updated_outcomes import UpdatedOutcomesSpider
 from pipeline.spider.cac_outcome_spider import CacOutcomeOpensearchPipeline
 
 # Install the asyncio reactor for Lambda compatibility
@@ -28,6 +28,7 @@ configure_logging(log_settings)
 class ScraperEvent(BaseModel):
     indexSuffix: Optional[str] = None
     limitItems: Optional[int] = None
+    forceLastUpdated: Optional[str] = None
 
 
 def handler(event, context):
@@ -47,8 +48,15 @@ def handler(event, context):
                 CacOutcomeOpensearchPipeline: 100,
                 ReferencePipeline: 200,
             },
-            "CONCURRENT_ITEMS": 1,
-            "ADD_REFERENCE": add_ref,
+            "OUTCOMES": {
+                "ADD_REFERENCE": add_ref,
+                "API_BASE": os.getenv("API_BASE"),
+                "START_DATE": "2014-01-01",
+                "UNTERMINATED_OUTCOMES_AGE_LIMIT": timedelta(
+                    days=int(os.getenv("UNTERMINATED_OUTCOMES_AGE_LIMIT_DAYS", "730"))
+                ),
+                "FORCE_LAST_UPDATED": scraper_event.forceLastUpdated,
+            },
             "OPENSEARCH": {
                 "INDEX": index,
                 "MAPPING_PATH": "./index_mappings/outcomes_raw.json",
@@ -56,12 +64,13 @@ def handler(event, context):
             "EXTENSIONS": {
                 "scrapy.extensions.closespider.CloseSpider": 100,
             },
+            "CONCURRENT_ITEMS": 1,
             "CLOSESPIDER_ITEMCOUNT": scraper_event.limitItems,
             "CLOSESPIDER_ERRORCOUNT": 5,
             **log_settings,
         }
         runner = CrawlerRunner(settings)
-        return runner.crawl(AllOutcomesSpider)
+        return runner.crawl(UpdatedOutcomesSpider)
 
     run_spider()
     logging.info(f"Scraped {len(references)} outcomes")
