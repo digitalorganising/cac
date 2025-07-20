@@ -69,14 +69,11 @@ resource "aws_opensearch_domain_policy" "opensearch_domain_policy" {
   access_policies = data.aws_iam_policy_document.opensearch_domain_access_policy.json
 }
 
-resource "opensearch_role" "indexed_reader" {
-  role_name   = "indexed_reader"
-  description = "Read any documents in indices ending with 'indexed'"
-
-  index_permissions {
-    index_patterns  = ["*indexed"]
-    allowed_actions = ["read"]
-  }
+module "mapped_role_cac_webapp_vercel" {
+  source        = "./modules/mapped_role"
+  service_name  = "webapp"
+  read_prefixes = ["outcomes-indexed"]
+  backend_role  = aws_iam_role.cac_webapp_vercel.arn
 }
 
 module "mapped_role_scraper" {

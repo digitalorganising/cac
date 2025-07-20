@@ -74,7 +74,7 @@ module "pipeline_step_function" {
   type = "STANDARD"
 
   definition = templatefile("${path.module}/state-machine/pipeline.asl.json", {
-    batch_size           = 10
+    batch_size           = 20
     scraper_lambda_arn   = module.scraper.function.arn
     augmenter_lambda_arn = module.augmenter.function.arn
     indexer_lambda_arn   = module.indexer.function.arn
