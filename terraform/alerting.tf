@@ -65,7 +65,7 @@ resource "aws_cloudwatch_event_rule" "pipeline_alerts" {
     source      = ["aws.states"]
     detail-type = ["Step Functions Execution Status Change"]
     detail = {
-      state           = ["FAILED"],
+      status          = ["FAILED"],
       stateMachineArn = [module.pipeline_step_function.state_machine_arn]
     }
   })

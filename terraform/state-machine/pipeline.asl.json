@@ -25,7 +25,7 @@
         "FunctionName": "${scraper_lambda_arn}",
         "Payload": "{% $states.input %}"
       },
-      "Output": "{% $partition($states.result.Payload, ${batch_size}) %}"
+      "Output": "{% [$partition($states.result.Payload[], ${batch_size})] %}"
     },
     "Map": {
       "Type": "Map",

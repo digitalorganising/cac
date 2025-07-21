@@ -29,12 +29,22 @@ class ScraperEvent(BaseModel):
     indexSuffix: Optional[str] = None
     limitItems: Optional[int] = None
     forceLastUpdated: Optional[str] = None
+    redrive: list[str] = []
 
 
 def handler(event, context):
     scraper_event = ScraperEvent.model_validate(event)
     index_suffix = scraper_event.indexSuffix
     index = f"outcomes-raw-{index_suffix}" if index_suffix else "outcomes-raw"
+
+    if scraper_event.redrive:
+        return [
+            {
+                "_id": id,
+                "_index": index,
+            }
+            for id in scraper_event.redrive
+        ]
 
     references = []
 
