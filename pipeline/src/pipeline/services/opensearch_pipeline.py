@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 import os
 
 import scrapy
-from scrapy.exceptions import DropItem
 from twisted.internet.defer import Deferred
+from async_batcher.batcher import AsyncBatcher
 from opensearchpy import helpers
 
 from .opensearch_utils import get_auth, create_client, ensure_index_mapping
@@ -15,14 +15,28 @@ def deferred(coroutine):
     return Deferred.fromFuture(loop.create_task(coroutine))
 
 
-# Really quite hard to inject this properly so I'm using the env var here
-batch_size = int(os.getenv("OPENSEARCH_BATCH_SIZE", 15))
+class OpensearchAsyncBatcher(AsyncBatcher):
+    def __init__(self, client, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.client = client
+
+    def handle_result(self, ok, result):
+        if not ok:
+            return Exception("Failed to index item", result)
+        if result["update"]["result"] == "noop":
+            return scrapy.exceptions.DropItem(
+                "duplicate - cluster reported noop update"
+            )
+        return None
+
+    async def process_batch(self, batch):
+        if not self.client:
+            raise Exception("Client not initialized")
+        results_stream = helpers.async_streaming_bulk(client=self.client, actions=batch)
+        return [self.handle_result(ok, result) async for ok, result in results_stream]
 
 
 class OpensearchPipeline(ABC):
-    _global_queue = asyncio.Queue(maxsize=batch_size)
-    _global_flush_lock = asyncio.Lock()
-
     async def skip_item(self, item):
         return False
 
@@ -40,11 +54,13 @@ class OpensearchPipeline(ABC):
         auth,
         index,
         mapping_path=None,
+        batch_size=15,
     ):
         self.cluster_host = cluster_host
         self.auth = auth
         self.index = index
         self.mapping_path = mapping_path
+        self.batch_size = batch_size
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -55,16 +71,16 @@ class OpensearchPipeline(ABC):
             index=settings.get("INDEX"),
             auth=auth,
             mapping_path=settings.get("MAPPING_PATH"),
+            batch_size=settings.get("BATCH_SIZE"),
         )
 
     def open_spider(self, spider):
-        self.client = create_client(
-            cluster_host=self.cluster_host,
-            auth=self.auth,
-            async_client=True,
-        )
-
-        async def setup():
+        async def _open_spider():
+            self.client = create_client(
+                cluster_host=self.cluster_host,
+                auth=self.auth,
+                async_client=True,
+            )
             await self.client.ping()
             await ensure_index_mapping(
                 client=self.client,
@@ -72,39 +88,25 @@ class OpensearchPipeline(ABC):
                 mapping_path=self.mapping_path,
             )
 
-        return deferred(setup())
+            self.batcher = OpensearchAsyncBatcher(
+                client=self.client,
+                max_batch_size=self.batch_size,
+                max_queue_size=2 * self.batch_size,
+                max_queue_time=1,
+                concurrency=1,
+            )
+
+        return deferred(_open_spider())
 
     def close_spider(self, spider):
-        async def shutdown():
-            await self.flush_queue()
+        async def _close_spider():
+            await self.batcher.stop(force=False)
             await self.client.close()
 
-        return deferred(shutdown())
+        return deferred(_close_spider())
 
-    async def flush_queue(self):
-        async with self._global_flush_lock:
-
-            def queue_iter():
-                try:
-                    while True:
-                        yield self._global_queue.get_nowait()
-                except asyncio.QueueEmpty:
-                    return
-
-            async for ok, result in helpers.async_streaming_bulk(
-                client=self.client, actions=queue_iter()
-            ):
-                self._global_queue.task_done()
-                if not ok:
-                    raise Exception("Failed to index item", result)
-                if result["update"]["result"] == "noop":
-                    raise DropItem("duplicate - cluster reported noop update")
-
-    async def process_item(self, item, spider):
-        if await self.skip_item(item):
-            raise scrapy.exceptions.DropItem("skip")
-
-        action = {
+    def action(self, item):
+        return {
             "_op_type": "update",
             "_index": self.index,
             "_id": self.id(item),
@@ -112,10 +114,10 @@ class OpensearchPipeline(ABC):
             "doc_as_upsert": True,
             "retry_on_conflict": 3,
         }
-        try:
-            self._global_queue.put_nowait(action)
-        except asyncio.QueueFull:
-            await self.flush_queue()
-            await self._global_queue.put(action)
 
+    async def process_item(self, item, spider):
+        if await self.skip_item(item):
+            raise scrapy.exceptions.DropItem("skip")
+
+        await self.batcher.process(self.action(item))
         return item

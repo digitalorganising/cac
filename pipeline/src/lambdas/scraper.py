@@ -60,11 +60,11 @@ def handler(event, context):
             "OPENSEARCH": {
                 "INDEX": index,
                 "MAPPING_PATH": "./index_mappings/outcomes_raw.json",
+                "BATCH_SIZE": os.getenv("OPENSEARCH_BATCH_SIZE", 15),
             },
             "EXTENSIONS": {
                 "scrapy.extensions.closespider.CloseSpider": 100,
             },
-            "CONCURRENT_ITEMS": 1,
             "CLOSESPIDER_ITEMCOUNT": scraper_event.limitItems,
             "CLOSESPIDER_ERRORCOUNT": 5,
             **log_settings,

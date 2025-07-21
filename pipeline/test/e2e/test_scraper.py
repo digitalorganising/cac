@@ -10,3 +10,9 @@ async def test_scraper(opensearch_client):
         )
         assert len(result) >= 1
         assert await index_populated(opensearch_client, raw.index_name)
+
+        # Checking whether we pass on IDs of duplicates
+        result_2 = await invoke_lambda(
+            "scraper", {"limitItems": 1, "indexSuffix": raw.suffix}
+        )
+        assert not result_2

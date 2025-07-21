@@ -22,10 +22,9 @@ resource "aws_ecr_lifecycle_policy" "pipeline" {
   })
 }
 
-
-
 locals {
   opensearch_endpoint = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
+  batch_size          = 20
 }
 
 module "scraper" {
@@ -39,6 +38,7 @@ module "scraper" {
     OPENSEARCH_ENDPOINT                  = local.opensearch_endpoint
     API_BASE                             = "https://${vercel_project_domain.cac_digitalorganising.domain}/api"
     UNTERMINATED_OUTCOMES_AGE_LIMIT_DAYS = 365 * 2 # 2 years
+    OPENSEARCH_BATCH_SIZE                = local.batch_size
   }
 }
 
@@ -76,7 +76,7 @@ module "pipeline_step_function" {
   type = "STANDARD"
 
   definition = templatefile("${path.module}/state-machine/pipeline.asl.json", {
-    batch_size           = 20
+    batch_size           = local.batch_size
     scraper_lambda_arn   = module.scraper.function.arn
     augmenter_lambda_arn = module.augmenter.function.arn
     indexer_lambda_arn   = module.indexer.function.arn
