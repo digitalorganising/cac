@@ -16,6 +16,8 @@ function ExtractFormOfBallotDecision(decision_document: string) -> FormOfBallotD
 
     {{ ctx.output_format }}
 
+    {{ DateFormatPrompt() }}
+
     Before you answer that a ballot preference is either Postal or Workplace,
     please show your working to be sure it is not a Combination:
   "#

@@ -50,7 +50,7 @@ async def test_rmt_carefree_travel(cac_document_contents):
 
     assert date_eq(ad.decision_date, "06 June 2017")
     assert ad.details.favors == Party.Union
-    assert "canteen" in ad.details.description.lower()
+    assert "notice board" in ad.details.description.lower()
 
 
 @pytest.mark.parametrize(

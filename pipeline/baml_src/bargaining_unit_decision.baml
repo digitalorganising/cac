@@ -14,6 +14,8 @@ function ExtractBargainingUnitDecision(decision_document: string) -> BargainingU
     {{ decision_document }}
     </doc>
 
+    {{ DateFormatPrompt() }}
+
     {{ ctx.output_format }}
   "#
 }

@@ -24,6 +24,8 @@ function ExtractWhetherToBallotDecision(decision_document: string) -> WhetherToB
 
     {{ ctx.output_format }}
 
+    {{ DateFormatPrompt() }}
+
     Before you answer, show your reasoning for these points, then answer as above.
 
     1. Was the panel satisfied that the majority of workers in the bargaining unit were members of the union?

@@ -32,6 +32,10 @@ def get_parties(outcome):
 
 def get_bargaining_unit(outcome):
     data = outcome["extracted_data"]
+    if "acceptance_decision" not in data:
+        return None
+
+    ad = baml_types.AcceptanceDecision.model_validate(data["acceptance_decision"])
     if "validity_decision" in data:
         d = baml_types.ValidityDecision.model_validate(data["validity_decision"])
         return {
@@ -43,20 +47,18 @@ def get_bargaining_unit(outcome):
             "membership": d.new_bargaining_unit.membership
             or d.new_bargaining_unit.claimed_membership,
             "description": d.new_bargaining_unit.description,
-            "petitionSignatures": d.petition_signatures,
+            "petitionSignatures": ad.petition_signatures,
         }
 
-    if "acceptance_decision" in data:
-        d = baml_types.AcceptanceDecision.model_validate(data["acceptance_decision"])
-        return {
-            "size": (
-                d.bargaining_unit.size if d.bargaining_unit.size_considered else None
-            ),
-            "membership": d.bargaining_unit.membership
-            or d.bargaining_unit.claimed_membership,
-            "description": d.bargaining_unit.description,
-            "petitionSignatures": d.petition_signatures,
-        }
+    return {
+        "size": (
+            ad.bargaining_unit.size if ad.bargaining_unit.size_considered else None
+        ),
+        "membership": ad.bargaining_unit.membership
+        or ad.bargaining_unit.claimed_membership,
+        "description": ad.bargaining_unit.description,
+        "petitionSignatures": ad.petition_signatures,
+    }
 
     return None
 

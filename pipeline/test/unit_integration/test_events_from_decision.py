@@ -557,7 +557,7 @@ def test_events_from_decision_access_decision_or_dispute_unfair_practice_upheld(
     access_doc = {
         "decision_date": "2024-09-01",
         "details": {
-            "decision_type": "a decision on an unfair practice dispute during the access period",
+            "decision_type": "unfair_practice_dispute",
             "upheld": True,
             "complainant": "Union",
         },
@@ -583,7 +583,7 @@ def test_events_from_decision_access_decision_or_dispute_unfair_practice_not_uph
     access_doc = {
         "decision_date": "2024-09-01",
         "details": {
-            "decision_type": "a decision on an unfair practice dispute during the access period",
+            "decision_type": "unfair_practice_dispute",
             "upheld": False,
             "complainant": "Employer",
         },
@@ -609,7 +609,7 @@ def test_events_from_decision_access_decision_or_dispute_access_arrangement():
     access_doc = {
         "decision_date": "2024-09-01",
         "details": {
-            "decision_type": "a decision on access arrangements in advance of a ballot, or during it with a pause",
+            "decision_type": "access_arrangement",
             "favors": "Union",
             "description": "Union granted access to workplace noticeboards and email distribution lists",
         },

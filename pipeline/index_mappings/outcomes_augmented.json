@@ -263,9 +263,6 @@
             "rejection_reasons": {
               "type": "keyword"
             },
-            "petition_signatures": {
-              "type": "integer"
-            },
             "new_bargaining_unit": {
               "properties": {
                 "description": {

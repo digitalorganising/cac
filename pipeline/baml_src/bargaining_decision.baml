@@ -13,6 +13,7 @@ function ExtractBargainingDecision(decision_document: string) -> BargainingDecis
     </doc>
 
     Ignore information related to the history of the case and find the date at which any party requested the CAC to assist in determining the method of bargaining.
+    {{ DateFormatPrompt() }}
 
     {{ ctx.output_format }}
   "#

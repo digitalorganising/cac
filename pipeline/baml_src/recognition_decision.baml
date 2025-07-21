@@ -28,6 +28,8 @@ function ExtractRecognitionDecision(decision_document: string) -> RecognitionDec
 
     {{ ctx.output_format }}
 
+    {{ DateFormatPrompt() }}
+
     Before you answer, if there was a ballot held, outline the following step by step:
     - The number of eligible workers / ballot papers sent out
     - The number of spoiled ballots, the number of votes in favor, and the number of votes against

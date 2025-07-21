@@ -434,7 +434,7 @@ def test_events_from_outcome_access_dispute():
             "access_decision_or_dispute": {
                 "decision_date": "2024-09-15",
                 "details": {
-                    "decision_type": "a decision on an unfair practice dispute during the access period",
+                    "decision_type": "unfair_practice_dispute",
                     "upheld": True,
                     "complainant": "Union",
                 },

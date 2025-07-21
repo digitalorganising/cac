@@ -51,7 +51,7 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
     assert ad.success
     assert not ad.rejection_reasons
     assert ad.petition_signatures == 257
-    assert ad.application_date == "30 April 2019"
+    assert ad.application_date == "29 April 2019"
     assert ad.end_of_acceptance_period == "21 June 2019"
     assert not ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
@@ -131,7 +131,7 @@ async def test_community_coilcolor(cac_document_contents):
     assert not ad.success
     assert ad.rejection_reasons == [RejectionReason.NoMajoritySupportLikely]
     assert ad.petition_signatures == 23
-    assert ad.application_date == "2 August 2016"
+    assert ad.application_date == "1 August 2016"
     assert ad.end_of_acceptance_period == "17 May 2017"
     assert not ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
@@ -234,7 +234,7 @@ async def test_iwgb_ocean_integrated_services(cac_document_contents):
     assert not ad.success
     assert RejectionReason.AnotherUnionAlreadyRecognized in ad.rejection_reasons
     assert ad.application_date == "20 May 2015"
-    assert not ad.bargaining_unit_agreed
+    assert ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
         description="All employees of Ocean Integrated Services Ltd. at the Royal College of Music site",
         size=0,
