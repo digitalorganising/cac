@@ -63,7 +63,7 @@ resource "aws_cloudwatch_event_rule" "pipeline_alerts" {
   name = "pipeline-alerts"
   event_pattern = jsonencode({
     source      = ["aws.states"]
-    detail-type = ["Pipeline step function execution failures"]
+    detail-type = ["Step Functions Execution Status Change"]
     detail = {
       state           = ["FAILED"],
       stateMachineArn = [module.pipeline_step_function.state_machine_arn]
