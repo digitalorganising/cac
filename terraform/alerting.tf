@@ -9,6 +9,7 @@ resource "aws_sns_topic_subscription" "pipeline_alerts_email" {
 }
 
 data "aws_organizations_organization" "current" {}
+data "aws_caller_identity" "current" {}
 
 resource "aws_sns_topic_policy" "pipeline_alerts" {
   arn    = aws_sns_topic.pipeline_alerts.arn

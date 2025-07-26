@@ -5,6 +5,7 @@ resource "aws_scheduler_schedule" "check_outcomes" {
   # Run between 7am and 7pm, Monday to Friday
   schedule_expression          = "cron(0 7-19 ? * MON-FRI *)"
   schedule_expression_timezone = "Europe/London"
+  state                        = "DISABLED"
 
   flexible_time_window {
     mode                      = "FLEXIBLE"

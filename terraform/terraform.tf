@@ -13,9 +13,9 @@ terraform {
       source  = "vercel/vercel"
       version = "~> 3.2.0"
     }
-    opensearch = {
-      source  = "opensearch-project/opensearch"
-      version = "~> 2.3.1"
+    bonsai = {
+      source  = "omc/bonsai"
+      version = "~> 1.0"
     }
   }
 
@@ -41,12 +41,4 @@ provider "aws" {
 
 provider "vercel" {
   team = "digital-organising"
-}
-
-provider "opensearch" {
-  url                 = local.opensearch_endpoint
-  aws_assume_role_arn = aws_iam_role.opensearch_master_user.arn
-  aws_profile         = local.profile
-  aws_region          = local.region
-  sign_aws_requests   = true
 }

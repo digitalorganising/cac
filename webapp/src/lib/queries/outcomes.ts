@@ -7,7 +7,7 @@ import {
   PaginationOptions,
   QueryOptions,
   SortOptions,
-  client,
+  getClient,
   getFilters,
   getQuery,
   outcomesIndex,
@@ -23,6 +23,7 @@ export const getOutcomes = unstable_cache(
     { from, size, sortKey, sortOrder, ...queryOptions }: GetOutcomesOptions,
     debug = false,
   ): Promise<{ size: number; docs: Outcome[] }> => {
+    const client = await getClient();
     const body = {
       from,
       size,
@@ -57,7 +58,7 @@ export const getOutcomes = unstable_cache(
       docs: response.body.hits.hits.map((hit: any) => hit._source.display),
     };
   },
-  ["client", "getFilters", "getQuery", "getSort"],
+  ["getClient", "getFilters", "getQuery", "getSort"],
   {
     revalidate: 60 * 60, // 1 hour
     tags: ["outcomes-index"],

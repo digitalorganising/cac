@@ -51,19 +51,11 @@ if os.getenv("MOCK_LLM"):
 
 
 async def augment_doc(doc):
-    decision_documents = doc.get("documents", {})
-    doc["extracted_data"] = {}
+    if doc["document_type"] == DocumentType.derecognition_decision.value:
+        return doc
 
-    if DocumentType.derecognition_decision.value in decision_documents:
-        return
-
-    async def augment_decision_document(doc_type_string, content):
-        extracted_data = await get_extracted_data(doc_type_string, content)
-        return doc_type_string, extracted_data
-
-    tasks = [augment_decision_document(*item) for item in decision_documents.items()]
-    for coro in asyncio.as_completed(tasks):
-        doc_type_string, extracted_data = await coro
-        doc["extracted_data"][doc_type_string] = extracted_data
+    doc["extracted_data"] = await get_extracted_data(
+        doc["document_type"], doc["document_content"]
+    )
 
     return doc

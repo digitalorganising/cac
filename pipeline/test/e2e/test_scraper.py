@@ -15,4 +15,4 @@ async def test_scraper(opensearch_client):
         result_2 = await invoke_lambda(
             "scraper", {"limitItems": 1, "indexSuffix": raw.suffix}
         )
-        assert not result_2
+        assert set(r["_id"] for r in result).isdisjoint(r["_id"] for r in result_2)

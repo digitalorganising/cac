@@ -1,14 +1,10 @@
 import os
-import boto3
 from baml_client import b
-from aws_secretsmanager_caching import SecretCache
+
+from .secrets import secrets_store
 
 env_key = os.getenv("GOOGLE_API_KEY")
 secret_name = os.getenv("GOOGLE_API_KEY_SECRET")
-
-session = boto3.Session()
-secrets_client = session.client("secretsmanager")
-secrets_store = SecretCache(client=secrets_client)
 
 
 def _get_api_key():

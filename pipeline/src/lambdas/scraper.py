@@ -32,6 +32,13 @@ class ScraperEvent(BaseModel):
     redrive: list[str] = []
 
 
+def int_env(name, default=None):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return int(value)
+
+
 def handler(event, context):
     scraper_event = ScraperEvent.model_validate(event)
     index_suffix = scraper_event.indexSuffix
@@ -53,7 +60,7 @@ def handler(event, context):
 
     @crochet.wait_for(timeout=60 * 60)  # More than the maximum possible lambda timeout
     def run_spider():
-        age_limit_days = os.getenv("UNTERMINATED_OUTCOMES_AGE_LIMIT_DAYS")
+        age_limit_days = int_env("UNTERMINATED_OUTCOMES_AGE_LIMIT_DAYS")
         settings = {
             "ITEM_PIPELINES": {
                 CacOutcomeOpensearchPipeline: 100,
@@ -64,14 +71,14 @@ def handler(event, context):
                 "API_BASE": os.getenv("API_BASE"),
                 "START_DATE": "2014-01-01",
                 "UNTERMINATED_OUTCOMES_AGE_LIMIT": (
-                    timedelta(days=int(age_limit_days)) if age_limit_days else None
+                    timedelta(days=age_limit_days) if age_limit_days else None
                 ),
                 "FORCE_LAST_UPDATED": scraper_event.forceLastUpdated,
             },
             "OPENSEARCH": {
                 "INDEX": index,
                 "MAPPING_PATH": "./index_mappings/outcomes_raw.json",
-                "BATCH_SIZE": int(os.getenv("OPENSEARCH_BATCH_SIZE", 15)),
+                "BATCH_SIZE": int_env("OPENSEARCH_BATCH_SIZE", 15),
             },
             "EXTENSIONS": {
                 "scrapy.extensions.closespider.CloseSpider": 100,

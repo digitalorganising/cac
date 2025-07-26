@@ -28,18 +28,11 @@ class CacOutcomeOpensearchPipeline(OpensearchPipeline):
                 False
 
     def id(self, item):
-        return item["reference"]
+        return item["reference"] + ":" + item["document_type"]
 
     def doc(self, item):
-        data = ItemAdapter(item).asdict()
-        document_content = data.pop("document_content", None)
-        document_url = data.pop("document_url", None)
-        document_type = data.pop("document_type")
-        return {
-            **data,
-            "documents": {document_type: document_content},
-            "document_urls": {document_type: document_url},
-        }
+        item["id"] = self.id(item)
+        return ItemAdapter(item).asdict()
 
 
 class CacOutcomeSpider(scrapy.Spider, ABC):

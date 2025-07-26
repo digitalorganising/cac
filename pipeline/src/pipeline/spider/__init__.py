@@ -43,7 +43,7 @@ class ReferencePipeline:
         )
 
     def process_item(self, item, spider):
-        id = item["reference"]
+        id = item["id"]
         if id not in self.ids_set:
             self.ids_set.add(id)
             self.add_reference(

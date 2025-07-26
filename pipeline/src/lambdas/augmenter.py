@@ -30,8 +30,10 @@ async def process_batch(refs):
 
     async def augment(doc):
         augmented_doc = await augment_doc(doc)
-        if augmented_doc["reference"] in withdrawals:
-            withdrawal = withdrawals[augmented_doc["reference"]]
+        reference = augmented_doc["reference"]
+        if reference in withdrawals:
+            withdrawal = withdrawals[reference]
+            # TODO work this out
             augmented_doc = merge_withdrawal(withdrawal, augmented_doc)
         return augmented_doc
 

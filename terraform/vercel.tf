@@ -15,7 +15,14 @@ locals {
 resource "vercel_project_environment_variable" "cac_webapp_opensearch_endpoint" {
   project_id = vercel_project.cac_webapp.id
   key        = "OPENSEARCH_ENDPOINT"
-  value      = "https://${aws_opensearch_domain.cac_search.endpoint}"
+  value      = local.opensearch_endpoint
+  target     = local.vercel_envs
+}
+
+resource "vercel_project_environment_variable" "cac_webapp_opensearch_credentials_secret" {
+  project_id = vercel_project.cac_webapp.id
+  key        = "OPENSEARCH_CREDENTIALS_SECRET"
+  value      = module.opensearch_credentials.arn
   target     = local.vercel_envs
 }
 

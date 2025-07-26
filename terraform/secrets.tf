@@ -1,26 +1,18 @@
-resource "aws_secretsmanager_secret" "google_api_key" {
-  name        = "cac-pipeline-google-api-key"
-  description = "Secret for the CAC pipeline google api key"
+module "google_api_key" {
+  source         = "./modules/secret"
+  name           = "google-api-key"
+  description    = "Secret for the CAC pipeline google api key"
+  accessor_roles = [module.augmenter.role.name]
 }
 
-data "aws_iam_policy_document" "augmenter_secrets_access" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "secretsmanager:GetSecretValue",
-      "secretsmanager:DescribeSecret"
-    ]
-    resources = [aws_secretsmanager_secret.google_api_key.arn]
-  }
-}
-
-resource "aws_iam_policy" "augmenter_secrets_access" {
-  name        = "augmenter-secrets-access"
-  description = "Allow augmenter lambda to access secrets manager"
-  policy      = data.aws_iam_policy_document.augmenter_secrets_access.json
-}
-
-resource "aws_iam_role_policy_attachment" "augmenter_secrets_access" {
-  role       = module.augmenter.role.name
-  policy_arn = aws_iam_policy.augmenter_secrets_access.arn
+module "opensearch_credentials" {
+  source      = "./modules/secret"
+  name        = "opensearch-credentials"
+  description = "Secret for the CAC pipeline opensearch credentials"
+  accessor_roles = [
+    module.augmenter.role.name,
+    module.indexer.role.name,
+    module.scraper.role.name,
+    aws_iam_role.cac_webapp_vercel.name
+  ]
 }

@@ -23,7 +23,7 @@ resource "aws_ecr_lifecycle_policy" "pipeline" {
 }
 
 locals {
-  opensearch_endpoint = "https://${aws_opensearch_domain.cac_search.endpoint_v2}"
+  opensearch_endpoint = "${bonsai_cluster.cac_search.access.scheme}://${bonsai_cluster.cac_search.access.host}:${bonsai_cluster.cac_search.access.port}"
   batch_size          = 20
 }
 
@@ -36,6 +36,7 @@ module "scraper" {
   memory_size   = 3008
   environment = {
     OPENSEARCH_ENDPOINT                  = local.opensearch_endpoint
+    OPENSEARCH_CREDENTIALS_SECRET        = module.opensearch_credentials.arn
     API_BASE                             = "https://${vercel_project_domain.cac_digitalorganising.domain}/api"
     UNTERMINATED_OUTCOMES_AGE_LIMIT_DAYS = 365 * 2 # 2 years
     OPENSEARCH_BATCH_SIZE                = local.batch_size
@@ -50,8 +51,9 @@ module "augmenter" {
   timeout       = 60 * 15
   memory_size   = 512
   environment = {
-    OPENSEARCH_ENDPOINT   = local.opensearch_endpoint
-    GOOGLE_API_KEY_SECRET = aws_secretsmanager_secret.google_api_key.arn
+    OPENSEARCH_ENDPOINT           = local.opensearch_endpoint
+    OPENSEARCH_CREDENTIALS_SECRET = module.opensearch_credentials.arn
+    GOOGLE_API_KEY_SECRET         = module.google_api_key.arn
   }
 }
 
@@ -64,7 +66,8 @@ module "indexer" {
   timeout       = 60 * 15
   memory_size   = 512
   environment = {
-    OPENSEARCH_ENDPOINT = local.opensearch_endpoint
+    OPENSEARCH_ENDPOINT           = local.opensearch_endpoint
+    OPENSEARCH_CREDENTIALS_SECRET = module.opensearch_credentials.arn
   }
 }
 

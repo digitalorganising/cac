@@ -65,7 +65,11 @@ class OpensearchPipeline(ABC):
     @classmethod
     def from_crawler(cls, crawler):
         settings = crawler.settings.get("OPENSEARCH")
-        auth = get_auth(user=settings.get("USER"), password=settings.get("PASS"))
+        auth = get_auth(
+            user=settings.get("USER"),
+            password=settings.get("PASS"),
+            credentials_secret=settings.get("CREDENTIALS_SECRET"),
+        )
         return cls(
             cluster_host=settings.get("HOST", os.getenv("OPENSEARCH_ENDPOINT")),
             index=settings.get("INDEX"),

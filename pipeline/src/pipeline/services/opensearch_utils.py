@@ -16,18 +16,29 @@ from opensearchpy import (
 def get_auth(
     user: Optional[str] = None,
     password: Optional[str] = None,
+    credentials_secret: Optional[str] = None,
 ) -> Union[Tuple[str, str], Dict[str, Any]]:
+    from .secrets import secrets_store
+
     """Get authentication credentials for OpenSearch.
 
     Args:
         user: Optional username for basic auth
         password: Optional password for basic auth
+        credentials_secret: Optional secret name for AWS auth
 
     Returns:
         Either a tuple of (username, password) for basic auth or a dict of AWS auth arguments
     """
     if user:
         return (user, password)
+    elif credentials_secret:
+        secret_string = secrets_store.get_secret_string(credentials_secret)
+        secret_dict = json.loads(secret_string)
+        return (
+            secret_dict.get("username"),
+            secret_dict.get("password"),
+        )
     else:
         session = boto3.Session()
         return {

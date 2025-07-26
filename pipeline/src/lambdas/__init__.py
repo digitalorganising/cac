@@ -12,7 +12,7 @@ from pipeline.services.opensearch_utils import (
 
 client = create_client(
     cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
-    auth=get_auth(),
+    auth=get_auth(credentials_secret=os.getenv("OPENSEARCH_CREDENTIALS_SECRET")),
     async_client=True,
 )
 
@@ -80,10 +80,11 @@ async def map_docs(refs, f, *, dest_namespace, dest_mapping):
     ):
         if not ok:
             raise Exception("Failed to index item", result)
+        update = result["update"]
         results.append(
             DocumentRef(
-                _id=result["_id"],
-                _index=result["_index"],
+                _id=update["_id"],
+                _index=update["_index"],
             ).model_dump(by_alias=True)
         )
     return results

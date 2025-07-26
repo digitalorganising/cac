@@ -5,7 +5,7 @@ import { hasDeepProperty } from "../utils";
 import {
   FilterOptions,
   QueryOptions,
-  client,
+  getClient,
   getFilters,
   getQuery,
   outcomesIndex,
@@ -37,6 +37,7 @@ const pick = <T extends object, const K extends keyof T>(
 
 export const getFacets = unstable_cache(
   async (options: GetFacetsOptions, debug = false): Promise<Facets> => {
+    const client = await getClient();
     const filters = getFilters(options);
     const body = {
       size: 0,
@@ -93,7 +94,7 @@ export const getFacets = unstable_cache(
     };
   },
   [
-    "client",
+    "getClient",
     "getFilters",
     "getQuery",
     "facetAgg",
