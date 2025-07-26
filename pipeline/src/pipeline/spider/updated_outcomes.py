@@ -37,6 +37,7 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
         async with httpx.AsyncClient(timeout=10) as client:
             try:
                 response = await client.get(f"{self.api_base}/outcomes")
+                response.raise_for_status()
                 data = response.json()
                 return date_parse(data["outcomes"][0]["lastUpdated"])
             except (httpx.HTTPStatusError, KeyError) as e:
@@ -46,9 +47,10 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
         async with httpx.AsyncClient(timeout=10) as client:
 
             async def get_outcomes(url: str, params: Optional[dict] = None):
-                response = await client.get(url, params=params)
-                data = response.json()
                 try:
+                    response = await client.get(url, params=params)
+                    response.raise_for_status()
+                    data = response.json()
                     for outcome in data["outcomes"]:
                         yield {
                             "reference": outcome["reference"],
