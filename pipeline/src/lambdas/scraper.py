@@ -92,5 +92,5 @@ def handler(event, context):
         return runner.crawl(UpdatedOutcomesSpider)
 
     run_spider()
-    logging.info(f"Scraped {len(references)} outcomes")
+    logging.info(f"Scraped {len(references)} decisions")
     return references

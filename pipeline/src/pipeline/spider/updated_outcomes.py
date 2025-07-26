@@ -37,7 +37,8 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
 
     @property
     def force_last_updated(self):
-        return self.outcomes_settings.get("FORCE_LAST_UPDATED")
+        str_date = self.outcomes_settings.get("FORCE_LAST_UPDATED")
+        return london_date(str_date) if str_date else None
 
     async def get_last_updated(self):
         if self.force_last_updated:
@@ -82,7 +83,7 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
     def request_year_list(self, year: int, last_updated: datetime):
         return Request(
             url=(self.list_url_prefix + str(year)),
-            cb_kwargs={"last_updated": last_updated},
+            cb_kwargs={"last_updated": last_updated, "this_year": year},
             callback=self.updated_outcomes_from_list,
         )
 
@@ -99,7 +100,7 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
         self.logger.info(f"Looking for outcomes updated since {last_updated}")
         yield self.request_year_list(last_updated.year, last_updated)
 
-    def updated_outcomes_from_list(self, response, last_updated):
+    def updated_outcomes_from_list(self, response, last_updated, this_year):
         outcome_list_items = response.css(
             "h3#trade-union-recognition + " "div + div > ul > li"
         )
@@ -112,5 +113,5 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
             if outcome_last_updated >= last_updated:
                 yield Request(url=outcome_url)
 
-        maybe_next_year = last_updated.year + 1
+        maybe_next_year = this_year + 1
         yield self.request_year_list(maybe_next_year, last_updated)
