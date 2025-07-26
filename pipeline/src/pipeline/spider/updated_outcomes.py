@@ -35,11 +35,12 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
         if self.force_last_updated:
             return self.force_last_updated
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(f"{self.api_base}/outcomes")
-            data = response.json()
-            if not data["outcomes"]:
+            try:
+                response = await client.get(f"{self.api_base}/outcomes")
+                data = response.json()
+                return date_parse(data["outcomes"][0]["lastUpdated"])
+            except (httpx.HTTPStatusError, KeyError) as e:
                 return self.start_date
-            return date_parse(data["outcomes"][0]["lastUpdated"])
 
     async def get_unterminated_outcomes(self):
         async with httpx.AsyncClient(timeout=10) as client:
@@ -47,17 +48,18 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
             async def get_outcomes(url: str, params: Optional[dict] = None):
                 response = await client.get(url, params=params)
                 data = response.json()
-                if not data["outcomes"]:
+                try:
+                    for outcome in data["outcomes"]:
+                        yield {
+                            "reference": outcome["reference"],
+                            "cacUrl": outcome["cacUrl"],
+                            "lastUpdated": date_parse(outcome["lastUpdated"]),
+                        }
+                    if data.get("nextPage"):
+                        async for outcome in get_outcomes(data["nextPage"]):
+                            yield outcome
+                except (httpx.HTTPStatusError, KeyError):
                     return
-                for outcome in data["outcomes"]:
-                    yield {
-                        "reference": outcome["reference"],
-                        "cacUrl": outcome["cacUrl"],
-                        "lastUpdated": date_parse(outcome["lastUpdated"]),
-                    }
-                if data.get("nextPage"):
-                    async for outcome in get_outcomes(data["nextPage"]):
-                        yield outcome
 
             params = {"state": ",".join([t.value for t in unterminated_states])}
             if self.unterminated_outcomes_age_limit:
