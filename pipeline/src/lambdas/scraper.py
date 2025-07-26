@@ -79,6 +79,7 @@ def handler(event, context):
                 "INDEX": index,
                 "MAPPING_PATH": "./index_mappings/outcomes_raw.json",
                 "BATCH_SIZE": int_env("OPENSEARCH_BATCH_SIZE", 15),
+                "CREDENTIALS_SECRET": os.getenv("OPENSEARCH_CREDENTIALS_SECRET"),
             },
             "EXTENSIONS": {
                 "scrapy.extensions.closespider.CloseSpider": 100,
