@@ -21,7 +21,8 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
 
     @property
     def start_date(self):
-        return self.outcomes_settings.get("START_DATE")
+        str_date = self.outcomes_settings.get("START_DATE")
+        return date_parse(str_date) if str_date else None
 
     @property
     def unterminated_outcomes_age_limit(self):
