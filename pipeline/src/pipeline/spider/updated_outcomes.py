@@ -1,11 +1,18 @@
 import httpx
 from typing import Optional
 from datetime import datetime
+from dateutil.tz import gettz
 from dateutil.parser import parse as date_parse
+from dateutil.utils import default_tzinfo
 from scrapy import Request
 
 from ..transforms.events_machine import unterminated_states
 from .cac_outcome_spider import CacOutcomeSpider
+
+
+def london_date(date_str: str):
+    london_tz = gettz("Europe/London")
+    return default_tzinfo(date_parse(date_str), london_tz)
 
 
 class UpdatedOutcomesSpider(CacOutcomeSpider):
@@ -22,7 +29,7 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
     @property
     def start_date(self):
         str_date = self.outcomes_settings.get("START_DATE")
-        return date_parse(str_date) if str_date else None
+        return london_date(str_date) if str_date else None
 
     @property
     def unterminated_outcomes_age_limit(self):
@@ -40,7 +47,7 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
                 response = await client.get(f"{self.api_base}/outcomes")
                 response.raise_for_status()
                 data = response.json()
-                return date_parse(data["outcomes"][0]["lastUpdated"])
+                return london_date(data["outcomes"][0]["lastUpdated"])
             except (httpx.HTTPStatusError, KeyError) as e:
                 return self.start_date
 
@@ -56,7 +63,7 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
                         yield {
                             "reference": outcome["reference"],
                             "cacUrl": outcome["cacUrl"],
-                            "lastUpdated": date_parse(outcome["lastUpdated"]),
+                            "lastUpdated": london_date(outcome["lastUpdated"]),
                         }
                     if data.get("nextPage"):
                         async for outcome in get_outcomes(data["nextPage"]):
@@ -99,7 +106,7 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
         for outcome_list_item in outcome_list_items:
             outcome_link = outcome_list_item.css("div a")
             outcome_url = response.urljoin(outcome_link.attrib["href"])
-            outcome_last_updated = date_parse(
+            outcome_last_updated = london_date(
                 outcome_list_item.css("ul time::attr(datetime)").get()
             )
             if outcome_last_updated >= last_updated:
