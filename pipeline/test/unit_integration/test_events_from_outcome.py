@@ -9,7 +9,7 @@ from pipeline.transforms.document_classifier import DocumentType
 def test_events_from_outcome_simple_acceptance():
     """Test events_from_outcome with a simple acceptance decision"""
     outcome = {
-        "reference": "TUR1/1234(2024)",
+        "id": "TUR1/1234(2024)",
         "last_updated": "2024-01-15T10:30:00Z",
         "extracted_data": {
             "acceptance_decision": {
@@ -55,7 +55,7 @@ def test_events_from_outcome_simple_acceptance():
 def test_events_from_outcome_multiple_documents_ordered():
     """Test events_from_outcome with multiple documents in chronological order"""
     outcome = {
-        "reference": "TUR1/5678(2024)",
+        "id": "TUR1/5678(2024)",
         "last_updated": "2024-03-15T10:30:00Z",
         "extracted_data": {
             "application_received": {"decision_date": "2023-12-01"},
@@ -110,7 +110,7 @@ def test_events_from_outcome_multiple_documents_ordered():
 def test_events_from_outcome_documents_out_of_order():
     """Test events_from_outcome with documents in reverse chronological order"""
     outcome = {
-        "reference": "TUR1/9012(2024)",
+        "id": "TUR1/9012(2024)",
         "last_updated": "2024-03-15T10:30:00Z",
         "extracted_data": {
             "recognition_decision": {
@@ -165,7 +165,7 @@ def test_events_from_outcome_documents_out_of_order():
 def test_events_from_outcome_application_withdrawn():
     """Test events_from_outcome with application withdrawn"""
     outcome = {
-        "reference": "TUR1/3456(2024)",
+        "id": "TUR1/3456(2024)",
         "last_updated": "2025-03-15T10:30:00Z",  # After the cutoff date of 2025-02-15
         "extracted_data": {"application_withdrawn": {}},
         "document_urls": {"application_withdrawn": "https://example.com/withdrawn/345"},
@@ -187,7 +187,7 @@ def test_events_from_outcome_application_withdrawn():
 def test_events_from_outcome_application_withdrawn_with_previous_receipt():
     """Test events_from_outcome with application withdrawn but previous receipt exists"""
     outcome = {
-        "reference": "TUR1/7890(2024)",
+        "id": "TUR1/7890(2024)",
         "last_updated": "2024-02-15T10:30:00Z",
         "extracted_data": {
             "application_received": {"decision_date": "2023-12-01"},
@@ -214,7 +214,7 @@ def test_events_from_outcome_application_withdrawn_with_previous_receipt():
 def test_events_from_outcome_last_updated_date_correction():
     """Test events_from_outcome where last_updated date is corrected by latest document"""
     outcome = {
-        "reference": "TUR1/1111(2024)",
+        "id": "TUR1/1111(2024)",
         "last_updated": "2024-01-15T10:30:00Z",  # Earlier date
         "extracted_data": {
             "acceptance_decision": {
@@ -253,7 +253,7 @@ def test_events_from_outcome_last_updated_date_correction():
 def test_events_from_outcome_complex_recognition_with_ballot():
     """Test events_from_outcome with complex recognition decision including ballot"""
     outcome = {
-        "reference": "TUR1/2222(2024)",
+        "id": "TUR1/2222(2024)",
         "last_updated": "2024-08-15T10:30:00Z",
         "extracted_data": {
             "acceptance_decision": {
@@ -322,7 +322,7 @@ def test_events_from_outcome_complex_recognition_with_ballot():
 def test_events_from_outcome_rejected_application():
     """Test events_from_outcome with rejected application"""
     outcome = {
-        "reference": "TUR1/3333(2024)",
+        "id": "TUR1/3333(2024)",
         "last_updated": "2024-01-15T10:30:00Z",
         "extracted_data": {
             "acceptance_decision": {
@@ -360,7 +360,7 @@ def test_events_from_outcome_rejected_application():
 def test_events_from_outcome_bargaining_unit_inappropriate():
     """Test events_from_outcome with bargaining unit decision where unit is inappropriate"""
     outcome = {
-        "reference": "TUR1/4444(2024)",
+        "id": "TUR1/4444(2024)",
         "last_updated": "2024-02-15T10:30:00Z",
         "extracted_data": {
             "acceptance_decision": {
@@ -412,7 +412,7 @@ def test_events_from_outcome_bargaining_unit_inappropriate():
 def test_events_from_outcome_access_dispute():
     """Test events_from_outcome with access decision/dispute"""
     outcome = {
-        "reference": "TUR1/5555(2024)",
+        "id": "TUR1/5555(2024)",
         "last_updated": "2024-09-15T10:30:00Z",
         "extracted_data": {
             "acceptance_decision": {
@@ -464,7 +464,7 @@ def test_events_from_outcome_access_dispute():
 def test_events_from_outcome_allowed_transform_error():
     """Test events_from_outcome with allowed transform errors"""
     outcome = {
-        "reference": "TUR1/1006(2017)",  # Known bad reference that allows errors
+        "id": "TUR1/1006(2017)",  # Known bad reference that allows errors
         "last_updated": "2024-01-15T10:30:00Z",
         "extracted_data": {
             "acceptance_decision": {
@@ -503,7 +503,7 @@ def test_events_from_outcome_allowed_transform_error():
 def test_events_from_outcome_missing_document_urls():
     """Test events_from_outcome with missing document URLs"""
     outcome = {
-        "reference": "TUR1/9999(2024)",
+        "id": "TUR1/9999(2024)",
         "last_updated": "2024-01-15T10:30:00Z",
         "extracted_data": {
             "acceptance_decision": {
@@ -542,7 +542,7 @@ def test_events_from_outcome_missing_document_urls():
 def test_events_from_outcome_partial_document_urls():
     """Test events_from_outcome with partial document URLs"""
     outcome = {
-        "reference": "TUR1/8888(2024)",
+        "id": "TUR1/8888(2024)",
         "last_updated": "2024-01-15T10:30:00Z",
         "extracted_data": {
             "acceptance_decision": {
@@ -593,7 +593,7 @@ def test_events_from_outcome_partial_document_urls():
 def test_events_from_outcome_application_withdrawn_with_escape_hatch():
     """Test events_from_outcome with application withdrawn using escape hatch logic"""
     outcome = {
-        "reference": "TUR1/7777(2024)",
+        "id": "TUR1/7777(2024)",
         "last_updated": "2025-03-15T10:30:00Z",  # After cutoff
         "extracted_data": {
             "application_received": {"decision_date": "2023-12-01"},
@@ -623,7 +623,7 @@ def test_events_from_outcome_application_withdrawn_with_escape_hatch():
 def test_events_from_outcome_last_updated_date_correction_edge_case():
     """Test events_from_outcome where last_updated date is corrected by latest document"""
     outcome = {
-        "reference": "TUR1/6666(2024)",
+        "id": "TUR1/6666(2024)",
         "last_updated": "2024-01-15T10:30:00Z",  # Earlier date
         "extracted_data": {
             "acceptance_decision": {
@@ -674,7 +674,7 @@ def test_events_from_outcome_last_updated_date_correction_edge_case():
 def test_events_from_outcome_missing_decision_date_in_document():
     """Test events_from_outcome with missing decision_date in document"""
     outcome = {
-        "reference": "TUR1/5555(2024)",
+        "id": "TUR1/5555(2024)",
         "last_updated": "2025-03-15T10:30:00Z",  # After cutoff date
         "extracted_data": {
             "application_withdrawn": {
@@ -706,7 +706,7 @@ def test_events_from_outcome_missing_decision_date_in_document():
 def test_events_from_outcome_empty_extracted_data():
     """Test events_from_outcome with empty extracted_data"""
     outcome = {
-        "reference": "TUR1/4444(2024)",
+        "id": "TUR1/4444(2024)",
         "last_updated": "2024-01-15T10:30:00Z",
         "extracted_data": {},  # Empty extracted data
         "document_urls": {},
@@ -720,7 +720,7 @@ def test_events_from_outcome_empty_extracted_data():
 def test_events_from_outcome_none_extracted_data():
     """Test events_from_outcome with None extracted_data"""
     outcome = {
-        "reference": "TUR1/3333(2024)",
+        "id": "TUR1/3333(2024)",
         "last_updated": "2024-01-15T10:30:00Z",
         "extracted_data": None,  # None extracted data
         "document_urls": {},
@@ -734,7 +734,7 @@ def test_events_from_outcome_none_extracted_data():
 def test_events_from_outcome_duplicate_event_prevention():
     """Test events_from_outcome with duplicate events to verify prevention logic"""
     outcome = {
-        "reference": "TUR1/2222(2024)",
+        "id": "TUR1/2222(2024)",
         "last_updated": "2024-01-15T10:30:00Z",
         "extracted_data": {
             "acceptance_decision": {
@@ -791,7 +791,7 @@ def test_events_from_outcome_duplicate_event_prevention():
 def test_events_from_outcome_consecutive_duplicate_events():
     """Test events_from_outcome with consecutive duplicate events to verify prevention"""
     outcome = {
-        "reference": "TUR1/1111(2024)",
+        "id": "TUR1/1111(2024)",
         "last_updated": "2024-01-15T10:30:00Z",
         "extracted_data": {
             "application_received": {"decision_date": "2023-12-01"},

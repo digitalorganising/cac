@@ -34,7 +34,7 @@ def doc_ordering(fallback_date):
 def events_from_outcome(outcome):
     fallback_date = date_parse(outcome["last_updated"][:10])
     data = outcome["extracted_data"]
-    ref = outcome["reference"]
+    ref = outcome["id"]
     sorted_docs = OrderedDict(sorted(data.items(), key=doc_ordering(fallback_date)))
     document_urls = outcome["document_urls"]
 

@@ -13,7 +13,9 @@ from pipeline.services.opensearch_utils import (
     get_auth,
     ensure_index_mapping,
 )
+from pipeline import london_date
 from pipeline.transforms import normalize_reference
+from pipeline.transforms.document_classifier import DocumentType
 
 parser = argparse.ArgumentParser(
     description="Index application withdrawals from a spreadsheet"
@@ -24,39 +26,73 @@ parser.add_argument(
 parser.add_argument(
     "--index", type=str, help="OpenSearch index to write to", required=True
 )
+parser.add_argument(
+    "--reference-url",
+    type=str,
+    help="URL to use for these decisions",
+    required=True,
+)
 args = parser.parse_args()
 
 
-def withdrawals_to_actions(withdrawals, index):
+def withdrawal_to_docs(withdrawal, reference_url):
+    normalized_reference = normalize_reference(withdrawal["Case Number"])
+    application_received = london_date(withdrawal["Date Application Received"])
+    application_withdrawn = london_date(withdrawal["Date Application Withdrawn"])
+    union = withdrawal["Trade Union Name"]
+    employer = withdrawal["Employer Name"]
+
+    common = {
+        "reference": normalized_reference,
+        "document_url": reference_url,
+    }
+
+    yield {
+        **common,
+        "id": normalized_reference + ":" + DocumentType.application_received.value,
+        "document_type": DocumentType.application_received,
+        "document_content": f"Application to {employer} from {union} received on {application_received.isoformat()}.",
+        "extracted_data": {
+            "decision_date": application_received.strftime("%Y-%m-%d"),
+        },
+    }
+
+    yield {
+        **common,
+        "id": normalized_reference + ":" + DocumentType.application_withdrawn.value,
+        "last_updated": application_withdrawn.isoformat(),
+        "document_type": DocumentType.application_withdrawn,
+        "document_content": f"Application to {employer} withdrawn by {union} on {application_withdrawn.isoformat()}.",
+        "extracted_data": {
+            "decision_date": application_withdrawn.strftime("%Y-%m-%d"),
+        },
+    }
+
+
+def withdrawals_to_actions(withdrawals, index, reference_url):
     for withdrawal in withdrawals:
         if not withdrawal["Case Number"]:
             continue
-        reference = normalize_reference(withdrawal["Case Number"])
-        yield {
-            "_id": reference,
-            "_index": index,
-            "_op_type": "update",
-            "doc_as_upsert": True,
-            "doc": {
-                "reference": reference,
-                "union": withdrawal["Trade Union Name"],
-                "employer": withdrawal["Employer Name"],
-                "application_received": withdrawal["Date Application Received"],
-                "application_withdrawn": withdrawal["Date Application Withdrawn"],
-            },
-        }
+        for doc in withdrawal_to_docs(withdrawal, reference_url):
+            yield {
+                "_id": doc["id"],
+                "_index": index,
+                "_op_type": "update",
+                "doc_as_upsert": True,
+                "doc": doc,
+            }
 
 
 client = create_client(
     cluster_host=os.getenv("OPENSEARCH_ENDPOINT"),
-    auth=get_auth(),
+    auth=get_auth(credentials_secret=os.getenv("OPENSEARCH_CREDENTIALS_SECRET")),
     async_client=True,
 )
 
 
 async def index_withdrawals(infile, index):
     await ensure_index_mapping(
-        client, index, "./index_mappings/application_withdrawals.json"
+        client, index, "./index_mappings/outcomes_augmented.json"
     )
 
     with NamedTemporaryFile(

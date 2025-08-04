@@ -1,0 +1,346 @@
+import pytest
+from pipeline.decisions_to_outcomes import (
+    merge_decisions_to_outcomes,
+    merge_in_decision,
+)
+
+
+class MockOpenSearchClient:
+    def __init__(self, search_results):
+        self.search_results = search_results
+        self.search_called = False
+        self.search_args = None
+
+    async def search(self, index, body):
+        self.search_called = True
+        self.search_args = {"index": index, "body": body}
+        return {
+            "hits": {
+                "hits": [
+                    {
+                        "_source": result,
+                        "_index": "test-index",
+                        "_id": result["reference"],
+                    }
+                    for result in self.search_results
+                ]
+            }
+        }
+
+
+@pytest.fixture
+def mock_client():
+    """Create a mock OpenSearch client for testing"""
+    return MockOpenSearchClient([])
+
+
+@pytest.fixture
+def sample_decisions():
+    """Sample decision documents for testing"""
+    return [
+        {
+            "reference": "TUR1/1234/2024",
+            "document_type": "application_received",
+            "document_content": "Application received on 2024-01-15",
+            "document_url": "https://example.com/application_received",
+            "extracted_data": {"decision_date": "2024-01-15"},
+        },
+        {
+            "reference": "TUR1/1234/2024",
+            "document_type": "recognition_decision",
+            "document_content": "Recognition granted on 2024-02-01",
+            "document_url": "https://example.com/recognition_decision",
+            "extracted_data": {"decision_date": "2024-02-01"},
+        },
+        {
+            "reference": "TUR1/5678/2024",
+            "document_type": "application_received",
+            "document_content": "Application received on 2024-01-20",
+            "document_url": "https://example.com/application_received_2",
+            "extracted_data": {"decision_date": "2024-01-20"},
+        },
+    ]
+
+
+@pytest.fixture
+def mock_client_with_data(sample_decisions):
+    """Create a mock client with sample decision data"""
+    return MockOpenSearchClient(sample_decisions)
+
+
+class TestMergeInDecision:
+    """Test the merge_in_decision helper function"""
+
+    def test_merge_in_decision_basic(self):
+        """Test basic merging of a decision into an outcome"""
+        decision = {
+            "reference": "TUR1/1234/2024",
+            "document_type": "application_received",
+            "document_content": "Application received",
+            "document_url": "https://example.com/application_received",
+            "extracted_data": {"decision_date": "2024-01-15"},
+        }
+        outcome = {}
+
+        result = merge_in_decision(decision, outcome)
+
+        assert result["id"] == "TUR1/1234/2024"
+        assert result["documents"]["application_received"] == "Application received"
+        assert (
+            result["document_urls"]["application_received"]
+            == "https://example.com/application_received"
+        )
+        assert (
+            result["extracted_data"]["application_received"]["decision_date"]
+            == "2024-01-15"
+        )
+
+    def test_merge_in_decision_with_existing_data(self):
+        """Test merging when outcome already has some data"""
+        decision = {
+            "reference": "TUR1/1234/2024",
+            "document_type": "recognition_decision",
+            "document_content": "Recognition granted",
+            "document_url": "https://example.com/recognition_decision",
+            "extracted_data": {"decision_date": "2024-02-01"},
+        }
+        outcome = {
+            "id": "TUR1/1234/2024",
+            "documents": {"application_received": "Application received"},
+            "document_urls": {
+                "application_received": "https://example.com/application_received"
+            },
+            "extracted_data": {"application_received": {"decision_date": "2024-01-15"}},
+        }
+
+        result = merge_in_decision(decision, outcome)
+
+        assert result["documents"]["application_received"] == "Application received"
+        assert result["documents"]["recognition_decision"] == "Recognition granted"
+        assert (
+            result["document_urls"]["application_received"]
+            == "https://example.com/application_received"
+        )
+        assert (
+            result["document_urls"]["recognition_decision"]
+            == "https://example.com/recognition_decision"
+        )
+        assert (
+            result["extracted_data"]["application_received"]["decision_date"]
+            == "2024-01-15"
+        )
+        assert (
+            result["extracted_data"]["recognition_decision"]["decision_date"]
+            == "2024-02-01"
+        )
+
+
+class TestMergeDecisionsToOutcomes:
+    """Test the merge_decisions_to_outcomes function"""
+
+    async def test_merge_decisions_to_outcomes_basic(self, mock_client_with_data):
+        """Test basic merging of decisions to outcomes"""
+        references = ["TUR1/1234/2024", "TUR1/5678/2024"]
+
+        outcomes = []
+        async for outcome, index in merge_decisions_to_outcomes(
+            mock_client_with_data,
+            indices={"test-index"},
+            non_pipeline_indices=set(),
+            references=references,
+        ):
+            outcomes.append((outcome, index))
+
+        # Should yield 2 outcomes: one for each reference
+        assert len(outcomes) == 2
+        assert outcomes[0][0]["id"] == "TUR1/1234/2024"  # First reference
+        assert outcomes[1][0]["id"] == "TUR1/5678/2024"  # Second reference
+        assert outcomes[0][1] == "test-index"  # Index should be passed through
+        assert outcomes[1][1] == "test-index"
+
+        # Check that search was called with correct parameters
+        assert mock_client_with_data.search_called
+        assert mock_client_with_data.search_args["index"] == "test-index"
+        assert (
+            mock_client_with_data.search_args["body"]["size"] == 2 * 14
+        )  # len(references) * len(DocumentType)
+
+    async def test_merge_decisions_to_outcomes_single_reference(
+        self, mock_client_with_data
+    ):
+        """Test merging when there's only one reference"""
+        references = ["TUR1/1234/2024"]
+
+        outcomes = []
+        async for outcome, index in merge_decisions_to_outcomes(
+            mock_client_with_data,
+            indices={"test-index"},
+            non_pipeline_indices=set(),
+            references=references,
+        ):
+            outcomes.append((outcome, index))
+
+        # Should yield 2 outcomes: one for each reference in the sample data
+        assert len(outcomes) == 2
+        outcome, index = outcomes[0]  # First reference outcome
+        assert outcome["id"] == "TUR1/1234/2024"
+        # Both decisions should be present in documents now that the bug is fixed
+        assert "application_received" in outcome["documents"]
+        assert "recognition_decision" in outcome["documents"]
+        assert "application_received" in outcome["document_urls"]
+        assert "recognition_decision" in outcome["document_urls"]
+        assert "application_received" in outcome["extracted_data"]
+        assert "recognition_decision" in outcome["extracted_data"]
+        assert index == "test-index"
+
+    async def test_merge_decisions_to_outcomes_empty_results(self):
+        """Test behavior when no decisions are found"""
+        mock_client = MockOpenSearchClient([])
+
+        references = ["TUR1/9999/2024"]
+
+        outcomes = []
+        async for outcome, index in merge_decisions_to_outcomes(
+            mock_client,
+            indices={"test-index"},
+            non_pipeline_indices=set(),
+            references=references,
+        ):
+            outcomes.append((outcome, index))
+
+        # Should yield no outcomes when no data found
+        assert len(outcomes) == 0
+
+    async def test_merge_decisions_to_outcomes_multiple_decisions_per_reference(self):
+        """Test merging multiple decisions for the same reference"""
+        mock_client = MockOpenSearchClient(
+            [
+                {
+                    "reference": "TUR1/1234/2024",
+                    "document_type": "application_received",
+                    "document_content": "Application received",
+                    "document_url": "https://example.com/application_received",
+                    "extracted_data": {"decision_date": "2024-01-15"},
+                },
+                {
+                    "reference": "TUR1/1234/2024",
+                    "document_type": "recognition_decision",
+                    "document_content": "Recognition granted",
+                    "document_url": "https://example.com/recognition_decision",
+                    "extracted_data": {"decision_date": "2024-02-01"},
+                },
+                {
+                    "reference": "TUR1/1234/2024",
+                    "document_type": "bargaining_decision",
+                    "document_content": "Bargaining unit defined",
+                    "document_url": "https://example.com/bargaining_decision",
+                    "extracted_data": {"decision_date": "2024-03-01"},
+                },
+            ]
+        )
+
+        references = ["TUR1/1234/2024"]
+
+        outcomes = []
+        async for outcome, index in merge_decisions_to_outcomes(
+            mock_client,
+            indices={"test-index"},
+            non_pipeline_indices=set(),
+            references=references,
+        ):
+            outcomes.append((outcome, index))
+
+        # Should yield 1 outcome with all 3 decisions merged in both documents and extracted_data
+        assert len(outcomes) == 1
+        outcome, index = outcomes[0]
+
+        assert outcome["id"] == "TUR1/1234/2024"
+        # All decisions should be in documents now that the bug is fixed
+        assert len(outcome["documents"]) == 3
+        assert "application_received" in outcome["documents"]
+        assert "recognition_decision" in outcome["documents"]
+        assert "bargaining_decision" in outcome["documents"]
+        assert len(outcome["document_urls"]) == 3
+        assert "application_received" in outcome["document_urls"]
+        assert "recognition_decision" in outcome["document_urls"]
+        assert "bargaining_decision" in outcome["document_urls"]
+        assert len(outcome["extracted_data"]) == 3
+        assert "application_received" in outcome["extracted_data"]
+        assert "recognition_decision" in outcome["extracted_data"]
+        assert "bargaining_decision" in outcome["extracted_data"]
+        assert index == "test-index"
+
+    async def test_merge_decisions_to_outcomes_sort_order(self):
+        """Test that decisions are processed in correct sort order"""
+        mock_client = MockOpenSearchClient(
+            [
+                {
+                    "reference": "TUR1/1234/2024",
+                    "document_type": "recognition_decision",
+                    "document_content": "Recognition granted",
+                    "document_url": "https://example.com/recognition_decision",
+                    "extracted_data": {"decision_date": "2024-02-01"},
+                },
+                {
+                    "reference": "TUR1/1234/2024",
+                    "document_type": "application_received",
+                    "document_content": "Application received",
+                    "document_url": "https://example.com/application_received",
+                    "extracted_data": {"decision_date": "2024-01-15"},
+                },
+            ]
+        )
+
+        references = ["TUR1/1234/2024"]
+
+        outcomes = []
+        async for outcome, index in merge_decisions_to_outcomes(
+            mock_client,
+            indices={"test-index"},
+            non_pipeline_indices=set(),
+            references=references,
+        ):
+            outcomes.append((outcome, index))
+
+        # Should yield 1 outcome with both decisions merged in both documents and extracted_data
+        assert len(outcomes) == 1
+        outcome, index = outcomes[0]
+
+        # Both decisions should be present in documents now that the bug is fixed
+        assert "application_received" in outcome["documents"]
+        assert "recognition_decision" in outcome["documents"]
+        assert "application_received" in outcome["document_urls"]
+        assert "recognition_decision" in outcome["document_urls"]
+        # Both decisions should be in extracted_data
+        assert "application_received" in outcome["extracted_data"]
+        assert "recognition_decision" in outcome["extracted_data"]
+        assert index == "test-index"
+
+    async def test_merge_decisions_to_outcomes_search_parameters(
+        self, mock_client_with_data
+    ):
+        """Test that search is called with correct parameters"""
+        references = ["TUR1/1234/2024", "TUR1/5678/2024"]
+
+        async for _ in merge_decisions_to_outcomes(
+            mock_client_with_data,
+            indices={"test-index"},
+            non_pipeline_indices=set(),
+            references=references,
+        ):
+            pass
+
+        # Verify search parameters
+        search_args = mock_client_with_data.search_args
+        assert search_args["index"] == "test-index"
+        assert (
+            search_args["body"]["size"] == 2 * 14
+        )  # len(references) * len(DocumentType)
+        assert search_args["body"]["query"]["terms"]["reference"] == references
+
+        # Verify sort order
+        expected_sort = [
+            {"reference": {"order": "asc"}},
+            {"document_type": {"order": "asc"}},
+        ]
+        assert search_args["body"]["sort"] == expected_sort

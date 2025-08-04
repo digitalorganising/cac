@@ -1,18 +1,11 @@
 import httpx
 from typing import Optional
 from datetime import datetime
-from dateutil.tz import gettz
-from dateutil.parser import parse as date_parse
-from dateutil.utils import default_tzinfo
 from scrapy import Request
 
+from .. import london_date
 from ..transforms.events_machine import unterminated_states
 from .cac_outcome_spider import CacOutcomeSpider
-
-
-def london_date(date_str: str):
-    london_tz = gettz("Europe/London")
-    return default_tzinfo(date_parse(date_str), london_tz)
 
 
 class UpdatedOutcomesSpider(CacOutcomeSpider):

@@ -43,17 +43,18 @@ async def index_populated(opensearch_client, index_name) -> bool:
 async def load_docs(opensearch_client, index_name, docs):
     if index_name.startswith("outcomes-raw"):
         mapping = "./index_mappings/outcomes_raw.json"
-    elif index_name.startswith("outcomes-augmented"):
+    elif (
+        index_name.startswith("outcomes-augmented")
+        or index_name == "application-withdrawals"
+    ):
         mapping = "./index_mappings/outcomes_augmented.json"
     elif index_name.startswith("outcomes-indexed"):
         mapping = "./index_mappings/outcomes_indexed.json"
-    elif index_name.startswith("application-withdrawals"):
-        mapping = "./index_mappings/application_withdrawals.json"
     else:
         raise ValueError(f"Unknown index name: {index_name}")
     await ensure_index_mapping(opensearch_client, index_name, mapping)
     for doc in docs:
-        await opensearch_client.index(index=index_name, body=doc, id=doc["reference"])
+        await opensearch_client.index(index=index_name, body=doc, id=doc["id"])
     await opensearch_client.indices.refresh(index=index_name)
 
 

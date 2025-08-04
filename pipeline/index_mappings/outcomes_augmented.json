@@ -16,6 +16,9 @@
     "outcome_title": {
       "type": "text"
     },
+    "document_url": {
+      "type": "keyword"
+    },
     "document_type": {
       "type": "keyword"
     },

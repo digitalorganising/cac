@@ -52,7 +52,7 @@ class CacOutcomeSpider(scrapy.Spider, ABC):
             yield from self.parse_document(response, **kwargs)
 
     def parse_outcome(self, response):
-        last_updated = (
+        outcome_last_updated = (
             response.css("meta[name='govuk:public-updated-at']::attr(content)")
             .get()
             .strip()
@@ -70,21 +70,24 @@ class CacOutcomeSpider(scrapy.Spider, ABC):
             )
             reference = response.url
         else:
-            reference = reference.replace(" ", "")
+            reference = normalize_reference(reference)
 
-        reference = normalize_reference(reference)
-
-        for document in response.css("section#documents > section"):
+        decision_docs = response.css("section#documents > section")
+        for i, document in enumerate(decision_docs):
             decision_link = document.css("h3 a")
             document_title = decision_link.css("*::text").get().strip()
             document_type = get_document_type(document_title)
             common_fields = {
                 "reference": reference,
-                "last_updated": last_updated,
                 "outcome_url": response.url,
                 "outcome_title": outcome_title,
                 "document_type": document_type,
             }
+
+            # Only put the last updated date on the last document
+            # to prevent unnecessary updates
+            if i == len(decision_docs) - 1:
+                common_fields["last_updated"] = outcome_last_updated
 
             if not should_get_content(document_type):
                 document_url = response.urljoin(decision_link.attrib["href"])

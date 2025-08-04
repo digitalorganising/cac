@@ -49,16 +49,12 @@ def destination_index(*, source_index, dest_namespace):
     return dest_index
 
 
-async def map_docs(refs, f, *, dest_namespace, dest_mapping):
-    res = await client.mget(
-        body={"docs": [ref.model_dump(by_alias=True) for ref in refs]}
-    )
-    source_docs = (hit["_source"] for hit in res["docs"])
+async def map_docs(docs_source, *, transform, dest_namespace, dest_mapping):
     seen_indices = set()
-    processed_docs = ((await f(doc), ref) for doc, ref in zip(source_docs, refs))
 
     async def update_actions():
-        async for doc, ref in processed_docs:
+        async for doc, ref in docs_source:
+            transformed_doc = await transform(doc)
             dest_index = destination_index(
                 source_index=ref.index, dest_namespace=dest_namespace
             )
@@ -69,7 +65,7 @@ async def map_docs(refs, f, *, dest_namespace, dest_mapping):
                 "_op_type": "update",
                 "_index": dest_index,
                 "_id": ref.id,
-                "doc": doc,
+                "doc": transformed_doc,
                 "doc_as_upsert": True,
                 "retry_on_conflict": 3,
             }
@@ -81,10 +77,9 @@ async def map_docs(refs, f, *, dest_namespace, dest_mapping):
         if not ok:
             raise Exception("Failed to index item", result)
         update = result["update"]
-        results.append(
-            DocumentRef(
-                _id=update["_id"],
-                _index=update["_index"],
-            ).model_dump(by_alias=True)
+        ref = DocumentRef(
+            _id=update["_id"],
+            _index=update["_index"],
         )
+        results.append(ref.model_dump(by_alias=True))
     return results

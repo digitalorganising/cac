@@ -155,11 +155,11 @@ def transform_for_index(outcome):
     json_state = {"value": state.value, "label": state.label}
 
     return {
-        "id": outcome["reference"],
+        "id": outcome["id"],
         "documents": outcome["documents"],
         "display": {
             "title": outcome["outcome_title"],
-            "reference": outcome["reference"],
+            "reference": outcome["id"],
             "cacUrl": outcome["outcome_url"],
             "lastUpdated": outcome["last_updated"],
             "state": json_state,
@@ -171,7 +171,7 @@ def transform_for_index(outcome):
         },
         "filter": {
             "lastUpdated": outcome["last_updated"],
-            "reference": outcome["reference"],
+            "reference": outcome["id"],
             "state": state.value,
             "parties.unions": parties["unions"],
             "parties.employer": parties["employer"],
