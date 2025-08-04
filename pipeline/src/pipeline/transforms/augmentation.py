@@ -55,7 +55,7 @@ async def augment_doc(doc):
         return doc
 
     doc["extracted_data"] = await get_extracted_data(
-        doc["document_type"], doc["document_content"]
+        doc["document_type"], doc.get("document_content", None)
     )
 
     return doc

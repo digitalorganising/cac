@@ -3,9 +3,9 @@ from .transforms.document_classifier import DocumentType
 
 def merge_in_decision(decision, outcome):
     document_type = decision.pop("document_type")
-    document_content = decision.pop("document_content")
-    document_url = decision.pop("document_url")
-    extracted_data = decision.pop("extracted_data")
+    document_content = decision.pop("document_content", None)
+    document_url = decision.pop("document_url", None)
+    extracted_data = decision.pop("extracted_data", None)
     reference = decision.pop("reference")
     return {
         **outcome,
