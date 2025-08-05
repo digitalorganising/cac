@@ -171,7 +171,7 @@ class TestMergeDecisionsToOutcomes:
         assert mock_client_with_data.search_called
         assert mock_client_with_data.search_args["index"] == "test-index"
         assert (
-            mock_client_with_data.search_args["body"]["size"] == 2 * 14
+            mock_client_with_data.search_args["body"]["size"] == 2 * 15
         )  # len(references) * len(DocumentType)
 
     async def test_merge_decisions_to_outcomes_single_reference(
@@ -358,7 +358,7 @@ class TestMergeDecisionsToOutcomes:
         search_args = mock_client_with_data.search_args
         assert search_args["index"] == "test-index"
         assert (
-            search_args["body"]["size"] == 2 * 14
+            search_args["body"]["size"] == 2 * 15
         )  # len(references) * len(DocumentType)
         assert search_args["body"]["query"]["terms"]["reference"] == references
 

@@ -38,6 +38,7 @@ class DecisionAugmentedDateOnly(DecisionRaw):
         DocumentType.case_closure,
         DocumentType.application_received,
         DocumentType.method_agreed,
+        DocumentType.application_withdrawn_foi,
     ]
     extracted_data: DateOnly
 

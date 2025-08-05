@@ -1,7 +1,7 @@
 from datetime import datetime
 from plum import dispatch, parametric
 from dateutil.parser import parse as date_parse
-from typing import Optional
+from typing import Optional, Union
 
 from baml_client import types as baml_types
 from ..types.documents import DocumentType
@@ -87,7 +87,10 @@ def events_from_decision(
 
 @dispatch
 def events_from_decision(
-    decision: Decision[DocumentType.application_withdrawn],
+    decision: Union[
+        Decision[DocumentType.application_withdrawn],
+        Decision[DocumentType.application_withdrawn_foi],
+    ],
 ) -> list[Event]:
     events = []
     # TODO: remove this once handling withdrawal state myself

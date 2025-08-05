@@ -4,27 +4,31 @@ from datetime import datetime
 from pipeline.transforms.events_from_decision import events_from_decision, Decision
 from pipeline.transforms.model import EventType
 from pipeline.transforms.document_classifier import DocumentType
+from baml_client import types as baml_types
+from pipeline.types.decisions import DateOnly
 
 
 def test_events_from_decision_acceptance_decision_success():
     """Test events_from_decision with a successful acceptance decision"""
     # Sample acceptance decision data
-    acceptance_decision_doc = {
-        "decision_date": "2024-01-15",
-        "success": True,
-        "rejection_reasons": [],
-        "application_date": "2023-12-01",
-        "end_of_acceptance_period": "2024-01-10",
-        "bargaining_unit": {
-            "description": "All workers employed by ABC Ltd at their Manchester site",
-            "size_considered": True,
-            "size": 150,
-            "claimed_membership": 80,
-            "membership": 75,
-        },
-        "bargaining_unit_agreed": True,
-        "petition_signatures": 85,
-    }
+    bargaining_unit = baml_types.BargainingUnit(
+        description="All workers employed by ABC Ltd at their Manchester site",
+        size_considered=True,
+        size=150,
+        claimed_membership=80,
+        membership=75,
+    )
+
+    acceptance_decision_doc = baml_types.AcceptanceDecision(
+        decision_date="2024-01-15",
+        success=True,
+        rejection_reasons=[],
+        application_date="2023-12-01",
+        end_of_acceptance_period="2024-01-10",
+        bargaining_unit=bargaining_unit,
+        bargaining_unit_agreed=True,
+        petition_signatures=85,
+    )
 
     source_url = "https://example.com/decision/123"
     decision = Decision[DocumentType.acceptance_decision](
@@ -57,22 +61,24 @@ def test_events_from_decision_acceptance_decision_success():
 def test_events_from_decision_acceptance_decision_rejected():
     """Test events_from_decision with a rejected acceptance decision"""
     # Sample rejected acceptance decision data
-    acceptance_decision_doc = {
-        "decision_date": "2024-01-15",
-        "success": False,
-        "rejection_reasons": ["LessThan10PercentMembership"],
-        "application_date": "2023-12-01",
-        "end_of_acceptance_period": "2024-01-10",
-        "bargaining_unit": {
-            "description": "All workers employed by XYZ Ltd at their London site",
-            "size_considered": True,
-            "size": 200,
-            "claimed_membership": 15,
-            "membership": 12,
-        },
-        "bargaining_unit_agreed": False,
-        "petition_signatures": None,
-    }
+    bargaining_unit = baml_types.BargainingUnit(
+        description="All workers employed by XYZ Ltd at their London site",
+        size_considered=True,
+        size=200,
+        claimed_membership=15,
+        membership=12,
+    )
+
+    acceptance_decision_doc = baml_types.AcceptanceDecision(
+        decision_date="2024-01-15",
+        success=False,
+        rejection_reasons=[baml_types.RejectionReason.LessThan10PercentMembership],
+        application_date="2023-12-01",
+        end_of_acceptance_period="2024-01-10",
+        bargaining_unit=bargaining_unit,
+        bargaining_unit_agreed=False,
+        petition_signatures=None,
+    )
 
     source_url = "https://example.com/decision/456"
     decision = Decision[DocumentType.acceptance_decision](
@@ -104,7 +110,7 @@ def test_events_from_decision_acceptance_decision_rejected():
 
 def test_events_from_decision_application_received():
     """Test events_from_decision with an application received document"""
-    application_received_doc = {"decision_date": "2023-12-01"}
+    application_received_doc = DateOnly(decision_date="2023-12-01")
 
     source_url = "https://example.com/application/789"
     decision = Decision[DocumentType.application_received](
@@ -155,12 +161,12 @@ def test_events_from_decision_application_withdrawn():
 
 def test_events_from_decision_bargaining_unit_decision_appropriate():
     """Test events_from_decision with a bargaining unit decision where unit is appropriate"""
-    bargaining_unit_doc = {
-        "decision_date": "2024-02-01",
-        "appropriate_unit_differs": False,
-        "new_bargaining_unit_description": None,
-        "lawyer_present": True,
-    }
+    bargaining_unit_doc = baml_types.BargainingUnitDecision(
+        decision_date="2024-02-01",
+        appropriate_unit_differs=False,
+        new_bargaining_unit_description=None,
+        lawyer_present=True,
+    )
 
     source_url = "https://example.com/bargaining-unit/202"
     decision = Decision[DocumentType.bargaining_unit_decision](
@@ -184,12 +190,12 @@ def test_events_from_decision_bargaining_unit_decision_appropriate():
 
 def test_events_from_decision_bargaining_unit_decision_inappropriate():
     """Test events_from_decision with a bargaining unit decision where unit is inappropriate"""
-    bargaining_unit_doc = {
-        "decision_date": "2024-02-01",
-        "appropriate_unit_differs": True,
-        "new_bargaining_unit_description": "All production workers at the Birmingham factory",
-        "lawyer_present": False,
-    }
+    bargaining_unit_doc = baml_types.BargainingUnitDecision(
+        decision_date="2024-02-01",
+        appropriate_unit_differs=True,
+        new_bargaining_unit_description="All production workers at the Birmingham factory",
+        lawyer_present=False,
+    )
 
     source_url = "https://example.com/bargaining-unit/203"
     decision = Decision[DocumentType.bargaining_unit_decision](
@@ -210,7 +216,9 @@ def test_events_from_decision_bargaining_unit_decision_inappropriate():
 
 def test_events_from_decision_bargaining_decision():
     """Test events_from_decision with a bargaining decision"""
-    bargaining_doc = {"decision_date": "2024-03-01"}
+    bargaining_doc = baml_types.BargainingDecision(
+        decision_date="2024-03-01", cac_involvement_date="2024-02-15"
+    )
 
     source_url = "https://example.com/bargaining/304"
     decision = Decision[DocumentType.bargaining_decision](bargaining_doc, source_url)
@@ -229,12 +237,12 @@ def test_events_from_decision_bargaining_decision():
 
 def test_events_from_decision_form_of_ballot_decision_postal():
     """Test events_from_decision with a form of ballot decision - postal"""
-    form_of_ballot_doc = {
-        "decision_date": "2024-04-01",
-        "form_of_ballot": "Postal",
-        "employer_preferred": "Workplace",
-        "union_preferred": "Postal",
-    }
+    form_of_ballot_doc = baml_types.FormOfBallotDecision(
+        decision_date="2024-04-01",
+        form_of_ballot=baml_types.FormOfBallot.Postal,
+        employer_preferred=baml_types.FormOfBallot.Workplace,
+        union_preferred=baml_types.FormOfBallot.Postal,
+    )
 
     source_url = "https://example.com/ballot-form/405"
     decision = Decision[DocumentType.form_of_ballot_decision](
@@ -255,12 +263,12 @@ def test_events_from_decision_form_of_ballot_decision_postal():
 
 def test_events_from_decision_form_of_ballot_decision_workplace():
     """Test events_from_decision with a form of ballot decision - workplace"""
-    form_of_ballot_doc = {
-        "decision_date": "2024-04-01",
-        "form_of_ballot": "Workplace",
-        "employer_preferred": "Workplace",
-        "union_preferred": "Postal",
-    }
+    form_of_ballot_doc = baml_types.FormOfBallotDecision(
+        decision_date="2024-04-01",
+        form_of_ballot=baml_types.FormOfBallot.Workplace,
+        employer_preferred=baml_types.FormOfBallot.Workplace,
+        union_preferred=baml_types.FormOfBallot.Postal,
+    )
 
     source_url = "https://example.com/ballot-form/406"
     decision = Decision[DocumentType.form_of_ballot_decision](
@@ -281,12 +289,12 @@ def test_events_from_decision_form_of_ballot_decision_workplace():
 
 def test_events_from_decision_form_of_ballot_decision_combination():
     """Test events_from_decision with a form of ballot decision - combination"""
-    form_of_ballot_doc = {
-        "decision_date": "2024-04-01",
-        "form_of_ballot": "Combination",
-        "employer_preferred": "Workplace",
-        "union_preferred": "Postal",
-    }
+    form_of_ballot_doc = baml_types.FormOfBallotDecision(
+        decision_date="2024-04-01",
+        form_of_ballot=baml_types.FormOfBallot.Combination,
+        employer_preferred=baml_types.FormOfBallot.Workplace,
+        union_preferred=baml_types.FormOfBallot.Postal,
+    )
 
     source_url = "https://example.com/ballot-form/407"
     decision = Decision[DocumentType.form_of_ballot_decision](
@@ -307,12 +315,15 @@ def test_events_from_decision_form_of_ballot_decision_combination():
 
 def test_events_from_decision_whether_to_ballot_decision_ballot_required():
     """Test events_from_decision with a whether to ballot decision - ballot required"""
-    whether_to_ballot_doc = {
-        "decision_date": "2024-05-01",
-        "decision_to_ballot": True,
-        "majority_membership": True,
-        "qualifying_conditions": ["GoodIndustrialRelations", "EvidenceMembersOpposed"],
-    }
+    whether_to_ballot_doc = baml_types.WhetherToBallotDecision(
+        decision_date="2024-05-01",
+        decision_to_ballot=True,
+        majority_membership=True,
+        qualifying_conditions=[
+            baml_types.QualifyingCondition.GoodIndustrialRelations,
+            baml_types.QualifyingCondition.EvidenceMembersOpposed,
+        ],
+    )
 
     source_url = "https://example.com/whether-ballot/508"
     decision = Decision[DocumentType.whether_to_ballot_decision](
@@ -336,12 +347,12 @@ def test_events_from_decision_whether_to_ballot_decision_ballot_required():
 
 def test_events_from_decision_whether_to_ballot_decision_no_ballot():
     """Test events_from_decision with a whether to ballot decision - no ballot required"""
-    whether_to_ballot_doc = {
-        "decision_date": "2024-05-01",
-        "decision_to_ballot": False,
-        "majority_membership": True,
-        "qualifying_conditions": [],
-    }
+    whether_to_ballot_doc = baml_types.WhetherToBallotDecision(
+        decision_date="2024-05-01",
+        decision_to_ballot=False,
+        majority_membership=True,
+        qualifying_conditions=[],
+    )
 
     source_url = "https://example.com/whether-ballot/509"
     decision = Decision[DocumentType.whether_to_ballot_decision](
@@ -365,19 +376,20 @@ def test_events_from_decision_whether_to_ballot_decision_no_ballot():
 
 def test_events_from_decision_validity_decision_invalid():
     """Test events_from_decision with a validity decision - invalid"""
-    validity_doc = {
-        "decision_date": "2024-06-01",
-        "valid": False,
-        "rejection_reasons": ["SomeOtherReason"],
-        "new_bargaining_unit": {
-            "description": "All workers at the new site",
-            "size_considered": True,
-            "size": 100,
-            "claimed_membership": 50,
-            "membership": 45,
-        },
-        "petition_signatures": 55,
-    }
+    new_bargaining_unit = baml_types.BargainingUnit(
+        description="All workers at the new site",
+        size_considered=True,
+        size=100,
+        claimed_membership=50,
+        membership=45,
+    )
+
+    validity_doc = baml_types.ValidityDecision(
+        decision_date="2024-06-01",
+        valid=False,
+        rejection_reasons=[baml_types.RejectionReason.SomeOtherReason],
+        new_bargaining_unit=new_bargaining_unit,
+    )
 
     source_url = "https://example.com/validity/610"
     decision = Decision[DocumentType.validity_decision](validity_doc, source_url)
@@ -399,19 +411,20 @@ def test_events_from_decision_validity_decision_invalid():
 
 def test_events_from_decision_validity_decision_valid():
     """Test events_from_decision with a validity decision - valid"""
-    validity_doc = {
-        "decision_date": "2024-06-01",
-        "valid": True,
-        "rejection_reasons": [],
-        "new_bargaining_unit": {
-            "description": "All workers at the site",
-            "size_considered": True,
-            "size": 100,
-            "claimed_membership": 60,
-            "membership": 55,
-        },
-        "petition_signatures": 65,
-    }
+    new_bargaining_unit = baml_types.BargainingUnit(
+        description="All workers at the site",
+        size_considered=True,
+        size=100,
+        claimed_membership=60,
+        membership=55,
+    )
+
+    validity_doc = baml_types.ValidityDecision(
+        decision_date="2024-06-01",
+        valid=True,
+        rejection_reasons=[],
+        new_bargaining_unit=new_bargaining_unit,
+    )
 
     source_url = "https://example.com/validity/611"
     decision = Decision[DocumentType.validity_decision](validity_doc, source_url)
@@ -424,7 +437,7 @@ def test_events_from_decision_validity_decision_valid():
 
 def test_events_from_decision_case_closure():
     """Test events_from_decision with a case closure document"""
-    case_closure_doc = {"decision_date": "2024-07-01"}
+    case_closure_doc = DateOnly(decision_date="2024-07-01")
 
     source_url = "https://example.com/closure/712"
     decision = Decision[DocumentType.case_closure](case_closure_doc, source_url)
@@ -443,20 +456,22 @@ def test_events_from_decision_case_closure():
 
 def test_events_from_decision_recognition_decision_recognized_with_ballot():
     """Test events_from_decision with a recognition decision - union recognized with ballot"""
-    recognition_doc = {
-        "decision_date": "2024-08-01",
-        "union_recognized": True,
-        "form_of_ballot": "Postal",
-        "ballot": {
-            "eligible_workers": 100,
-            "spoiled_ballots": 2,
-            "votes_in_favor": 60,
-            "votes_against": 20,
-            "start_ballot_period": "2024-07-15",
-            "end_ballot_period": "2024-07-30",
-        },
-        "good_relations_contested": False,
-    }
+    ballot_result = baml_types.BallotResult(
+        eligible_workers=100,
+        spoiled_ballots=2,
+        votes_in_favor=60,
+        votes_against=20,
+        start_ballot_period="2024-07-15",
+        end_ballot_period="2024-07-30",
+    )
+
+    recognition_doc = baml_types.RecognitionDecision(
+        decision_date="2024-08-01",
+        union_recognized=True,
+        form_of_ballot=baml_types.FormOfBallot.Postal,
+        ballot=ballot_result,
+        good_relations_contested=False,
+    )
 
     source_url = "https://example.com/recognition/813"
     decision = Decision[DocumentType.recognition_decision](recognition_doc, source_url)
@@ -486,20 +501,22 @@ def test_events_from_decision_recognition_decision_recognized_with_ballot():
 
 def test_events_from_decision_recognition_decision_not_recognized_with_ballot():
     """Test events_from_decision with a recognition decision - union not recognized with ballot"""
-    recognition_doc = {
-        "decision_date": "2024-08-01",
-        "union_recognized": False,
-        "form_of_ballot": "Workplace",
-        "ballot": {
-            "eligible_workers": 100,
-            "spoiled_ballots": 1,
-            "votes_in_favor": 30,
-            "votes_against": 50,
-            "start_ballot_period": "2024-07-15",
-            "end_ballot_period": "2024-07-30",
-        },
-        "good_relations_contested": False,
-    }
+    ballot_result = baml_types.BallotResult(
+        eligible_workers=100,
+        spoiled_ballots=1,
+        votes_in_favor=30,
+        votes_against=50,
+        start_ballot_period="2024-07-15",
+        end_ballot_period="2024-07-30",
+    )
+
+    recognition_doc = baml_types.RecognitionDecision(
+        decision_date="2024-08-01",
+        union_recognized=False,
+        form_of_ballot=baml_types.FormOfBallot.Workplace,
+        ballot=ballot_result,
+        good_relations_contested=False,
+    )
 
     source_url = "https://example.com/recognition/814"
     decision = Decision[DocumentType.recognition_decision](recognition_doc, source_url)
@@ -529,13 +546,13 @@ def test_events_from_decision_recognition_decision_not_recognized_with_ballot():
 
 def test_events_from_decision_recognition_decision_recognized_no_ballot():
     """Test events_from_decision with a recognition decision - union recognized without ballot"""
-    recognition_doc = {
-        "decision_date": "2024-08-01",
-        "union_recognized": True,
-        "form_of_ballot": None,
-        "ballot": None,
-        "good_relations_contested": False,
-    }
+    recognition_doc = baml_types.RecognitionDecision(
+        decision_date="2024-08-01",
+        union_recognized=True,
+        form_of_ballot=None,
+        ballot=None,
+        good_relations_contested=False,
+    )
 
     source_url = "https://example.com/recognition/815"
     decision = Decision[DocumentType.recognition_decision](recognition_doc, source_url)
@@ -554,14 +571,16 @@ def test_events_from_decision_recognition_decision_recognized_no_ballot():
 
 def test_events_from_decision_access_decision_or_dispute_unfair_practice_upheld():
     """Test events_from_decision with an access decision - unfair practice upheld"""
-    access_doc = {
-        "decision_date": "2024-09-01",
-        "details": {
-            "decision_type": "unfair_practice_dispute",
-            "upheld": True,
-            "complainant": "Union",
-        },
-    }
+    unfair_practice_details = baml_types.UnfairPracticeDisputeDecision(
+        decision_type="unfair_practice_dispute",
+        upheld=True,
+        complainant=baml_types.Party.Union,
+    )
+
+    access_doc = baml_types.AccessDecisionOrDispute(
+        decision_date="2024-09-01",
+        details=unfair_practice_details,
+    )
 
     source_url = "https://example.com/access/916"
     decision = Decision[DocumentType.access_decision_or_dispute](access_doc, source_url)
@@ -580,14 +599,16 @@ def test_events_from_decision_access_decision_or_dispute_unfair_practice_upheld(
 
 def test_events_from_decision_access_decision_or_dispute_unfair_practice_not_upheld():
     """Test events_from_decision with an access decision - unfair practice not upheld"""
-    access_doc = {
-        "decision_date": "2024-09-01",
-        "details": {
-            "decision_type": "unfair_practice_dispute",
-            "upheld": False,
-            "complainant": "Employer",
-        },
-    }
+    unfair_practice_details = baml_types.UnfairPracticeDisputeDecision(
+        decision_type="unfair_practice_dispute",
+        upheld=False,
+        complainant=baml_types.Party.Employer,
+    )
+
+    access_doc = baml_types.AccessDecisionOrDispute(
+        decision_date="2024-09-01",
+        details=unfair_practice_details,
+    )
 
     source_url = "https://example.com/access/917"
     decision = Decision[DocumentType.access_decision_or_dispute](access_doc, source_url)
@@ -606,14 +627,16 @@ def test_events_from_decision_access_decision_or_dispute_unfair_practice_not_uph
 
 def test_events_from_decision_access_decision_or_dispute_access_arrangement():
     """Test events_from_decision with an access decision - access arrangement"""
-    access_doc = {
-        "decision_date": "2024-09-01",
-        "details": {
-            "decision_type": "access_arrangement",
-            "favors": "Union",
-            "description": "Union granted access to workplace noticeboards and email distribution lists",
-        },
-    }
+    access_arrangement_details = baml_types.AccessArrangementDecision(
+        decision_type="access_arrangement",
+        favors=baml_types.Party.Union,
+        description="Union granted access to workplace noticeboards and email distribution lists",
+    )
+
+    access_doc = baml_types.AccessDecisionOrDispute(
+        decision_date="2024-09-01",
+        details=access_arrangement_details,
+    )
 
     source_url = "https://example.com/access/918"
     decision = Decision[DocumentType.access_decision_or_dispute](access_doc, source_url)
@@ -635,7 +658,7 @@ def test_events_from_decision_access_decision_or_dispute_access_arrangement():
 
 def test_events_from_decision_method_agreed():
     """Test events_from_decision with a method agreed document"""
-    method_agreed_doc = {"decision_date": "2024-10-01"}
+    method_agreed_doc = DateOnly(decision_date="2024-10-01")
 
     source_url = "https://example.com/method/1019"
     decision = Decision[DocumentType.method_agreed](method_agreed_doc, source_url)
@@ -654,7 +677,7 @@ def test_events_from_decision_method_agreed():
 
 def test_events_from_decision_nullification_decision():
     """Test events_from_decision with a nullification decision"""
-    nullification_doc = {"decision_date": "2024-11-01"}
+    nullification_doc = DateOnly(decision_date="2024-11-01")
 
     source_url = "https://example.com/nullification/1120"
     decision = Decision[DocumentType.nullification_decision](
@@ -688,22 +711,24 @@ def test_events_from_decision_generic_doc():
 
 def test_events_from_decision_null_source_url():
     """Test events_from_decision with null source URL"""
-    acceptance_doc = {
-        "decision_date": "2024-01-15",
-        "success": True,
-        "rejection_reasons": [],
-        "application_date": "2023-12-01",
-        "end_of_acceptance_period": "2024-01-10",
-        "bargaining_unit": {
-            "description": "All workers at Test Ltd",
-            "size_considered": True,
-            "size": 100,
-            "claimed_membership": 60,
-            "membership": 55,
-        },
-        "bargaining_unit_agreed": True,
-        "petition_signatures": 65,
-    }
+    bargaining_unit = baml_types.BargainingUnit(
+        description="All workers at Test Ltd",
+        size_considered=True,
+        size=100,
+        claimed_membership=60,
+        membership=55,
+    )
+
+    acceptance_doc = baml_types.AcceptanceDecision(
+        decision_date="2024-01-15",
+        success=True,
+        rejection_reasons=[],
+        application_date="2023-12-01",
+        end_of_acceptance_period="2024-01-10",
+        bargaining_unit=bargaining_unit,
+        bargaining_unit_agreed=True,
+        petition_signatures=65,
+    )
 
     decision = Decision[DocumentType.acceptance_decision](acceptance_doc, None)
 
@@ -836,20 +861,22 @@ def test_events_from_decision_application_withdrawn_exactly_at_cutoff():
 
 def test_events_from_decision_recognition_decision_lowercase_ballot_descriptions():
     """Test events_from_decision with recognition decision to verify lowercase ballot descriptions"""
-    recognition_doc = {
-        "decision_date": "2024-08-01",
-        "union_recognized": True,
-        "form_of_ballot": "Postal",  # Should become "postal" in description
-        "ballot": {
-            "eligible_workers": 100,
-            "spoiled_ballots": 2,
-            "votes_in_favor": 60,
-            "votes_against": 20,
-            "start_ballot_period": "2024-07-15",
-            "end_ballot_period": "2024-07-30",
-        },
-        "good_relations_contested": False,
-    }
+    ballot_result = baml_types.BallotResult(
+        eligible_workers=100,
+        spoiled_ballots=2,
+        votes_in_favor=60,
+        votes_against=20,
+        start_ballot_period="2024-07-15",
+        end_ballot_period="2024-07-30",
+    )
+
+    recognition_doc = baml_types.RecognitionDecision(
+        decision_date="2024-08-01",
+        union_recognized=True,
+        form_of_ballot=baml_types.FormOfBallot.Postal,  # Should become "postal" in description
+        ballot=ballot_result,
+        good_relations_contested=False,
+    )
 
     source_url = "https://example.com/recognition/999"
     decision = Decision[DocumentType.recognition_decision](recognition_doc, source_url)
@@ -872,20 +899,22 @@ def test_events_from_decision_recognition_decision_lowercase_ballot_descriptions
 
 def test_events_from_decision_recognition_decision_workplace_lowercase():
     """Test events_from_decision with workplace ballot to verify lowercase description"""
-    recognition_doc = {
-        "decision_date": "2024-08-01",
-        "union_recognized": True,
-        "form_of_ballot": "Workplace",  # Should become "workplace" in description
-        "ballot": {
-            "eligible_workers": 100,
-            "spoiled_ballots": 2,
-            "votes_in_favor": 60,
-            "votes_against": 20,
-            "start_ballot_period": "2024-07-15",
-            "end_ballot_period": "2024-07-30",
-        },
-        "good_relations_contested": False,
-    }
+    ballot_result = baml_types.BallotResult(
+        eligible_workers=100,
+        spoiled_ballots=2,
+        votes_in_favor=60,
+        votes_against=20,
+        start_ballot_period="2024-07-15",
+        end_ballot_period="2024-07-30",
+    )
+
+    recognition_doc = baml_types.RecognitionDecision(
+        decision_date="2024-08-01",
+        union_recognized=True,
+        form_of_ballot=baml_types.FormOfBallot.Workplace,  # Should become "workplace" in description
+        ballot=ballot_result,
+        good_relations_contested=False,
+    )
 
     source_url = "https://example.com/recognition/999"
     decision = Decision[DocumentType.recognition_decision](recognition_doc, source_url)

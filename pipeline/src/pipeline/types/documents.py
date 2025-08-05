@@ -27,6 +27,7 @@ class DocumentType(StrEnum):
     # Types with boilerplate document content
     method_agreed = auto()
     application_withdrawn = auto()
+    application_withdrawn_foi = auto()
 
     # Types to ignore, shouldn't be there
     derecognition_decision = auto()
