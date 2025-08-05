@@ -1,4 +1,5 @@
 from pipeline.transforms.augmentation import augment_doc
+from pipeline.types.decisions import DecisionRaw, decision_augmented_mapping
 
 from . import map_docs, RefsEvent, lambda_friendly_run_async, DocumentRef, client
 
@@ -12,7 +13,7 @@ async def decisions_from_refs(client, *, refs):
             _id=doc["_id"],
             _index=doc["_index"],
         )
-        yield doc["_source"], ref
+        yield DecisionRaw.model_validate(doc["_source"]), ref
 
 
 async def process_batch(refs):
@@ -21,7 +22,7 @@ async def process_batch(refs):
         decisions,
         transform=augment_doc,
         dest_namespace="outcomes-augmented",
-        dest_mapping="./index_mappings/outcomes_augmented.json",
+        dest_mapping={"dynamic": "strict", "properties": decision_augmented_mapping},
     )
 
 

@@ -1,11 +1,10 @@
 import json
 import re
 
-from pydantic import ValidationError
-from baml_client import types as baml_types
-
 from .events import EventsBuilder, EventType, OutcomeState, events_from_outcome
 from .known_bad_data import override_reference
+from ..types.outcome import Outcome
+from ..types.documents import DocumentType
 
 
 def normalize_reference(raw_reference):
@@ -22,22 +21,22 @@ def normalize_reference(raw_reference):
     return reference
 
 
-def get_parties(outcome):
-    title = outcome["outcome_title"]
+def get_parties(outcome: Outcome):
+    title = outcome.outcome_title
     title = re.sub(r"\s+\(\d+\)$", "", title)  # Remove any trailing ordinal
     union, employer = re.split(r"\s+(?:&|and)\s+", title, maxsplit=1)
 
     return {"unions": union.split(", "), "employer": employer}
 
 
-def get_bargaining_unit(outcome):
-    data = outcome["extracted_data"]
-    if "acceptance_decision" not in data:
+def get_bargaining_unit(outcome: Outcome):
+    data = outcome.extracted_data
+    if DocumentType.acceptance_decision not in data:
         return None
 
-    ad = baml_types.AcceptanceDecision.model_validate(data["acceptance_decision"])
-    if "validity_decision" in data:
-        d = baml_types.ValidityDecision.model_validate(data["validity_decision"])
+    ad = data[DocumentType.acceptance_decision]
+    if DocumentType.validity_decision in data:
+        d = data[DocumentType.validity_decision]
         return {
             "size": (
                 d.new_bargaining_unit.size
@@ -89,10 +88,9 @@ def get_key_dates(events: EventsBuilder):
     }
 
 
-def get_ballot_result(outcome):
-    d = outcome["extracted_data"]
-    if "recognition_decision" in d:
-        d = baml_types.RecognitionDecision.model_validate(d["recognition_decision"])
+def get_ballot_result(outcome: Outcome):
+    d = outcome.extracted_data.get(DocumentType.recognition_decision, None)
+    if d:
         if d.ballot:
             votes = (
                 d.ballot.votes_in_favor
@@ -144,7 +142,7 @@ def flatten_facets(facets):
     return flat
 
 
-def transform_for_index(outcome):
+def transform_for_index(outcome: Outcome):
     parties = get_parties(outcome)
     events = events_from_outcome(outcome)
     key_dates = get_key_dates(events)
@@ -155,13 +153,13 @@ def transform_for_index(outcome):
     json_state = {"value": state.value, "label": state.label}
 
     return {
-        "id": outcome["id"],
-        "documents": outcome["documents"],
+        "id": outcome.id,
+        "documents": outcome.documents,
         "display": {
-            "title": outcome["outcome_title"],
-            "reference": outcome["id"],
-            "cacUrl": outcome["outcome_url"],
-            "lastUpdated": outcome["last_updated"],
+            "title": outcome.outcome_title,
+            "reference": outcome.id,
+            "cacUrl": outcome.outcome_url,
+            "lastUpdated": outcome.last_updated,
             "state": json_state,
             "parties": parties,
             "bargainingUnit": bu,
@@ -170,8 +168,8 @@ def transform_for_index(outcome):
             "keyDates": key_dates,
         },
         "filter": {
-            "lastUpdated": outcome["last_updated"],
-            "reference": outcome["id"],
+            "lastUpdated": outcome.last_updated,
+            "reference": outcome.id,
             "state": state.value,
             "parties.unions": parties["unions"],
             "parties.employer": parties["employer"],

@@ -1,14 +1,15 @@
+from pipeline.types.documents import DocumentType
 from pipeline.transforms.document_classifier import (
-    DocumentType,
     should_get_content,
     should_skip,
 )
 from polyfactory.factories.pydantic_factory import ModelFactory
 from baml_client import types as baml_types
+from ..types.decisions import DateOnly
 
 
 def mock(model):
-    return ModelFactory.create_factory(model=model).build().model_dump(by_alias=True)
+    return ModelFactory.create_factory(model=model).build()
 
 
 async def get_extracted_data(doc_type_string, content):
@@ -29,14 +30,14 @@ async def get_extracted_data(doc_type_string, content):
         case DocumentType.validity_decision:
             return mock(baml_types.ValidityDecision)
         case DocumentType.case_closure:
-            return {"decision_date": "2025-01-01"}
+            return DateOnly({"decision_date": "2025-01-01"})
         case DocumentType.recognition_decision:
             return mock(baml_types.RecognitionDecision)
         case DocumentType.application_received:
-            return {"decision_date": "2025-01-01"}
+            return DateOnly({"decision_date": "2025-01-01"})
         case DocumentType.access_decision_or_dispute:
             return mock(baml_types.AccessDecisionOrDispute)
         case DocumentType.method_agreed:
-            return {"decision_date": "2025-01-01"}
+            return DateOnly({"decision_date": "2025-01-01"})
         case DocumentType.nullification_decision:
             return None

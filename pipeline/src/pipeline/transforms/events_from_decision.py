@@ -4,7 +4,8 @@ from dateutil.parser import parse as date_parse
 from typing import Optional
 
 from baml_client import types as baml_types
-from .document_classifier import DocumentType
+from ..types.documents import DocumentType
+from ..types.outcome import ExtractedData
 from .model import Event, EventType
 
 
@@ -18,7 +19,7 @@ def ensure_period(input: str) -> str:
 class Decision:
     def __init__(
         self,
-        doc: dict,
+        doc: ExtractedData,
         source_url: Optional[str] = None,
         fallback_date: Optional[datetime] = None,
     ):
@@ -33,7 +34,7 @@ class Decision:
         return self._source_url
 
     def decision_date(self):
-        doc_date = self.doc().get("decision_date") if self.doc() else None
+        doc_date = self.doc().decision_date if self.doc() else None
         return date_parse(doc_date) if doc_date else self._fallback_date
 
 
@@ -50,7 +51,7 @@ def events_from_decision(
     return [
         Event(
             type=EventType.ApplicationReceived,
-            date=date_parse(application_received["decision_date"]),
+            date=date_parse(application_received.decision_date),
             source_document_url=decision.source_url(),
         )
     ]
@@ -60,7 +61,7 @@ def events_from_decision(
 def events_from_decision(
     decision: Decision[DocumentType.acceptance_decision],
 ) -> list[Event]:
-    acceptance_decision = baml_types.AcceptanceDecision.model_validate(decision.doc())
+    acceptance_decision = decision.doc()
     bargaining_unit = (
         f"Bargaining unit: {acceptance_decision.bargaining_unit.description}"
     )
@@ -114,9 +115,7 @@ def events_from_decision(
 def events_from_decision(
     decision: Decision[DocumentType.bargaining_unit_decision],
 ) -> list[Event]:
-    bargaining_unit_decision = baml_types.BargainingUnitDecision.model_validate(
-        decision.doc()
-    )
+    bargaining_unit_decision = decision.doc()
     if bargaining_unit_decision.appropriate_unit_differs:
         return [
             Event(
@@ -156,9 +155,7 @@ def events_from_decision(
 def events_from_decision(
     decision: Decision[DocumentType.form_of_ballot_decision],
 ) -> list[Event]:
-    form_of_ballot_decision = baml_types.FormOfBallotDecision.model_validate(
-        decision.doc()
-    )
+    form_of_ballot_decision = decision.doc()
     decision_date = date_parse(form_of_ballot_decision.decision_date)
     ballot_form = form_of_ballot_decision.form_of_ballot
     employer_preferred = str(form_of_ballot_decision.employer_preferred.value).lower()
@@ -186,9 +183,7 @@ def events_from_decision(
 def events_from_decision(
     decision: Decision[DocumentType.whether_to_ballot_decision],
 ) -> list[Event]:
-    whether_to_ballot_decision = baml_types.WhetherToBallotDecision.model_validate(
-        decision.doc()
-    )
+    whether_to_ballot_decision = decision.doc()
     decision_date = date_parse(whether_to_ballot_decision.decision_date)
     if whether_to_ballot_decision.decision_to_ballot:
         qualifying_condition_labels = {
@@ -224,7 +219,7 @@ def events_from_decision(
 def events_from_decision(
     decision: Decision[DocumentType.validity_decision],
 ) -> list[Event]:
-    validity_decision = baml_types.ValidityDecision.model_validate(decision.doc())
+    validity_decision = decision.doc()
     if not validity_decision.valid:
         return [
             Event(
@@ -255,7 +250,7 @@ def events_from_decision(
 def events_from_decision(
     decision: Decision[DocumentType.recognition_decision],
 ) -> list[Event]:
-    recognition_decision = baml_types.RecognitionDecision.model_validate(decision.doc())
+    recognition_decision = decision.doc()
     events = []
     if recognition_decision.ballot:
         b = recognition_decision.ballot
@@ -315,9 +310,7 @@ def events_from_decision(
 def events_from_decision(
     decision: Decision[DocumentType.access_decision_or_dispute],
 ) -> list[Event]:
-    access_decision_or_dispute = baml_types.AccessDecisionOrDispute.model_validate(
-        decision.doc()
-    )
+    access_decision_or_dispute = decision.doc()
     if isinstance(
         access_decision_or_dispute.details, baml_types.UnfairPracticeDisputeDecision
     ):

@@ -88,35 +88,32 @@ def create_client(
     )
 
 
+def get_mapping_from_path(mapping_path: str) -> dict:
+    try:
+        with open(mapping_path) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        print(f"Failed to load mapping from {mapping_path}: {e}")
+        raise RuntimeError(f"Failed to load mapping from {mapping_path}: {e}") from e
+
+
 async def ensure_index_mapping(
-    client: AsyncOpenSearch,
-    index: str,
-    mapping_path: Optional[str],
+    client: AsyncOpenSearch, index: str, mapping: dict
 ) -> None:
     """Ensure an index exists with the specified mapping.
 
     Args:
         client: OpenSearch client
         index: Name of the index
-        mapping_path: Path to JSON mapping file
+        mapping: Mapping to use
     """
-    if not mapping_path:
-        return
-
-    try:
-        with open(mapping_path) as f:
-            mapping = json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Failed to load mapping from {mapping_path}: {e}")
-        raise RuntimeError(f"Failed to load mapping from {mapping_path}: {e}") from e
-
     try:
         # Check if index exists
         exists = await client.indices.exists(index=index)
 
         if not exists:
             # Create index with mapping
-            print(f"Creating index {index} with mapping from {mapping_path}")
+            print(f"Creating index {index} with mapping")
             await client.indices.create(index=index, body={"mappings": mapping})
         else:
             # Update existing index mapping

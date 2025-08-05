@@ -12,6 +12,7 @@ from scrapy.utils.log import configure_logging
 from pipeline.spider import QuietDroppedLogFormatter, ReferencePipeline
 from pipeline.spider.updated_outcomes import UpdatedOutcomesSpider
 from pipeline.spider.cac_outcome_spider import CacOutcomeOpensearchPipeline
+from pipeline.types.decisions import decision_raw_mapping
 
 # Install the asyncio reactor for Lambda compatibility
 install_reactor("twisted.internet.asyncioreactor.AsyncioSelectorReactor")
@@ -77,7 +78,7 @@ def handler(event, context):
             },
             "OPENSEARCH": {
                 "INDEX": index,
-                "MAPPING_PATH": "./index_mappings/outcomes_raw.json",
+                "MAPPING": {"dynamic": "strict", "properties": decision_raw_mapping},
                 "BATCH_SIZE": int_env("OPENSEARCH_BATCH_SIZE", 15),
                 "CREDENTIALS_SECRET": os.getenv("OPENSEARCH_CREDENTIALS_SECRET"),
             },

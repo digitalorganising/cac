@@ -1,6 +1,7 @@
 from pipeline.transforms import transform_for_index
 
 from pipeline.decisions_to_outcomes import merge_decisions_to_outcomes
+from pipeline.services.opensearch_utils import get_mapping_from_path
 from . import map_docs, RefsEvent, lambda_friendly_run_async, client, DocumentRef
 
 
@@ -22,7 +23,7 @@ async def outcomes_from_refs(client, *, refs, additional_indices={}):
         references=list(references),
     ):
         ref = DocumentRef(
-            _id=outcome["id"],
+            _id=outcome.id,
             _index=index,
         )
         yield outcome, ref
@@ -36,7 +37,7 @@ async def process_batch(refs):
         outcomes,
         transform=async_transform,
         dest_namespace="outcomes-indexed",
-        dest_mapping="./index_mappings/outcomes_indexed.json",
+        dest_mapping=get_mapping_from_path("./index_mappings/outcomes_indexed.json"),
     )
 
 

@@ -1,4 +1,5 @@
-from .transforms.document_classifier import DocumentType
+from pipeline.types.outcome import Outcome
+from .types.documents import DocumentType
 
 
 def merge_in_decision(decision, outcome):
@@ -41,6 +42,7 @@ async def merge_decisions_to_outcomes(
             "sort": [
                 {"reference": {"order": "asc"}},
                 {"document_type": {"order": "asc"}},
+                {"last_updated": {"missing": "_last"}},
             ],
         },
     )
@@ -52,7 +54,7 @@ async def merge_decisions_to_outcomes(
     def get_outcome():
         outcome_index = outcome_indices - non_pipeline_indices
         if len(outcome_index) == 1:
-            return this_outcome, outcome_index.pop()
+            return Outcome.model_validate(this_outcome), outcome_index.pop()
         else:
             raise ValueError(
                 f"Multiple outcome indices found for {this_outcome['id']}: {outcome_indices}"

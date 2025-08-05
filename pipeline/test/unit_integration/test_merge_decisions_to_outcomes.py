@@ -44,6 +44,9 @@ def sample_decisions():
             "document_content": "Application received on 2024-01-15",
             "document_url": "https://example.com/application_received",
             "extracted_data": {"decision_date": "2024-01-15"},
+            "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+            "outcome_title": "Test Outcome 1",
+            "last_updated": "2024-02-01T10:00:00Z",
         },
         {
             "reference": "TUR1/1234/2024",
@@ -51,6 +54,9 @@ def sample_decisions():
             "document_content": "Recognition granted on 2024-02-01",
             "document_url": "https://example.com/recognition_decision",
             "extracted_data": {"decision_date": "2024-02-01"},
+            "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+            "outcome_title": "Test Outcome 1",
+            "last_updated": "2024-02-01T10:00:00Z",
         },
         {
             "reference": "TUR1/5678/2024",
@@ -58,6 +64,9 @@ def sample_decisions():
             "document_content": "Application received on 2024-01-20",
             "document_url": "https://example.com/application_received_2",
             "extracted_data": {"decision_date": "2024-01-20"},
+            "outcome_url": "https://example.com/outcome/TUR1/5678/2024",
+            "outcome_title": "Test Outcome 2",
+            "last_updated": "2024-02-01T10:00:00Z",
         },
     ]
 
@@ -153,8 +162,8 @@ class TestMergeDecisionsToOutcomes:
 
         # Should yield 2 outcomes: one for each reference
         assert len(outcomes) == 2
-        assert outcomes[0][0]["id"] == "TUR1/1234/2024"  # First reference
-        assert outcomes[1][0]["id"] == "TUR1/5678/2024"  # Second reference
+        assert outcomes[0][0].id == "TUR1/1234/2024"  # First reference
+        assert outcomes[1][0].id == "TUR1/5678/2024"  # Second reference
         assert outcomes[0][1] == "test-index"  # Index should be passed through
         assert outcomes[1][1] == "test-index"
 
@@ -183,14 +192,14 @@ class TestMergeDecisionsToOutcomes:
         # Should yield 2 outcomes: one for each reference in the sample data
         assert len(outcomes) == 2
         outcome, index = outcomes[0]  # First reference outcome
-        assert outcome["id"] == "TUR1/1234/2024"
+        assert outcome.id == "TUR1/1234/2024"
         # Both decisions should be present in documents now that the bug is fixed
-        assert "application_received" in outcome["documents"]
-        assert "recognition_decision" in outcome["documents"]
-        assert "application_received" in outcome["document_urls"]
-        assert "recognition_decision" in outcome["document_urls"]
-        assert "application_received" in outcome["extracted_data"]
-        assert "recognition_decision" in outcome["extracted_data"]
+        assert "application_received" in outcome.documents
+        assert "recognition_decision" in outcome.documents
+        assert "application_received" in outcome.document_urls
+        assert "recognition_decision" in outcome.document_urls
+        assert "application_received" in outcome.extracted_data
+        assert "recognition_decision" in outcome.extracted_data
         assert index == "test-index"
 
     async def test_merge_decisions_to_outcomes_empty_results(self):
@@ -221,6 +230,9 @@ class TestMergeDecisionsToOutcomes:
                     "document_content": "Application received",
                     "document_url": "https://example.com/application_received",
                     "extracted_data": {"decision_date": "2024-01-15"},
+                    "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+                    "outcome_title": "Test Outcome 1",
+                    "last_updated": "2024-02-01T10:00:00Z",
                 },
                 {
                     "reference": "TUR1/1234/2024",
@@ -228,6 +240,9 @@ class TestMergeDecisionsToOutcomes:
                     "document_content": "Recognition granted",
                     "document_url": "https://example.com/recognition_decision",
                     "extracted_data": {"decision_date": "2024-02-01"},
+                    "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+                    "outcome_title": "Test Outcome 1",
+                    "last_updated": "2024-02-01T10:00:00Z",
                 },
                 {
                     "reference": "TUR1/1234/2024",
@@ -235,6 +250,9 @@ class TestMergeDecisionsToOutcomes:
                     "document_content": "Bargaining unit defined",
                     "document_url": "https://example.com/bargaining_decision",
                     "extracted_data": {"decision_date": "2024-03-01"},
+                    "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+                    "outcome_title": "Test Outcome 1",
+                    "last_updated": "2024-02-01T10:00:00Z",
                 },
             ]
         )
@@ -254,20 +272,20 @@ class TestMergeDecisionsToOutcomes:
         assert len(outcomes) == 1
         outcome, index = outcomes[0]
 
-        assert outcome["id"] == "TUR1/1234/2024"
+        assert outcome.id == "TUR1/1234/2024"
         # All decisions should be in documents now that the bug is fixed
-        assert len(outcome["documents"]) == 3
-        assert "application_received" in outcome["documents"]
-        assert "recognition_decision" in outcome["documents"]
-        assert "bargaining_decision" in outcome["documents"]
-        assert len(outcome["document_urls"]) == 3
-        assert "application_received" in outcome["document_urls"]
-        assert "recognition_decision" in outcome["document_urls"]
-        assert "bargaining_decision" in outcome["document_urls"]
-        assert len(outcome["extracted_data"]) == 3
-        assert "application_received" in outcome["extracted_data"]
-        assert "recognition_decision" in outcome["extracted_data"]
-        assert "bargaining_decision" in outcome["extracted_data"]
+        assert len(outcome.documents) == 3
+        assert "application_received" in outcome.documents
+        assert "recognition_decision" in outcome.documents
+        assert "bargaining_decision" in outcome.documents
+        assert len(outcome.document_urls) == 3
+        assert "application_received" in outcome.document_urls
+        assert "recognition_decision" in outcome.document_urls
+        assert "bargaining_decision" in outcome.document_urls
+        assert len(outcome.extracted_data) == 3
+        assert "application_received" in outcome.extracted_data
+        assert "recognition_decision" in outcome.extracted_data
+        assert "bargaining_decision" in outcome.extracted_data
         assert index == "test-index"
 
     async def test_merge_decisions_to_outcomes_sort_order(self):
@@ -280,6 +298,9 @@ class TestMergeDecisionsToOutcomes:
                     "document_content": "Recognition granted",
                     "document_url": "https://example.com/recognition_decision",
                     "extracted_data": {"decision_date": "2024-02-01"},
+                    "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+                    "outcome_title": "Test Outcome 1",
+                    "last_updated": "2024-02-01T10:00:00Z",
                 },
                 {
                     "reference": "TUR1/1234/2024",
@@ -287,6 +308,9 @@ class TestMergeDecisionsToOutcomes:
                     "document_content": "Application received",
                     "document_url": "https://example.com/application_received",
                     "extracted_data": {"decision_date": "2024-01-15"},
+                    "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+                    "outcome_title": "Test Outcome 1",
+                    "last_updated": "2024-02-01T10:00:00Z",
                 },
             ]
         )
@@ -307,13 +331,13 @@ class TestMergeDecisionsToOutcomes:
         outcome, index = outcomes[0]
 
         # Both decisions should be present in documents now that the bug is fixed
-        assert "application_received" in outcome["documents"]
-        assert "recognition_decision" in outcome["documents"]
-        assert "application_received" in outcome["document_urls"]
-        assert "recognition_decision" in outcome["document_urls"]
+        assert "application_received" in outcome.documents
+        assert "recognition_decision" in outcome.documents
+        assert "application_received" in outcome.document_urls
+        assert "recognition_decision" in outcome.document_urls
         # Both decisions should be in extracted_data
-        assert "application_received" in outcome["extracted_data"]
-        assert "recognition_decision" in outcome["extracted_data"]
+        assert "application_received" in outcome.extracted_data
+        assert "recognition_decision" in outcome.extracted_data
         assert index == "test-index"
 
     async def test_merge_decisions_to_outcomes_search_parameters(
@@ -342,5 +366,6 @@ class TestMergeDecisionsToOutcomes:
         expected_sort = [
             {"reference": {"order": "asc"}},
             {"document_type": {"order": "asc"}},
+            {"last_updated": {"missing": "_last"}},
         ]
         assert search_args["body"]["sort"] == expected_sort

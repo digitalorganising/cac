@@ -4,6 +4,7 @@ import os
 from abc import ABC, abstractmethod
 from itemadapter import ItemAdapter
 
+from ..types.documents import DocumentType
 import pymupdf
 import pymupdf4llm
 import scrapy
@@ -11,12 +12,12 @@ from markdownify import markdownify
 from scrapy.exceptions import NotSupported
 
 from ..transforms.document_classifier import (
-    DocumentType,
     get_document_type,
     should_get_content,
 )
 from ..transforms import normalize_reference
 from ..services.opensearch_pipeline import OpensearchPipeline
+from ..types.decisions import DecisionRaw
 
 
 class CacOutcomeOpensearchPipeline(OpensearchPipeline):
@@ -32,7 +33,8 @@ class CacOutcomeOpensearchPipeline(OpensearchPipeline):
 
     def doc(self, item):
         item["id"] = self.id(item)
-        return ItemAdapter(item).asdict()
+        model = DecisionRaw.model_validate(ItemAdapter(item).asdict())
+        return model.model_dump(by_alias=True)
 
 
 class CacOutcomeSpider(scrapy.Spider, ABC):

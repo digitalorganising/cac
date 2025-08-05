@@ -2,7 +2,7 @@ from transitions import MachineError
 from collections import OrderedDict
 from dateutil.parser import parse as date_parse
 
-from .document_classifier import DocumentType
+from ..types.documents import DocumentType
 from .model import EventType, OutcomeState
 from .events_machine import EventsBuilder, InvalidEventError
 from .events_from_decision import events_from_decision, Decision
@@ -21,8 +21,8 @@ def doc_ordering(fallback_date):
         }.get(doc_type, 0)
         return (
             (
-                date_parse(doc["decision_date"])
-                if doc and doc["decision_date"]
+                date_parse(doc.decision_date)
+                if doc and doc.decision_date
                 else fallback_date
             ),
             tiebreaker,
@@ -32,11 +32,11 @@ def doc_ordering(fallback_date):
 
 
 def events_from_outcome(outcome):
-    fallback_date = date_parse(outcome["last_updated"][:10])
-    data = outcome["extracted_data"]
-    ref = outcome["id"]
+    fallback_date = date_parse(outcome.last_updated.isoformat()[:10])
+    data = outcome.extracted_data
+    ref = outcome.id
     sorted_docs = OrderedDict(sorted(data.items(), key=doc_ordering(fallback_date)))
-    document_urls = outcome["document_urls"]
+    document_urls = outcome.document_urls
 
     # Escape hatch below: this only happens where there is a previous application receipt
     # but now the application has been withdrawn.
@@ -51,10 +51,10 @@ def events_from_outcome(outcome):
     last_doc = sorted_docs[next(reversed(sorted_docs))]
     if (
         last_doc
-        and last_doc["decision_date"]
-        and fallback_date < date_parse(last_doc["decision_date"])
+        and last_doc.decision_date
+        and fallback_date < date_parse(last_doc.decision_date)
     ):
-        fallback_date = date_parse(last_doc["decision_date"])
+        fallback_date = date_parse(last_doc.decision_date)
         sorted_docs = OrderedDict(sorted(data.items(), key=doc_ordering(fallback_date)))
 
     events = EventsBuilder()

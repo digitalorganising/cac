@@ -5,7 +5,11 @@ from typing import Optional
 from contextlib import asynccontextmanager
 from pydantic import BaseModel
 
-from pipeline.services.opensearch_utils import ensure_index_mapping
+from pipeline.services.opensearch_utils import (
+    ensure_index_mapping,
+    get_mapping_from_path,
+)
+from pipeline.types.decisions import decision_raw_mapping, decision_augmented_mapping
 
 
 lambda_ports = {
@@ -42,14 +46,14 @@ async def index_populated(opensearch_client, index_name) -> bool:
 
 async def load_docs(opensearch_client, index_name, docs):
     if index_name.startswith("outcomes-raw"):
-        mapping = "./index_mappings/outcomes_raw.json"
+        mapping = {"dynamic": "strict", "properties": decision_raw_mapping}
     elif (
         index_name.startswith("outcomes-augmented")
         or index_name == "application-withdrawals"
     ):
-        mapping = "./index_mappings/outcomes_augmented.json"
+        mapping = {"dynamic": "strict", "properties": decision_augmented_mapping}
     elif index_name.startswith("outcomes-indexed"):
-        mapping = "./index_mappings/outcomes_indexed.json"
+        mapping = get_mapping_from_path("./index_mappings/outcomes_indexed.json")
     else:
         raise ValueError(f"Unknown index name: {index_name}")
     await ensure_index_mapping(opensearch_client, index_name, mapping)

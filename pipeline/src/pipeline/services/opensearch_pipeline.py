@@ -53,13 +53,13 @@ class OpensearchPipeline(ABC):
         cluster_host,
         auth,
         index,
-        mapping_path=None,
+        mapping=None,
         batch_size=15,
     ):
         self.cluster_host = cluster_host
         self.auth = auth
         self.index = index
-        self.mapping_path = mapping_path
+        self.mapping = mapping
         self.batch_size = batch_size
 
     @classmethod
@@ -74,7 +74,7 @@ class OpensearchPipeline(ABC):
             cluster_host=settings.get("HOST", os.getenv("OPENSEARCH_ENDPOINT")),
             index=settings.get("INDEX"),
             auth=auth,
-            mapping_path=settings.get("MAPPING_PATH"),
+            mapping=settings.get("MAPPING"),
             batch_size=settings.get("BATCH_SIZE"),
         )
 
@@ -89,7 +89,7 @@ class OpensearchPipeline(ABC):
             await ensure_index_mapping(
                 client=self.client,
                 index=self.index,
-                mapping_path=self.mapping_path,
+                mapping=self.mapping,
             )
 
             self.batcher = OpensearchAsyncBatcher(
