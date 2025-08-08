@@ -38,9 +38,13 @@ class DecisionAugmentedDateOnly(DecisionRaw):
         DocumentType.case_closure,
         DocumentType.application_received,
         DocumentType.method_agreed,
-        DocumentType.application_withdrawn_foi,
     ]
     extracted_data: DateOnly
+
+
+class DecisionAugmentedApplicationWithdrawn(DecisionRaw):
+    document_type: Literal[DocumentType.application_withdrawn]
+    extracted_data: Optional[DateOnly] = None
 
 
 date_only_mapping = {
@@ -180,9 +184,7 @@ access_decision_or_dispute_mapping = {
 
 
 class DecisionAugmentedNoData(DecisionRaw):
-    document_type: Literal[
-        DocumentType.nullification_decision, DocumentType.application_withdrawn
-    ]
+    document_type: Literal[DocumentType.nullification_decision]
     extracted_data: None
 
 
@@ -196,6 +198,7 @@ class DecisionAugmented(RootModel):
         DecisionAugmentedValidity,
         DecisionAugmentedRecognition,
         DecisionAugmentedAccessDecisionOrDispute,
+        DecisionAugmentedApplicationWithdrawn,
         DecisionAugmentedDateOnly,
         DecisionAugmentedNoData,
     ] = Field(discriminator="document_type")

@@ -69,11 +69,9 @@ def withdrawal_to_docs(withdrawal, reference_url):
     if application_withdrawn:
         yield {
             **common,
-            "id": normalized_reference
-            + ":"
-            + DocumentType.application_withdrawn_foi.value,
+            "id": normalized_reference + ":" + DocumentType.application_withdrawn.value,
             "last_updated": application_withdrawn.isoformat(),
-            "document_type": DocumentType.application_withdrawn_foi,
+            "document_type": DocumentType.application_withdrawn,
             "document_content": f"Application to {employer} withdrawn by {union} on {application_withdrawn.isoformat()}.",
             "extracted_data": {
                 "decision_date": application_withdrawn.strftime("%Y-%m-%d"),

@@ -87,10 +87,7 @@ def events_from_decision(
 
 @dispatch
 def events_from_decision(
-    decision: Union[
-        Decision[DocumentType.application_withdrawn],
-        Decision[DocumentType.application_withdrawn_foi],
-    ],
+    decision: Decision[DocumentType.application_withdrawn],
 ) -> list[Event]:
     events = []
     # TODO: remove this once handling withdrawal state myself
