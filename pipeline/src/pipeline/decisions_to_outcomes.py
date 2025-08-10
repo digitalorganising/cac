@@ -42,7 +42,7 @@ async def merge_decisions_to_outcomes(
             "sort": [
                 {"reference": {"order": "asc"}},
                 {"document_type": {"order": "asc"}},
-                {"last_updated": {"missing": "_last"}},
+                {"last_updated": {"missing": "_first"}},
             ],
         },
     )
@@ -50,6 +50,7 @@ async def merge_decisions_to_outcomes(
     last_reference = None
     this_outcome = {}
     outcome_indices = set()
+    print(res)
 
     def get_outcome():
         outcome_index = outcome_indices - non_pipeline_indices
