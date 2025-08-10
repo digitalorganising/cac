@@ -1,7 +1,8 @@
 import json
 import re
 
-from .events import EventsBuilder, EventType, OutcomeState, events_from_outcome
+from .events import EventsBuilder, events_from_outcome
+from .model import EventType, OutcomeState
 from .known_bad_data import override_reference
 from ..types.outcome import Outcome
 from ..types.documents import DocumentType
