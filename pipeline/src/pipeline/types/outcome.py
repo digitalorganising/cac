@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
-from typing import get_args, Union
+from typing import get_args, Optional, Union
 
 from .documents import DocumentType
 from .decisions import DecisionAugmented
@@ -18,8 +18,8 @@ class Outcome(BaseModel):
     last_updated: datetime
     outcome_url: str
     outcome_title: str
-    documents: dict[DocumentType, str]
-    document_urls: dict[DocumentType, str]
+    documents: dict[DocumentType, Optional[str]]
+    document_urls: dict[DocumentType, Optional[str]]
     extracted_data: dict[
         DocumentType, ExtractedData
     ]  # Not fully typesafe but doesn't really matter
