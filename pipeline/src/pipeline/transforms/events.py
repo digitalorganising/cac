@@ -3,7 +3,6 @@ from collections import OrderedDict
 from dateutil.parser import parse as date_parse
 
 from ..types.documents import DocumentType
-from .model import EventType, OutcomeState
 from .events_machine import EventsBuilder, InvalidEventError
 from .events_from_decision import events_from_decision, Decision
 from .known_bad_data import allow_transform_errors

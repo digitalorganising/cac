@@ -55,6 +55,8 @@ async def map_docs(docs_source, *, transform, dest_namespace, dest_mapping):
     async def update_actions():
         async for doc, ref in docs_source:
             transformed_doc = await transform(doc)
+            if not transformed_doc:
+                continue
             dest_index = destination_index(
                 source_index=ref.index, dest_namespace=dest_namespace
             )
