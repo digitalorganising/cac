@@ -1,5 +1,5 @@
-from pipeline.transforms import transform_for_index, InvalidEventError
-
+from pipeline.transforms import transform_for_index
+from pipeline.transforms.events import InvalidEventError
 from pipeline.decisions_to_outcomes import merge_decisions_to_outcomes
 from pipeline.services.opensearch_utils import get_mapping_from_path
 from . import map_docs, RefsEvent, lambda_friendly_run_async, client, DocumentRef
