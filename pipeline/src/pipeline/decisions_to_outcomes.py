@@ -50,7 +50,6 @@ async def merge_decisions_to_outcomes(
     last_reference = None
     this_outcome = {}
     outcome_indices = set()
-    print(res)
 
     def get_outcome():
         outcome_index = outcome_indices - non_pipeline_indices
@@ -64,13 +63,16 @@ async def merge_decisions_to_outcomes(
     for hit in res["hits"]["hits"]:
         index = hit["_index"]
         decision = hit["_source"]
+
         if last_reference is None:
             last_reference = decision["reference"]
+
         if decision["reference"] != last_reference:
             last_reference = decision["reference"]
             yield get_outcome()
             this_outcome = {}
             outcome_indices = set()
+
         outcome_indices.add(index)
         this_outcome = merge_in_decision(decision, this_outcome)
     if this_outcome:

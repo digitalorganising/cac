@@ -35,15 +35,15 @@ async def get_extracted_data(doc_type_string, content):
         case DocumentType.validity_decision:
             return await b.ExtractValidityDecision(content)
         case DocumentType.case_closure:
-            return DateOnly({"decision_date": extract_date(content)})
+            return DateOnly(decision_date=extract_date(content))
         case DocumentType.recognition_decision:
             return await b.ExtractRecognitionDecision(content)
         case DocumentType.application_received:
-            return DateOnly({"decision_date": extract_date(content)})
+            return DateOnly(decision_date=extract_date(content))
         case DocumentType.access_decision_or_dispute:
             return await b.ExtractAccessDecisionOrDispute(content)
         case DocumentType.method_agreed:
-            return DateOnly({"decision_date": extract_date(content)})
+            return DateOnly(decision_date=extract_date(content))
         case DocumentType.nullification_decision:
             return None
 
