@@ -260,9 +260,33 @@ async def test_unite_rhys_davies_logistics(cac_document_contents):
     assert not ad.bargaining_unit_agreed
     assert ad.petition_signatures == 24
     assert ad.bargaining_unit == BargainingUnit(
-        description="All weekly paid staff including Drivers, Warehouse Staff and Fitters based at Taffs Well"
+        description="All weekly paid staff including Drivers, Warehouse Staff and Fitters based at Taffs Well",
         size=90,
         size_considered=True,
-        claimed_membership=48,
+        claimed_membership=44,
         membership=48,
+    )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://assets.publishing.service.gov.uk/media/"
+        "5a7e1098ed915d74e6223e09/Acceptance_Decision.pdf"
+    ],
+)
+async def test_unite_seal_security_ltd(cac_document_contents):
+    ad = await ExtractAcceptanceDecision(cac_document_contents)
+
+    assert date_eq(ad.decision_date, "04 December 2014")
+    assert not ad.success
+    assert ad.application_date == "8 September 2014"
+    assert not ad.bargaining_unit_agreed
+    assert ad.petition_signatures == 29
+    assert ad.bargaining_unit == BargainingUnit(
+        description="Security Officers and Support Officers",
+        size=55,
+        size_considered=True,
+        claimed_membership=35,
+        membership=28,
     )

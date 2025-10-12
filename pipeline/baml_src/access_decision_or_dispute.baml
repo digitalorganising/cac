@@ -16,7 +16,7 @@ class AccessDecisionOrDispute {
 }
 
 function ExtractAccessDecisionOrDispute(decision_document: string) -> AccessDecisionOrDispute {
-  client DefaultClient
+  client ThinkingClient
   prompt #"
     Given the CAC document below,
 

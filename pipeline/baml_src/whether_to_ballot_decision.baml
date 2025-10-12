@@ -14,7 +14,7 @@ class WhetherToBallotDecision {
 }
 
 function ExtractWhetherToBallotDecision(decision_document: string) -> WhetherToBallotDecision {
-  client DefaultClient
+  client ThinkingClient
   prompt #"
     Given the CAC whether-to-ballot decision document below,
 
