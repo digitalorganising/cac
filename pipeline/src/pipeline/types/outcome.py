@@ -1,6 +1,11 @@
 from datetime import datetime
-from pydantic import BaseModel
-from typing import get_args, Optional, Union
+from pydantic import (
+    BaseModel,
+    ModelWrapValidatorHandler,
+    ValidationError,
+    model_validator,
+)
+from typing import get_args, Optional, Union, Self
 
 from .documents import DocumentType
 from .decisions import DecisionAugmented
@@ -23,3 +28,14 @@ class Outcome(BaseModel):
     extracted_data: dict[
         DocumentType, ExtractedData
     ]  # Not fully typesafe but doesn't really matter
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def log_failed_validation(
+        cls, data, handler: ModelWrapValidatorHandler[Self]
+    ) -> Self:
+        try:
+            return handler(data)
+        except ValidationError as e:
+            print(f"Outcome validation failed for {data['id']}")
+            raise
