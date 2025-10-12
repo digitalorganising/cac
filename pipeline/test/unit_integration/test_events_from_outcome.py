@@ -841,3 +841,156 @@ def test_events_from_outcome_consecutive_duplicate_events():
     assert len(events) == 1
     assert events[0]["type"]["value"] == "application_received"
     assert events[0]["date"] == "2023-12-01"
+
+
+def test_events_from_outcome_para_35_decision_valid():
+    """Test events_from_outcome with Paragraph 35 decision - application can proceed"""
+    outcome = create_outcome(
+        id="TUR1/1234(2024)",
+        last_updated="2024-02-15T10:30:00Z",
+        extracted_data={
+            "para_35_decision": {
+                "decision_date": "2024-02-15",
+                "application_date": "2023-12-01",
+                "application_can_proceed": True,
+            }
+        },
+        document_urls={"para_35_decision": "https://example.com/para35/123"},
+    )
+
+    events_builder = events_from_outcome(outcome)
+    events = events_builder.dump_events()
+
+    # Should have 2 events: ApplicationReceived and ApplicationP35Valid
+    assert len(events) == 2
+
+    # Check ApplicationReceived event
+    app_received = events[0]
+    assert app_received["type"]["value"] == "application_received"
+    assert app_received["date"] == "2023-12-01"
+    assert app_received["sourceDocumentUrl"] == "https://example.com/para35/123"
+
+    # Check ApplicationP35Valid event
+    p35_valid = events[1]
+    assert p35_valid["type"]["value"] == "application_p35_valid"
+    assert p35_valid["date"] == "2024-02-15"
+    assert p35_valid["sourceDocumentUrl"] == "https://example.com/para35/123"
+    assert (
+        p35_valid["description"]
+        == "Determined that no other bargaining is in place, and the application can proceed."
+    )
+
+
+def test_events_from_outcome_para_35_decision_invalid():
+    """Test events_from_outcome with Paragraph 35 decision - application cannot proceed"""
+    outcome = create_outcome(
+        id="TUR1/5678(2024)",
+        last_updated="2024-02-15T10:30:00Z",
+        extracted_data={
+            "para_35_decision": {
+                "decision_date": "2024-02-15",
+                "application_date": "2023-12-01",
+                "application_can_proceed": False,
+            }
+        },
+        document_urls={"para_35_decision": "https://example.com/para35/456"},
+    )
+
+    events_builder = events_from_outcome(outcome)
+    events = events_builder.dump_events()
+
+    # Should have 2 events: ApplicationReceived and ApplicationP35Invalid
+    assert len(events) == 2
+
+    # Check ApplicationReceived event
+    app_received = events[0]
+    assert app_received["type"]["value"] == "application_received"
+    assert app_received["date"] == "2023-12-01"
+    assert app_received["sourceDocumentUrl"] == "https://example.com/para35/456"
+
+    # Check ApplicationP35Invalid event
+    p35_invalid = events[1]
+    assert p35_invalid["type"]["value"] == "application_p35_invalid"
+    assert p35_invalid["date"] == "2024-02-15"
+    assert p35_invalid["sourceDocumentUrl"] == "https://example.com/para35/456"
+    assert (
+        p35_invalid["description"]
+        == "Collective bargaining already in place, application was rejected."
+    )
+
+
+def test_events_from_outcome_para_35_with_other_decisions():
+    """Test events_from_outcome with Paragraph 35 decision followed by other decisions"""
+    outcome = create_outcome(
+        id="TUR1/9999(2024)",
+        last_updated="2024-03-15T10:30:00Z",
+        extracted_data={
+            "para_35_decision": {
+                "decision_date": "2024-02-15",
+                "application_date": "2023-12-01",
+                "application_can_proceed": True,
+            },
+            "acceptance_decision": {
+                "decision_date": "2024-03-15",
+                "success": True,
+                "rejection_reasons": [],
+                "application_date": "2023-12-01",
+                "end_of_acceptance_period": "2024-03-10",
+                "bargaining_unit": {
+                    "description": "All workers at Test Ltd",
+                    "size_considered": True,
+                    "size": 100,
+                    "claimed_membership": 60,
+                    "membership": 55,
+                },
+                "bargaining_unit_agreed": True,
+                "petition_signatures": 65,
+            },
+        },
+        document_urls={
+            "para_35_decision": "https://example.com/para35/999",
+            "acceptance_decision": "https://example.com/acceptance/999",
+        },
+    )
+
+    events_builder = events_from_outcome(outcome)
+    events = events_builder.dump_events()
+
+    # Should have 3 events: ApplicationReceived, ApplicationP35Valid, ApplicationAccepted
+    assert len(events) == 3
+
+    # Check events are in chronological order
+    assert events[0]["type"]["value"] == "application_received"
+    assert events[0]["date"] == "2023-12-01"
+    assert events[1]["type"]["value"] == "application_p35_valid"
+    assert events[1]["date"] == "2024-02-15"
+    assert events[2]["type"]["value"] == "application_accepted"
+    assert events[2]["date"] == "2024-03-15"
+
+
+def test_events_from_outcome_para_35_missing_document_url():
+    """Test events_from_outcome with Paragraph 35 decision but missing document URL"""
+    outcome = create_outcome(
+        id="TUR1/8888(2024)",
+        last_updated="2024-02-15T10:30:00Z",
+        extracted_data={
+            "para_35_decision": {
+                "decision_date": "2024-02-15",
+                "application_date": "2023-12-01",
+                "application_can_proceed": True,
+            }
+        },
+        document_urls={},  # Missing document URLs
+    )
+
+    events_builder = events_from_outcome(outcome)
+    events = events_builder.dump_events()
+
+    # Should handle missing document URLs gracefully
+    assert len(events) == 2
+
+    # Check events have missing source URLs (field omitted when None)
+    assert events[0]["type"]["value"] == "application_received"
+    assert "sourceDocumentUrl" not in events[0]
+    assert events[1]["type"]["value"] == "application_p35_valid"
+    assert "sourceDocumentUrl" not in events[1]

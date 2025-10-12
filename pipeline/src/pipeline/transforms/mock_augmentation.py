@@ -17,6 +17,8 @@ async def get_extracted_data(doc_type_string, content):
     if not should_get_content(document_type) or should_skip(document_type):
         return None
     match document_type:
+        case DocumentType.para_35_decision:
+            return mock(baml_types.Para35Decision)
         case DocumentType.acceptance_decision:
             return mock(baml_types.AcceptanceDecision)
         case DocumentType.bargaining_unit_decision:
@@ -30,14 +32,14 @@ async def get_extracted_data(doc_type_string, content):
         case DocumentType.validity_decision:
             return mock(baml_types.ValidityDecision)
         case DocumentType.case_closure:
-            return DateOnly({"decision_date": "2025-01-01"})
+            return DateOnly(decision_date="2025-01-01")
         case DocumentType.recognition_decision:
             return mock(baml_types.RecognitionDecision)
         case DocumentType.application_received:
-            return DateOnly({"decision_date": "2025-01-01"})
+            return DateOnly(decision_date="2025-01-01")
         case DocumentType.access_decision_or_dispute:
             return mock(baml_types.AccessDecisionOrDispute)
         case DocumentType.method_agreed:
-            return DateOnly({"decision_date": "2025-01-01"})
+            return DateOnly(decision_date="2025-01-01")
         case DocumentType.nullification_decision:
             return None

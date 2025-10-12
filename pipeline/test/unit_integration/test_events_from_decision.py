@@ -977,3 +977,104 @@ def test_events_from_decision_none_document():
     assert app_withdrawn_event.date == fallback_date.date()
     assert str(app_withdrawn_event.source_document_url) == source_url
     assert app_withdrawn_event.description is None
+
+
+def test_events_from_decision_para_35_decision_valid():
+    """Test events_from_decision with a Paragraph 35 decision - application can proceed"""
+    para_35_doc = baml_types.Para35Decision(
+        decision_date="2024-02-15",
+        application_date="2023-12-01",
+        application_can_proceed=True,
+    )
+
+    source_url = "https://example.com/para35/123"
+    decision = Decision[DocumentType.para_35_decision](para_35_doc, source_url)
+
+    events = events_from_decision(decision)
+
+    # Should return 2 events: ApplicationReceived and ApplicationP35Valid
+    assert len(events) == 2
+
+    # Check ApplicationReceived event
+    app_received_event = events[0]
+    assert app_received_event.type == EventType.ApplicationReceived
+    assert app_received_event.date == datetime(2023, 12, 1).date()
+    assert str(app_received_event.source_document_url) == source_url
+    assert app_received_event.description is None
+
+    # Check ApplicationP35Valid event
+    p35_valid_event = events[1]
+    assert p35_valid_event.type == EventType.ApplicationP35Valid
+    assert p35_valid_event.date == datetime(2024, 2, 15).date()
+    assert str(p35_valid_event.source_document_url) == source_url
+    assert (
+        p35_valid_event.description
+        == "Determined that no other bargaining is in place, and the application can proceed."
+    )
+
+
+def test_events_from_decision_para_35_decision_invalid():
+    """Test events_from_decision with a Paragraph 35 decision - application cannot proceed"""
+    para_35_doc = baml_types.Para35Decision(
+        decision_date="2024-02-15",
+        application_date="2023-12-01",
+        application_can_proceed=False,
+    )
+
+    source_url = "https://example.com/para35/456"
+    decision = Decision[DocumentType.para_35_decision](para_35_doc, source_url)
+
+    events = events_from_decision(decision)
+
+    # Should return 2 events: ApplicationReceived and ApplicationP35Invalid
+    assert len(events) == 2
+
+    # Check ApplicationReceived event
+    app_received_event = events[0]
+    assert app_received_event.type == EventType.ApplicationReceived
+    assert app_received_event.date == datetime(2023, 12, 1).date()
+    assert str(app_received_event.source_document_url) == source_url
+    assert app_received_event.description is None
+
+    # Check ApplicationP35Invalid event
+    p35_invalid_event = events[1]
+    assert p35_invalid_event.type == EventType.ApplicationP35Invalid
+    assert p35_invalid_event.date == datetime(2024, 2, 15).date()
+    assert str(p35_invalid_event.source_document_url) == source_url
+    assert (
+        p35_invalid_event.description
+        == "Collective bargaining already in place, application was rejected."
+    )
+
+
+def test_events_from_decision_para_35_decision_null_source_url():
+    """Test events_from_decision with Paragraph 35 decision and null source URL"""
+    para_35_doc = baml_types.Para35Decision(
+        decision_date="2024-02-15",
+        application_date="2023-12-01",
+        application_can_proceed=True,
+    )
+
+    decision = Decision[DocumentType.para_35_decision](para_35_doc, None)
+
+    events = events_from_decision(decision)
+
+    # Should return 2 events even with null source URL
+    assert len(events) == 2
+
+    # Check ApplicationReceived event
+    app_received_event = events[0]
+    assert app_received_event.type == EventType.ApplicationReceived
+    assert app_received_event.date == datetime(2023, 12, 1).date()
+    assert app_received_event.source_document_url is None
+    assert app_received_event.description is None
+
+    # Check ApplicationP35Valid event
+    p35_valid_event = events[1]
+    assert p35_valid_event.type == EventType.ApplicationP35Valid
+    assert p35_valid_event.date == datetime(2024, 2, 15).date()
+    assert p35_valid_event.source_document_url is None
+    assert (
+        p35_valid_event.description
+        == "Determined that no other bargaining is in place, and the application can proceed."
+    )

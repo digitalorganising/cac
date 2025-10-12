@@ -9,6 +9,16 @@ transitions = [
         OutcomeState.PendingApplicationDecision,
     ],
     [
+        EventType.ApplicationP35Valid,
+        OutcomeState.PendingApplicationDecision,
+        OutcomeState.PendingApplicationDecision,
+    ],
+    [
+        EventType.ApplicationP35Invalid,
+        OutcomeState.PendingApplicationDecision,
+        OutcomeState.ApplicationRejected,
+    ],
+    [
         EventType.ApplicationWithdrawn,
         OutcomeState.PendingApplicationDecision,
         OutcomeState.Withdrawn,
@@ -134,6 +144,7 @@ class InvalidEventError(Exception):
 
 class EventsBuilder(Machine):
     def __init__(self):
+        self.seen_types = set()
         self.event_list: list[Event] = []
         Machine.__init__(self, **machine_params)
 
@@ -142,8 +153,7 @@ class EventsBuilder(Machine):
         event: Event,
     ):
         prev_event = self.event_list[-1] if self.event_list else None
-
-        if prev_event and event.type == prev_event.type:
+        if event.type in self.seen_types:
             return
 
         if (
@@ -156,6 +166,7 @@ class EventsBuilder(Machine):
         if is_state_changing(event.type):
             self.trigger(event.type.value)
 
+        self.seen_types.add(event.type)
         self.event_list.append(event)
 
         if (

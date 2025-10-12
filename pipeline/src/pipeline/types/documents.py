@@ -2,6 +2,7 @@ from enum import StrEnum, auto
 
 
 class DocumentType(StrEnum):
+    para_35_decision = auto()
     acceptance_decision = auto()
     bargaining_unit_decision = auto()
     bargaining_decision = auto()

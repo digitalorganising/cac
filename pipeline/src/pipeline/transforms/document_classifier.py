@@ -2,7 +2,7 @@ from ..types.documents import DocumentType
 
 
 document_titles = {
-    "Para 35 Decision": DocumentType.acceptance_decision,
+    "Para 35 Decision": DocumentType.para_35_decision,
     "Declaration Decision": DocumentType.derecognition_decision,
     "Unfair Practice Decision": DocumentType.access_decision_or_dispute,
     "Method Agreed": DocumentType.method_agreed,
@@ -21,7 +21,7 @@ document_titles = {
     "Case Closure": DocumentType.case_closure,
     "Nullification Decision": DocumentType.nullification_decision,
     "Recognition Decision": DocumentType.recognition_decision,
-    "Paragraph 35 Decision": DocumentType.acceptance_decision,
+    "Paragraph 35 Decision": DocumentType.para_35_decision,
     "Application withdrawn": DocumentType.application_withdrawn,
     "Form of Ballot Decision": DocumentType.form_of_ballot_decision,
     "Whether to Ballot decision": DocumentType.whether_to_ballot_decision,

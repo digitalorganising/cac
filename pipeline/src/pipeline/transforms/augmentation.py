@@ -22,6 +22,8 @@ async def get_extracted_data(doc_type_string, content):
     if not should_get_content(document_type) or should_skip(document_type):
         return None
     match document_type:
+        case DocumentType.para_35_decision:
+            return await b.ExtractPara35Decision(content)
         case DocumentType.acceptance_decision:
             return await b.ExtractAcceptanceDecision(content)
         case DocumentType.bargaining_unit_decision:

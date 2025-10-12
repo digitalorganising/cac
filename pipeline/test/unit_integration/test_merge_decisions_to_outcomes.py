@@ -219,7 +219,7 @@ async def test_merge_decisions_to_outcomes_basic(mock_client_with_data):
     assert mock_client_with_data.search_called
     assert mock_client_with_data.search_args["index"] == "test-index"
     assert (
-        mock_client_with_data.search_args["body"]["size"] == 2 * 14
+        mock_client_with_data.search_args["body"]["size"] == 2 * 15
     )  # len(references) * len(DocumentType)
 
 
@@ -406,7 +406,7 @@ async def test_merge_decisions_to_outcomes_search_parameters(mock_client_with_da
     # Verify search parameters
     search_args = mock_client_with_data.search_args
     assert search_args["index"] == "test-index"
-    assert search_args["body"]["size"] == 2 * 14  # len(references) * len(DocumentType)
+    assert search_args["body"]["size"] == 2 * 15  # len(references) * len(DocumentType)
     assert search_args["body"]["query"]["terms"]["reference"] == references
 
 
@@ -469,5 +469,200 @@ async def test_merge_decisions_to_outcomes_two_application_withdrawn():
     # The extracted_data should contain the last one processed (the one with the actual extracted_data)
     application_withdrawn_data = outcome.extracted_data["application_withdrawn"]
     assert application_withdrawn_data is not None
+
+    assert index == "test-index"
+
+
+async def test_merge_decisions_to_outcomes_para_35_decision():
+    """Test merging Paragraph 35 decision into outcome"""
+    mock_client = MockOpenSearchClient(
+        [
+            {
+                "reference": "TUR1/1234/2024",
+                "document_type": "para_35_decision",
+                "document_content": "Paragraph 35 decision - application can proceed",
+                "document_url": "https://example.com/para35_decision",
+                "extracted_data": {
+                    "decision_date": "2024-02-15",
+                    "application_date": "2023-12-01",
+                    "application_can_proceed": True,
+                },
+                "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+                "outcome_title": "Test Outcome 1",
+                "last_updated": "2024-02-15T10:00:00Z",
+            }
+        ]
+    )
+
+    references = ["TUR1/1234/2024"]
+
+    outcomes = []
+    async for outcome, index in merge_decisions_to_outcomes(
+        mock_client,
+        indices={"test-index"},
+        non_pipeline_indices=set(),
+        references=references,
+    ):
+        outcomes.append((outcome, index))
+
+    # Should yield 1 outcome with para_35_decision merged
+    assert len(outcomes) == 1
+    outcome, index = outcomes[0]
+
+    assert outcome.id == "TUR1/1234/2024"
+    assert "para_35_decision" in outcome.documents
+    assert (
+        outcome.documents["para_35_decision"]
+        == "Paragraph 35 decision - application can proceed"
+    )
+    assert "para_35_decision" in outcome.document_urls
+    assert (
+        outcome.document_urls["para_35_decision"]
+        == "https://example.com/para35_decision"
+    )
+    assert "para_35_decision" in outcome.extracted_data
+    assert outcome.extracted_data["para_35_decision"].decision_date == "2024-02-15"
+    assert outcome.extracted_data["para_35_decision"].application_date == "2023-12-01"
+    assert outcome.extracted_data["para_35_decision"].application_can_proceed is True
+    assert index == "test-index"
+
+
+async def test_merge_decisions_to_outcomes_para_35_decision_invalid():
+    """Test merging Paragraph 35 decision with application_can_proceed=False"""
+    mock_client = MockOpenSearchClient(
+        [
+            {
+                "reference": "TUR1/5678/2024",
+                "document_type": "para_35_decision",
+                "document_content": "Paragraph 35 decision - application cannot proceed",
+                "document_url": "https://example.com/para35_decision_invalid",
+                "extracted_data": {
+                    "decision_date": "2024-02-15",
+                    "application_date": "2023-12-01",
+                    "application_can_proceed": False,
+                },
+                "outcome_url": "https://example.com/outcome/TUR1/5678/2024",
+                "outcome_title": "Test Outcome 2",
+                "last_updated": "2024-02-15T10:00:00Z",
+            }
+        ]
+    )
+
+    references = ["TUR1/5678/2024"]
+
+    outcomes = []
+    async for outcome, index in merge_decisions_to_outcomes(
+        mock_client,
+        indices={"test-index"},
+        non_pipeline_indices=set(),
+        references=references,
+    ):
+        outcomes.append((outcome, index))
+
+    # Should yield 1 outcome with para_35_decision merged
+    assert len(outcomes) == 1
+    outcome, index = outcomes[0]
+
+    assert outcome.id == "TUR1/5678/2024"
+    assert "para_35_decision" in outcome.documents
+    assert (
+        outcome.documents["para_35_decision"]
+        == "Paragraph 35 decision - application cannot proceed"
+    )
+    assert "para_35_decision" in outcome.document_urls
+    assert (
+        outcome.document_urls["para_35_decision"]
+        == "https://example.com/para35_decision_invalid"
+    )
+    assert "para_35_decision" in outcome.extracted_data
+    assert outcome.extracted_data["para_35_decision"].decision_date == "2024-02-15"
+    assert outcome.extracted_data["para_35_decision"].application_date == "2023-12-01"
+    assert outcome.extracted_data["para_35_decision"].application_can_proceed is False
+    assert index == "test-index"
+
+
+async def test_merge_decisions_to_outcomes_para_35_with_other_decisions():
+    """Test merging Paragraph 35 decision along with other decisions for the same reference"""
+    mock_client = MockOpenSearchClient(
+        [
+            {
+                "reference": "TUR1/9999/2024",
+                "document_type": "para_35_decision",
+                "document_content": "Paragraph 35 decision - application can proceed",
+                "document_url": "https://example.com/para35_decision",
+                "extracted_data": {
+                    "decision_date": "2024-02-15",
+                    "application_date": "2023-12-01",
+                    "application_can_proceed": True,
+                },
+                "outcome_url": "https://example.com/outcome/TUR1/9999/2024",
+                "outcome_title": "Test Outcome 3",
+                "last_updated": "2024-03-15T10:00:00Z",
+            },
+            {
+                "reference": "TUR1/9999/2024",
+                "document_type": "acceptance_decision",
+                "document_content": "Application accepted",
+                "document_url": "https://example.com/acceptance_decision",
+                "extracted_data": {
+                    "decision_date": "2024-03-15",
+                    "success": True,
+                    "rejection_reasons": [],
+                    "application_date": "2023-12-01",
+                    "end_of_acceptance_period": "2024-03-10",
+                    "bargaining_unit": {
+                        "description": "All workers at Test Ltd",
+                        "size_considered": True,
+                        "size": 100,
+                        "claimed_membership": 60,
+                        "membership": 55,
+                    },
+                    "bargaining_unit_agreed": True,
+                    "petition_signatures": 65,
+                },
+                "outcome_url": "https://example.com/outcome/TUR1/9999/2024",
+                "outcome_title": "Test Outcome 3",
+                "last_updated": "2024-03-15T10:00:00Z",
+            },
+        ]
+    )
+
+    references = ["TUR1/9999/2024"]
+
+    outcomes = []
+    async for outcome, index in merge_decisions_to_outcomes(
+        mock_client,
+        indices={"test-index"},
+        non_pipeline_indices=set(),
+        references=references,
+    ):
+        outcomes.append((outcome, index))
+
+    # Should yield 1 outcome with both decisions merged
+    assert len(outcomes) == 1
+    outcome, index = outcomes[0]
+
+    assert outcome.id == "TUR1/9999/2024"
+
+    # Both decisions should be in documents
+    assert len(outcome.documents) == 2
+    assert "para_35_decision" in outcome.documents
+    assert "acceptance_decision" in outcome.documents
+
+    # Both decisions should be in document_urls
+    assert len(outcome.document_urls) == 2
+    assert "para_35_decision" in outcome.document_urls
+    assert "acceptance_decision" in outcome.document_urls
+
+    # Both decisions should be in extracted_data
+    assert len(outcome.extracted_data) == 2
+    assert "para_35_decision" in outcome.extracted_data
+    assert "acceptance_decision" in outcome.extracted_data
+
+    # Verify para_35_decision data
+    assert outcome.extracted_data["para_35_decision"].application_can_proceed is True
+
+    # Verify acceptance_decision data
+    assert outcome.extracted_data["acceptance_decision"].success is True
 
     assert index == "test-index"

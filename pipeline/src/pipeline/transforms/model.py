@@ -10,6 +10,9 @@ class EventType(LabelledEnum):
     ApplicationReceived = "application_received", "Application received"
     ApplicationWithdrawn = "application_withdrawn", "Application withdrawn"
 
+    ApplicationP35Valid = "application_p35_valid", "Paragraph 35 decision - valid"
+    ApplicationP35Invalid = "application_p35_invalid", "Paragraph 35 decision - invalid"
+
     ApplicationAccepted = "application_accepted", "Application accepted"
     ApplicationRejected = "application_rejected", "Application rejected"
 

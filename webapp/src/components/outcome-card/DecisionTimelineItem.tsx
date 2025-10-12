@@ -31,6 +31,10 @@ const getIcon = (eventType: EventType): ReactNode => {
   switch (eventType) {
     case "application_received":
       return <Inbox />;
+    case "application_p35_valid":
+      return <BookOpenCheck />;
+    case "application_p35_invalid":
+      return <ClipboardX />;
     case "application_withdrawn":
       return <Archive />;
     case "application_accepted":
@@ -92,10 +96,12 @@ const getColor = (eventType: EventType): string => {
     case "bargaining_unit_inappropriate":
       return "bg-amber-600";
     case "application_accepted":
+    case "application_p35_valid":
     case "ballot_not_required":
     case "union_recognized":
       return "bg-green-600";
     case "application_rejected":
+    case "application_p35_invalid":
     case "union_not_recognized":
       return "bg-red-600";
     default:

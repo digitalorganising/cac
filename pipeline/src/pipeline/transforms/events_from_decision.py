@@ -45,6 +45,38 @@ def events_from_decision(doc) -> list[Event]:
 
 @dispatch
 def events_from_decision(
+    decision: Decision[DocumentType.para_35_decision],
+) -> list[Event]:
+    para_35_decision = decision.doc()
+    application_received = Event(
+        type=EventType.ApplicationReceived,
+        date=date_parse(para_35_decision.application_date),
+        source_document_url=decision.source_url(),
+    )
+    if para_35_decision.application_can_proceed:
+        return [
+            application_received,
+            Event(
+                type=EventType.ApplicationP35Valid,
+                date=date_parse(para_35_decision.decision_date),
+                source_document_url=decision.source_url(),
+                description="Determined that no other bargaining is in place, and the application can proceed.",
+            ),
+        ]
+    else:
+        return [
+            application_received,
+            Event(
+                type=EventType.ApplicationP35Invalid,
+                date=date_parse(para_35_decision.decision_date),
+                source_document_url=decision.source_url(),
+                description="Collective bargaining already in place, application was rejected.",
+            ),
+        ]
+
+
+@dispatch
+def events_from_decision(
     decision: Decision[DocumentType.application_received],
 ) -> list[Event]:
     application_received = decision.doc()

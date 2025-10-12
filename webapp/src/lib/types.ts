@@ -1,5 +1,7 @@
 export const eventTypes = [
   "application_received",
+  "application_p35_valid",
+  "application_p35_invalid",
   "application_withdrawn",
   "application_accepted",
   "application_rejected",

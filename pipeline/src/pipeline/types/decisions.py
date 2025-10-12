@@ -183,6 +183,18 @@ access_decision_or_dispute_mapping = {
 }
 
 
+class DecisionAugmentedPara35(DecisionRaw):
+    document_type: Literal[DocumentType.para_35_decision]
+    extracted_data: baml_types.Para35Decision
+
+
+para_35_decision_mapping = {
+    "decision_date": {"type": "keyword"},
+    "application_date": {"type": "keyword"},
+    "application_can_proceed": {"type": "boolean"},
+}
+
+
 class DecisionAugmentedNoData(DecisionRaw):
     document_type: Literal[DocumentType.nullification_decision]
     extracted_data: None
@@ -198,6 +210,7 @@ class DecisionAugmented(RootModel):
         DecisionAugmentedValidity,
         DecisionAugmentedRecognition,
         DecisionAugmentedAccessDecisionOrDispute,
+        DecisionAugmentedPara35,
         DecisionAugmentedApplicationWithdrawn,
         DecisionAugmentedDateOnly,
         DecisionAugmentedNoData,
@@ -229,6 +242,7 @@ decision_augmented_mapping = {
             **validity_decision_mapping,
             **recognition_decision_mapping,
             **access_decision_or_dispute_mapping,
+            **para_35_decision_mapping,
             **date_only_mapping,
         }
     },
