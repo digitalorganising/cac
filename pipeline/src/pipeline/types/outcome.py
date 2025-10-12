@@ -37,5 +37,5 @@ class Outcome(BaseModel):
         try:
             return handler(data)
         except ValidationError as e:
-            print(f"Outcome validation failed for {data['id']}")
+            print(f"Outcome validation failed for {data['id']} ({data['outcome_url']})")
             raise

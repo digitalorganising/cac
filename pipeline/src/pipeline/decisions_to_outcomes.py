@@ -41,8 +41,8 @@ async def merge_decisions_to_outcomes(
             },
             "sort": [
                 {"reference": {"order": "asc"}},
-                {"document_type": {"order": "asc"}},
                 {"last_updated": {"missing": "_first"}},
+                {"document_type": {"order": "asc"}},
             ],
         },
     )
