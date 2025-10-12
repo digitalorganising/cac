@@ -13,6 +13,7 @@ def test_normalize_reference_different_years():
         ("TUR1/1198(2022)", "TUR1/1198(2022)"),
         ("TUR1/1386(2023)", "TUR1/1386(2023)"),
         ("TUR1/1394(2024)", "TUR1/1394(2024)"),
+        ("TUR1/ 911(2015)", "TUR1/0911(2015)"),
     ]
 
     for input_ref, expected in test_cases:

@@ -11,7 +11,7 @@ from ..types.documents import DocumentType
 def normalize_reference(raw_reference):
     reference = override_reference(raw_reference)
     # Extract the number after TUR1/ and everything after it
-    match = re.search(r"TUR1\/(\d+)(.+)", reference)
+    match = re.search(r"TUR1\/\s?(\d+)(.+)", reference)
     if match:
         ref_no = match.group(1)
         suffix = match.group(2)

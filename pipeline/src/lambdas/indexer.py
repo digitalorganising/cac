@@ -3,6 +3,7 @@ from pipeline.transforms.events import InvalidEventError
 from pipeline.decisions_to_outcomes import merge_decisions_to_outcomes
 from pipeline.services.opensearch_utils import get_mapping_from_path
 from . import map_docs, RefsEvent, lambda_friendly_run_async, client, DocumentRef
+from pydantic import ValidationError
 
 
 async def transform_if_possible(doc):
@@ -11,6 +12,9 @@ async def transform_if_possible(doc):
         return transformed
     except InvalidEventError as e:
         print(f"Invalid event error: {e}")
+        return None
+    except ValidationError as e:
+        print(f"Validation error: {e}")
         return None
 
 
