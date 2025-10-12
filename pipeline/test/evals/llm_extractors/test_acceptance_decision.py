@@ -242,3 +242,27 @@ async def test_iwgb_ocean_integrated_services(cac_document_contents):
         claimed_membership=None,
         membership=None,
     )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://assets.publishing.service.gov.uk/media/"
+        "5a7e4dbce5274a2e87db0db9/Acceptance_Decision.pdf"
+    ],
+)
+async def test_unite_rhys_davies_logistics(cac_document_contents):
+    ad = await ExtractAcceptanceDecision(cac_document_contents)
+
+    assert date_eq(ad.decision_date, "6 March 2014")
+    assert ad.success
+    assert ad.application_date == "27 January 2014"
+    assert not ad.bargaining_unit_agreed
+    assert ad.petition_signatures == 24
+    assert ad.bargaining_unit == BargainingUnit(
+        description="All weekly paid staff including Drivers, Warehouse Staff and Fitters based at Taffs Well"
+        size=90,
+        size_considered=True,
+        claimed_membership=48,
+        membership=48,
+    )

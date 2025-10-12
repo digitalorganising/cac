@@ -13,8 +13,8 @@ from ..types.decisions import DecisionAugmented, DecisionRaw, DateOnly
 
 
 @retry(
-    wait=wait_random_exponential(min=1, max=90),
-    stop=stop_after_attempt(7),
+    wait=wait_random_exponential(min=1, max=90, multiplier=2),
+    stop=stop_after_attempt(3),
     reraise=True,
 )
 async def get_extracted_data(doc_type_string, content):
