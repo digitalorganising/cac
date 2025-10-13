@@ -666,3 +666,73 @@ async def test_merge_decisions_to_outcomes_para_35_with_other_decisions():
     assert outcome.extracted_data["acceptance_decision"].success is True
 
     assert index == "test-index"
+
+
+async def test_merge_decisions_to_outcomes_validation_error_last_updated():
+    """Test that ValidationError with last_updated field does not yield anything"""
+    mock_client = MockOpenSearchClient(
+        [
+            {
+                "reference": "TUR1/1234/2024",
+                "document_type": "para_35_decision",
+                "document_content": "Paragraph 35 decision - application can proceed",
+                "document_url": "https://example.com/para35_decision",
+                "extracted_data": {
+                    "decision_date": "2024-02-15",
+                    "application_date": "2023-12-01",
+                    "application_can_proceed": True,
+                },
+                "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+                "outcome_title": "Test Outcome 1",
+                # Missing last_updated field to trigger ValidationError
+            }
+        ]
+    )
+
+    references = ["TUR1/1234/2024"]
+
+    outcomes = []
+    async for outcome, index in merge_decisions_to_outcomes(
+        mock_client,
+        indices={"test-index"},
+        non_pipeline_indices=set(),
+        references=references,
+    ):
+        outcomes.append((outcome, index))
+
+    # Should yield no outcomes when ValidationError is due to missing last_updated
+    assert len(outcomes) == 0
+
+
+async def test_merge_decisions_to_outcomes_validation_error_other_field():
+    """Test that ValidationError with other fields raises the exception"""
+    mock_client = MockOpenSearchClient(
+        [
+            {
+                "reference": "TUR1/1234/2024",
+                "document_type": "para_35_decision",
+                "document_content": "Paragraph 35 decision - application can proceed",
+                "document_url": "https://example.com/para35_decision",
+                "extracted_data": {
+                    "decision_date": "2024-02-15",
+                    "application_date": "2023-12-01",
+                    "application_can_proceed": True,
+                },
+                "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+                "outcome_title": "Test Outcome 1",
+                "last_updated": "invalid-date-format",  # Invalid date format to trigger ValidationError
+            }
+        ]
+    )
+
+    references = ["TUR1/1234/2024"]
+
+    outcomes = []
+    with pytest.raises(Exception):  # Should raise ValidationError
+        async for outcome, index in merge_decisions_to_outcomes(
+            mock_client,
+            indices={"test-index"},
+            non_pipeline_indices=set(),
+            references=references,
+        ):
+            outcomes.append((outcome, index))

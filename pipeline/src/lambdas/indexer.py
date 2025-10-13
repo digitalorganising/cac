@@ -13,9 +13,6 @@ async def transform_if_possible(doc):
     except InvalidEventError as e:
         print(f"Invalid event error: {e}")
         return None
-    except ValidationError as e:
-        print(f"Validation error: {e}")
-        return None
 
 
 def reference_from_id(id):

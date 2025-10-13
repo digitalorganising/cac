@@ -31,8 +31,10 @@ async def invoke_lambda(lambda_name, event):
     url = get_lambda_url(lambda_name)
     async with httpx.AsyncClient(timeout=60.0) as client:
         response = await client.post(url, json=event)
-        print(response.text)
-        return response.json()
+        json = response.json()
+        if "errorMessage" in json:
+            raise Exception(json)
+        return json
 
 
 async def index_populated(opensearch_client, index_name) -> bool:

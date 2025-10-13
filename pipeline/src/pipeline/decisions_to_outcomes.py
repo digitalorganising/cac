@@ -1,5 +1,25 @@
 from pipeline.types.outcome import Outcome
 from .types.documents import DocumentType
+from pydantic import ValidationError
+
+
+def should_allow_validation_error(e: ValidationError) -> bool:
+    """
+    Determine if a ValidationError should be allowed (not raised).
+    Only allows errors related to missing or None last_updated field.
+    """
+    for error in e.errors():
+        # Check if the error is on the last_updated field
+        if error["loc"] and error["loc"][0] == "last_updated":
+            error_type = error["type"]
+            # Allow missing field or datetime_type error with None input
+            if error_type in ["missing", "datetime_type"]:
+                # For datetime_type, also check if input is None
+                if error_type == "datetime_type" and error.get("input") is None:
+                    return True
+                elif error_type == "missing":
+                    return True
+    return False
 
 
 def merge_in_decision(decision, outcome):
@@ -51,10 +71,18 @@ async def merge_decisions_to_outcomes(
     this_outcome = {}
     outcome_indices = set()
 
-    def get_outcome():
+    async def get_outcome():
         outcome_index = outcome_indices - non_pipeline_indices
         if len(outcome_index) == 1:
-            return Outcome.model_validate(this_outcome), outcome_index.pop()
+            return_idx = outcome_index.pop()
+            try:
+                validated_outcome = Outcome.model_validate(this_outcome)
+                yield validated_outcome, return_idx
+            except ValidationError as e:
+                if should_allow_validation_error(e):
+                    print("Incomplete outcome missing last_updated", this_outcome["id"])
+                else:
+                    raise e
         else:
             raise ValueError(
                 f"Multiple outcome indices found for {this_outcome['id']}: {outcome_indices}"
@@ -69,11 +97,13 @@ async def merge_decisions_to_outcomes(
 
         if decision["reference"] != last_reference:
             last_reference = decision["reference"]
-            yield get_outcome()
+            async for outcome in get_outcome():
+                yield outcome
             this_outcome = {}
             outcome_indices = set()
 
         outcome_indices.add(index)
         this_outcome = merge_in_decision(decision, this_outcome)
     if this_outcome:
-        yield get_outcome()
+        async for outcome in get_outcome():
+            yield outcome
