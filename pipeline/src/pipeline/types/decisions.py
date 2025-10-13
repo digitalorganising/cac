@@ -1,6 +1,14 @@
 from typing import Optional, Literal, Union
 from datetime import datetime
-from pydantic import BaseModel, RootModel, Field
+from pydantic import (
+    BaseModel,
+    RootModel,
+    Field,
+    ModelWrapValidatorHandler,
+    ValidationError,
+    model_validator,
+)
+from typing import Self
 
 from baml_client import types as baml_types
 from .documents import DocumentType
@@ -15,6 +23,19 @@ class DecisionRaw(BaseModel):
     last_updated: Optional[datetime] = None
     document_content: Optional[str] = None
     document_url: Optional[str] = None
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def log_failed_validation(
+        cls, data, handler: ModelWrapValidatorHandler[Self]
+    ) -> Self:
+        try:
+            return handler(data)
+        except ValidationError as e:
+            print(
+                f"Decision validation failed for {data['id']} ({data['outcome_url']})"
+            )
+            raise
 
 
 decision_raw_mapping = {
@@ -37,9 +58,13 @@ class DecisionAugmentedDateOnly(DecisionRaw):
     document_type: Literal[
         DocumentType.case_closure,
         DocumentType.application_received,
-        DocumentType.method_agreed,
     ]
     extracted_data: DateOnly
+
+
+class DecisionAugmentedMethodAgreed(DecisionRaw):
+    document_type: Literal[DocumentType.method_agreed]
+    extracted_data: Optional[DateOnly] = None
 
 
 class DecisionAugmentedApplicationWithdrawn(DecisionRaw):
@@ -212,6 +237,7 @@ class DecisionAugmented(RootModel):
         DecisionAugmentedAccessDecisionOrDispute,
         DecisionAugmentedPara35,
         DecisionAugmentedApplicationWithdrawn,
+        DecisionAugmentedMethodAgreed,
         DecisionAugmentedDateOnly,
         DecisionAugmentedNoData,
     ] = Field(discriminator="document_type")
