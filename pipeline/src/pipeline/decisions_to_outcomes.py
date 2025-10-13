@@ -69,24 +69,16 @@ async def merge_decisions_to_outcomes(
 
     last_reference = None
     this_outcome = {}
-    outcome_indices = set()
 
-    async def get_outcome():
-        outcome_index = outcome_indices - non_pipeline_indices
-        if len(outcome_index) == 1:
-            return_idx = outcome_index.pop()
-            try:
-                validated_outcome = Outcome.model_validate(this_outcome)
-                yield validated_outcome, return_idx
-            except ValidationError as e:
-                if should_allow_validation_error(e):
-                    print("Incomplete outcome missing last_updated", this_outcome["id"])
-                else:
-                    raise e
-        else:
-            raise ValueError(
-                f"Multiple outcome indices found for {this_outcome['id']}: {outcome_indices}"
-            )
+    def get_outcome():
+        try:
+            validated_outcome = Outcome.model_validate(this_outcome)
+            return validated_outcome
+        except ValidationError as e:
+            if should_allow_validation_error(e):
+                print("Incomplete outcome missing last_updated", this_outcome["id"])
+            else:
+                raise e
 
     for hit in res["hits"]["hits"]:
         index = hit["_index"]
@@ -97,13 +89,13 @@ async def merge_decisions_to_outcomes(
 
         if decision["reference"] != last_reference:
             last_reference = decision["reference"]
-            async for outcome in get_outcome():
-                yield outcome
+            outcome = get_outcome()
+            if outcome:
+                yield outcome, index
             this_outcome = {}
-            outcome_indices = set()
 
-        outcome_indices.add(index)
         this_outcome = merge_in_decision(decision, this_outcome)
     if this_outcome:
-        async for outcome in get_outcome():
-            yield outcome
+        outcome = get_outcome()
+        if outcome:
+            yield outcome, index
