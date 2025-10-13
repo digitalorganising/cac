@@ -45,6 +45,9 @@ async def get_extracted_data(doc_type_string, content):
         case DocumentType.access_decision_or_dispute:
             return await b.ExtractAccessDecisionOrDispute(content)
         case DocumentType.method_agreed:
+            date = extract_date(content)
+            if date is None:
+                return None
             return DateOnly(decision_date=extract_date(content))
         case DocumentType.nullification_decision:
             return None
