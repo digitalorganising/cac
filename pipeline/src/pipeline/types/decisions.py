@@ -33,7 +33,7 @@ class DecisionRaw(BaseModel):
             return handler(data)
         except ValidationError as e:
             print(
-                f"Decision validation failed for {data['id']} ({data['outcome_url']})"
+                f"Decision validation failed for {data.get('id', 'unknown')} ({data.get('outcome_url', 'unknown')})"
             )
             raise
 
