@@ -22,8 +22,11 @@ def should_allow_validation_error(e: ValidationError) -> bool:
     return False
 
 
-def merge_safe(a, b):
-    return {**a, **{k: v for k, v in b.items() if v is not None}}
+def merge_without_none(dict1: dict, dict2: dict) -> dict:
+    return {
+        k: dict2.get(k) if dict2.get(k) is not None else dict1.get(k)
+        for k in dict1.keys() | dict2.keys()
+    }
 
 
 def merge_decisions(accumulator, decision):
@@ -34,7 +37,7 @@ def merge_decisions(accumulator, decision):
     reference = decision.pop("reference")
     assert reference == accumulator.get("reference", reference)
     return {
-        **merge_safe(accumulator, decision),
+        **merge_without_none(accumulator, decision),
         "id": reference,
         "documents": {
             **accumulator.get("documents", {}),

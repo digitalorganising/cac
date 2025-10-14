@@ -2,6 +2,7 @@ import pytest
 from pipeline.decisions_to_outcomes import (
     merge_decisions_to_outcomes,
     merge_decisions,
+    merge_without_none,
 )
 
 
@@ -737,3 +738,45 @@ async def test_merge_decisions_to_outcomes_validation_error_other_field():
             references=references,
         ):
             outcomes.append((outcome, index))
+
+
+def test_merge_without_none():
+    """Test merge_without_none function with various None scenarios"""
+
+    # Test 1: Both None
+    result1 = merge_without_none({"a": None}, {"a": None})
+    assert result1 == {"a": None}
+
+    # Test 2: First None, second has value
+    result2 = merge_without_none({"a": None}, {"a": "value2"})
+    assert result2 == {"a": "value2"}
+
+    # Test 3: First has value, second None
+    result3 = merge_without_none({"a": "value1"}, {"a": None})
+    assert result3 == {"a": "value1"}
+
+    # Test 4: Both have values (dict2 takes precedence)
+    result4 = merge_without_none({"a": "value1"}, {"a": "value2"})
+    assert result4 == {"a": "value2"}
+
+    # Test 5: Different keys
+    result5 = merge_without_none(
+        {"a": "value1", "b": None}, {"b": "value2", "c": "value3"}
+    )
+    assert result5 == {"a": "value1", "b": "value2", "c": "value3"}
+
+    # Test 6: Complex case with mixed None values
+    result6 = merge_without_none(
+        {"a": None, "b": "keep1", "c": None, "d": "keep1"},
+        {"a": "keep2", "b": None, "c": "keep2", "e": "new"},
+    )
+    expected = {"a": "keep2", "b": "keep1", "c": "keep2", "d": "keep1", "e": "new"}
+    assert result6 == expected
+
+    # Test 7: Empty dictionaries
+    result7 = merge_without_none({}, {})
+    assert result7 == {}
+
+    # Test 8: One empty, one with values
+    result8 = merge_without_none({}, {"a": "value", "b": None})
+    assert result8 == {"a": "value", "b": None}
