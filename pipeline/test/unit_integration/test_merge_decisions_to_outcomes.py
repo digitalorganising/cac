@@ -1,7 +1,7 @@
 import pytest
 from pipeline.decisions_to_outcomes import (
     merge_decisions_to_outcomes,
-    merge_in_decision,
+    merge_decisions,
 )
 
 
@@ -130,7 +130,7 @@ def mock_client_with_data(sample_decisions):
     return MockOpenSearchClient(sample_decisions)
 
 
-def test_merge_in_decision_basic():
+def test_merge_decisions_basic():
     """Test basic merging of a decision into an outcome"""
     decision = {
         "reference": "TUR1/1234/2024",
@@ -141,7 +141,7 @@ def test_merge_in_decision_basic():
     }
     outcome = {}
 
-    result = merge_in_decision(decision, outcome)
+    result = merge_decisions(outcome, decision)
 
     assert result["id"] == "TUR1/1234/2024"
     assert result["documents"]["application_received"] == "Application received"
@@ -155,7 +155,7 @@ def test_merge_in_decision_basic():
     )
 
 
-def test_merge_in_decision_with_existing_data():
+def test_merge_decisions_with_existing_data():
     """Test merging when outcome already has some data"""
     decision = {
         "reference": "TUR1/1234/2024",
@@ -173,7 +173,7 @@ def test_merge_in_decision_with_existing_data():
         "extracted_data": {"application_received": {"decision_date": "2024-01-15"}},
     }
 
-    result = merge_in_decision(decision, outcome)
+    result = merge_decisions(outcome, decision)
 
     assert result["documents"]["application_received"] == "Application received"
     assert result["documents"]["recognition_decision"] == "Recognition granted"
@@ -427,12 +427,12 @@ async def test_merge_decisions_to_outcomes_two_application_withdrawn():
             {
                 "reference": "TUR1/1234/2024",
                 "document_type": "application_withdrawn",
-                "document_content": "Application withdrawn on 2024-03-01",
+                "document_content": "Application withdrawn on 2024-01-01",
                 "document_url": "https://example.com/application_withdrawn_2",
                 "extracted_data": None,  # No extracted data for this one
                 "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
                 "outcome_title": "Test Outcome 1",
-                "last_updated": None,
+                "last_updated": "2024-01-01T10:00:00Z",
             },
         ]
     )
@@ -469,6 +469,7 @@ async def test_merge_decisions_to_outcomes_two_application_withdrawn():
     # The extracted_data should contain the last one processed (the one with the actual extracted_data)
     application_withdrawn_data = outcome.extracted_data["application_withdrawn"]
     assert application_withdrawn_data is not None
+    assert application_withdrawn_data.decision_date == "2024-02-15"
 
     assert index == "test-index"
 

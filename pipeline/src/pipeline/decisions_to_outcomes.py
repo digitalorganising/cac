@@ -22,29 +22,47 @@ def should_allow_validation_error(e: ValidationError) -> bool:
     return False
 
 
-def merge_in_decision(decision, outcome):
+def merge_safe(a, b):
+    return {**a, **{k: v for k, v in b.items() if v is not None}}
+
+
+def merge_decisions(accumulator, decision):
     document_type = decision.pop("document_type")
     document_content = decision.pop("document_content", None)
     document_url = decision.pop("document_url", None)
     extracted_data = decision.pop("extracted_data", None)
     reference = decision.pop("reference")
+    assert reference == accumulator.get("reference", reference)
     return {
-        **outcome,
-        **decision,
+        **merge_safe(accumulator, decision),
         "id": reference,
         "documents": {
-            **outcome.get("documents", {}),
+            **accumulator.get("documents", {}),
             document_type: document_content,
         },
         "document_urls": {
-            **outcome.get("document_urls", {}),
+            **accumulator.get("document_urls", {}),
             document_type: document_url,
         },
         "extracted_data": {
-            **outcome.get("extracted_data", {}),
+            **accumulator.get("extracted_data", {}),
             document_type: extracted_data,
         },
     }
+
+
+def create_merger(non_pipeline_indices):
+    accumulator = {}
+    index = None
+
+    def _merge(decision, this_index):
+        nonlocal accumulator
+        nonlocal index
+        index = this_index if this_index not in non_pipeline_indices else index
+        accumulator = merge_decisions(accumulator, decision)
+        return accumulator, index
+
+    return _merge
 
 
 async def merge_decisions_to_outcomes(
@@ -67,35 +85,38 @@ async def merge_decisions_to_outcomes(
         },
     )
 
-    last_reference = None
-    this_outcome = {}
+    hits = res["hits"]["hits"]
+    last_reference = hits[0]["_source"]["reference"] if hits else None
+    do_merge = create_merger(non_pipeline_indices)
 
-    def get_outcome():
+    def flush(maybe_outcome):
         try:
-            validated_outcome = Outcome.model_validate(this_outcome)
+            validated_outcome = Outcome.model_validate(maybe_outcome)
             return validated_outcome
         except ValidationError as e:
             if should_allow_validation_error(e):
-                print("Incomplete outcome missing last_updated", this_outcome["id"])
+                print(
+                    "Incomplete outcome missing last_updated",
+                    this_outcome.get("id", "unknown"),
+                )
             else:
                 raise e
 
-    for hit in res["hits"]["hits"]:
+    for hit in hits:
         index = hit["_index"]
         decision = hit["_source"]
 
-        if last_reference is None:
-            last_reference = decision["reference"]
-
         if decision["reference"] != last_reference:
             last_reference = decision["reference"]
-            outcome = get_outcome()
-            if outcome:
-                yield outcome, index
-            this_outcome = {}
+            do_merge = create_merger(non_pipeline_indices)
 
-        this_outcome = merge_in_decision(decision, this_outcome)
-    if this_outcome:
-        outcome = get_outcome()
+            outcome = flush(this_outcome)
+            if outcome:
+                yield outcome, canonical_index
+
+        this_outcome, canonical_index = do_merge(decision, index)
+
+    if hits:
+        outcome = flush(this_outcome)
         if outcome:
-            yield outcome, index
+            yield outcome, canonical_index

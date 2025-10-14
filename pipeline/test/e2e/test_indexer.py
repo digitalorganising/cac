@@ -6,6 +6,7 @@ test_withdrawal_docs = [
         "reference": "TUR1/1234(2025)",
         "document_type": "application_withdrawn",
         "outcome_title": "Test union & test employer",
+        "last_updated": "2025-01-02T10:00:00Z",
         "document_content": "test",
         "document_url": "http://test.outcome/1234/withdrawn",
         "extracted_data": {
@@ -129,3 +130,10 @@ async def test_indexer(opensearch_client):
 
         assert "display" in merged_outcome["_source"]
         assert "display" in withdrawn_outcome["_source"]
+
+        withdrawn_date = next(
+            e
+            for e in withdrawn_outcome["_source"]["display"]["events"]
+            if e["type"]["value"] == "application_withdrawn"
+        )["date"]
+        assert withdrawn_date == "2025-01-02"
