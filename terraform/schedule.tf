@@ -5,7 +5,7 @@ resource "aws_scheduler_schedule" "check_outcomes" {
   # Run between 7am and 7pm, Monday to Friday
   schedule_expression          = "cron(0 7-19 ? * MON-FRI *)"
   schedule_expression_timezone = "Europe/London"
-  state                        = "DISABLED"
+  state                        = "ENABLED"
 
   flexible_time_window {
     mode                      = "FLEXIBLE"
@@ -16,7 +16,7 @@ resource "aws_scheduler_schedule" "check_outcomes" {
     arn      = module.pipeline_step_function.state_machine_arn
     role_arn = aws_iam_role.schedule_execution_role.arn
     input = jsonencode({
-      "indexSuffix" = "0719"
+      "indexSuffix" = "1012"
     })
   }
 }
