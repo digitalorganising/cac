@@ -69,6 +69,9 @@
         "method_agreed": {
           "type": "keyword"
         },
+        "para_35_decision": {
+          "type": "keyword"
+        },
         "application_withdrawn": {
           "type": "keyword"
         }
