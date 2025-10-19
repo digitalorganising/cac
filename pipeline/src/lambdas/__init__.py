@@ -56,7 +56,11 @@ async def map_docs(
 
     async def update_actions():
         async for doc, ref in docs_source:
-            transformed_doc = await transform(doc)
+            try:
+                transformed_doc = await transform(doc)
+            except Exception as e:
+                print(f"Error while processing document {ref.id}")
+                raise
             if not transformed_doc:
                 continue
             dest_index = destination_index(
