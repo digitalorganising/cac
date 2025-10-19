@@ -3,14 +3,7 @@ from difflib import SequenceMatcher as SM
 import pytest
 from baml_client.async_client import b
 from baml_client.types import BargainingUnit, RejectionReason
-from pipeline.services import anthropic_rate_limit
-from tenacity import retry
 from . import date_eq
-
-
-@retry(**anthropic_rate_limit)
-async def ExtractValidityDecision(content):
-    return await b.ExtractValidityDecision(content)
 
 
 @pytest.mark.parametrize(
@@ -20,7 +13,7 @@ async def ExtractValidityDecision(content):
     ],
 )
 async def test_unite_primopost(cac_document_contents):
-    vd = await ExtractValidityDecision(cac_document_contents)
+    vd = await b.ExtractValidityDecision(cac_document_contents)
 
     assert date_eq(vd.decision_date, "25 June 2014")
     assert vd.valid
@@ -57,7 +50,7 @@ Management""",
     ],
 )
 async def test_rmt_cwind(cac_document_contents):
-    vd = await ExtractValidityDecision(cac_document_contents)
+    vd = await b.ExtractValidityDecision(cac_document_contents)
 
     assert date_eq(vd.decision_date, "14 November 2019")
     assert not vd.valid
@@ -78,7 +71,7 @@ async def test_rmt_cwind(cac_document_contents):
     ],
 )
 async def test_gmb_noble_collection(cac_document_contents):
-    vd = await ExtractValidityDecision(cac_document_contents)
+    vd = await b.ExtractValidityDecision(cac_document_contents)
 
     assert date_eq(vd.decision_date, "2 November 2022")
     assert vd.valid
@@ -107,7 +100,7 @@ async def test_gmb_noble_collection(cac_document_contents):
     ],
 )
 async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
-    vd = await ExtractValidityDecision(cac_document_contents)
+    vd = await b.ExtractValidityDecision(cac_document_contents)
 
     assert date_eq(vd.decision_date, "4 March 2019")
     assert vd.valid
@@ -133,7 +126,7 @@ async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
     ],
 )
 async def test_gmb_metallink(cac_document_contents):
-    vd = await ExtractValidityDecision(cac_document_contents)
+    vd = await b.ExtractValidityDecision(cac_document_contents)
 
     assert date_eq(vd.decision_date, "5 April 2016")
     assert not vd.valid

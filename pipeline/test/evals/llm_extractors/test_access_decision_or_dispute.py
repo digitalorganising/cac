@@ -1,14 +1,7 @@
 import pytest
 from baml_client.async_client import b
 from baml_client.types import Party
-from pipeline.services import anthropic_rate_limit
-from tenacity import retry
 from . import date_eq
-
-
-@retry(**anthropic_rate_limit)
-async def ExtractAccessDecisionOrDispute(content):
-    return await b.ExtractAccessDecisionOrDispute(content)
 
 
 @pytest.mark.parametrize(
@@ -18,7 +11,7 @@ async def ExtractAccessDecisionOrDispute(content):
     ],
 )
 async def test_gmb_dyer_engineering(cac_document_contents):
-    ad = await ExtractAccessDecisionOrDispute(cac_document_contents)
+    ad = await b.ExtractAccessDecisionOrDispute(cac_document_contents)
 
     assert date_eq(ad.decision_date, "5 February 2021")
     assert ad.details.complainant == Party.Union
@@ -32,7 +25,7 @@ async def test_gmb_dyer_engineering(cac_document_contents):
     ],
 )
 async def test_prospect_prestwick_aircraft_maintenance(cac_document_contents):
-    ad = await ExtractAccessDecisionOrDispute(cac_document_contents)
+    ad = await b.ExtractAccessDecisionOrDispute(cac_document_contents)
 
     assert date_eq(ad.decision_date, "22 November 2021")
     assert not ad.details.favors
@@ -46,7 +39,7 @@ async def test_prospect_prestwick_aircraft_maintenance(cac_document_contents):
     ],
 )
 async def test_rmt_carefree_travel(cac_document_contents):
-    ad = await ExtractAccessDecisionOrDispute(cac_document_contents)
+    ad = await b.ExtractAccessDecisionOrDispute(cac_document_contents)
 
     assert date_eq(ad.decision_date, "06 June 2017")
     assert ad.details.favors == Party.Union
@@ -60,7 +53,7 @@ async def test_rmt_carefree_travel(cac_document_contents):
     ],
 )
 async def test_uvw_ocs_group(cac_document_contents):
-    ad = await ExtractAccessDecisionOrDispute(cac_document_contents)
+    ad = await b.ExtractAccessDecisionOrDispute(cac_document_contents)
 
     assert date_eq(ad.decision_date, "12 June 2020")
     assert ad.details.complainant == Party.Union
@@ -74,7 +67,7 @@ async def test_uvw_ocs_group(cac_document_contents):
     ],
 )
 async def test_urtu_eddie_stobart(cac_document_contents):
-    ad = await ExtractAccessDecisionOrDispute(cac_document_contents)
+    ad = await b.ExtractAccessDecisionOrDispute(cac_document_contents)
 
     assert date_eq(ad.decision_date, "12 October 2021")
     assert ad.details.favors == Party.Employer

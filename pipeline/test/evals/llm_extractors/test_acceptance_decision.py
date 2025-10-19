@@ -1,14 +1,7 @@
 import pytest
 from baml_client.async_client import b
 from baml_client.types import BargainingUnit, RejectionReason
-from pipeline.services import anthropic_rate_limit
-from tenacity import retry
 from . import date_eq
-
-
-@retry(**anthropic_rate_limit)
-async def ExtractAcceptanceDecision(content):
-    return await b.ExtractAcceptanceDecision(content)
 
 
 @pytest.mark.parametrize(
@@ -18,7 +11,7 @@ async def ExtractAcceptanceDecision(content):
     ],
 )
 async def test_prospect_british_academy(cac_document_contents):
-    ad = await ExtractAcceptanceDecision(cac_document_contents)
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "17 April 2024")
     assert ad.success
@@ -45,7 +38,7 @@ async def test_prospect_british_academy(cac_document_contents):
     ],
 )
 async def test_gmb_cranswick_country_foods(cac_document_contents):
-    ad = await ExtractAcceptanceDecision(cac_document_contents)
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "19 June 2019")
     assert ad.success
@@ -72,7 +65,7 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
     ],
 )
 async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
-    ad = await ExtractAcceptanceDecision(cac_document_contents)
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "8 September 2022")
     assert ad.success
@@ -99,7 +92,7 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
     ],
 )
 async def test_gmb_mitie_services(cac_document_contents):
-    ad = await ExtractAcceptanceDecision(cac_document_contents)
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "23 October 2014")
     assert ad.success
@@ -125,7 +118,7 @@ async def test_gmb_mitie_services(cac_document_contents):
     ],
 )
 async def test_community_coilcolor(cac_document_contents):
-    ad = await ExtractAcceptanceDecision(cac_document_contents)
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "17 May 2017")
     assert not ad.success
@@ -152,7 +145,7 @@ async def test_community_coilcolor(cac_document_contents):
     ],
 )
 async def test_iwgb_university_of_london(cac_document_contents):
-    ad = await ExtractAcceptanceDecision(cac_document_contents)
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "10 January 2018")
     assert not ad.success
@@ -179,7 +172,7 @@ async def test_iwgb_university_of_london(cac_document_contents):
     ],
 )
 async def test_pcs_interserve_group_limited(cac_document_contents):
-    ad = await ExtractAcceptanceDecision(cac_document_contents)
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "24 November 2020")
     assert not ad.success
@@ -199,7 +192,7 @@ async def test_pcs_interserve_group_limited(cac_document_contents):
     ],
 )
 async def test_prospect_babcock_offshore(cac_document_contents):
-    ad = await ExtractAcceptanceDecision(cac_document_contents)
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "21 November 2016")
     assert ad.success
@@ -228,7 +221,7 @@ async def test_prospect_babcock_offshore(cac_document_contents):
     ],
 )
 async def test_iwgb_ocean_integrated_services(cac_document_contents):
-    ad = await ExtractAcceptanceDecision(cac_document_contents)
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "8 June 2015")
     assert not ad.success
@@ -252,7 +245,7 @@ async def test_iwgb_ocean_integrated_services(cac_document_contents):
     ],
 )
 async def test_unite_rhys_davies_logistics(cac_document_contents):
-    ad = await ExtractAcceptanceDecision(cac_document_contents)
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "6 March 2014")
     assert ad.success
@@ -276,7 +269,7 @@ async def test_unite_rhys_davies_logistics(cac_document_contents):
     ],
 )
 async def test_unite_seal_security_ltd(cac_document_contents):
-    ad = await ExtractAcceptanceDecision(cac_document_contents)
+    ad = await b.ExtractAcceptanceDecision(cac_document_contents)
 
     assert date_eq(ad.decision_date, "04 December 2014")
     assert not ad.success

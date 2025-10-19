@@ -2,48 +2,40 @@ import asyncio
 import os
 
 from ..types.documents import DocumentType
-from ..services.baml import authenticated_client as b
-from tenacity import retry, stop_after_attempt, wait_random_exponential
-from .document_classifier import (
-    should_get_content,
-    should_skip,
-)
+from ..services.baml import authenticated_client, large_client, with_retry_client
+from .document_classifier import should_get_content, should_skip
 from ..extractors.date_extractor import extract_date
 from ..types.decisions import DecisionAugmented, DecisionRaw, DateOnly
 
 
-@retry(
-    wait=wait_random_exponential(min=1, max=90, multiplier=2),
-    stop=stop_after_attempt(3),
-    reraise=True,
-)
-async def get_extracted_data(doc_type_string, content):
+@with_retry_client(authenticated_client, large_client)
+async def get_extracted_data(doc_type_string, content, *, client):
     document_type = DocumentType[doc_type_string]
     if not should_get_content(document_type) or should_skip(document_type):
         return None
     match document_type:
         case DocumentType.para_35_decision:
-            return await b.ExtractPara35Decision(content)
+            return await client.ExtractPara35Decision(content)
         case DocumentType.acceptance_decision:
-            return await b.ExtractAcceptanceDecision(content)
+            return await client.ExtractAcceptanceDecision(content)
         case DocumentType.bargaining_unit_decision:
-            return await b.ExtractBargainingUnitDecision(content)
+            return await client.ExtractBargainingUnitDecision(content)
         case DocumentType.bargaining_decision:
-            return await b.ExtractBargainingDecision(content)
+            return await client.ExtractBargainingDecision(content)
         case DocumentType.form_of_ballot_decision:
-            return await b.ExtractFormOfBallotDecision(content)
+            return await client.ExtractFormOfBallotDecision(content)
         case DocumentType.whether_to_ballot_decision:
-            return await b.ExtractWhetherToBallotDecision(content)
+            return await client.ExtractWhetherToBallotDecision(content)
         case DocumentType.validity_decision:
-            return await b.ExtractValidityDecision(content)
+            return await client.ExtractValidityDecision(content)
         case DocumentType.case_closure:
             return DateOnly(decision_date=extract_date(content))
         case DocumentType.recognition_decision:
-            return await b.ExtractRecognitionDecision(content)
+            return await client.ExtractRecognitionDecision(content)
         case DocumentType.application_received:
             return DateOnly(decision_date=extract_date(content))
         case DocumentType.access_decision_or_dispute:
-            return await b.ExtractAccessDecisionOrDispute(content)
+            return await client.ExtractAccessDecisionOrDispute(content)
         case DocumentType.method_agreed:
             date = extract_date(content)
             if date is None:

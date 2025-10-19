@@ -13,7 +13,7 @@ class AcceptanceDecision {
 }
 
 function ExtractAcceptanceDecision(decision_document: string) -> AcceptanceDecision {
-  client ThinkingClient
+  client DefaultClient
   prompt #"
     Given the CAC acceptance decision document below,
 

@@ -171,6 +171,25 @@ test = ["anyio[trio]", "blockbuster (>=1.5.23)", "coverage[toml] (>=7)", "except
 trio = ["trio (>=0.26.1)"]
 
 [[package]]
+name = "async-batcher"
+version = "0.2.2"
+description = "A service to batch your http requests."
+optional = false
+python-versions = "<4.0,>=3.10"
+groups = ["main"]
+files = [
+    {file = "async_batcher-0.2.2-py3-none-any.whl", hash = "sha256:4890f49166bfdc41136ca11cfb68415b78cf2bddef2b1c39c4782b312ba049ca"},
+    {file = "async_batcher-0.2.2.tar.gz", hash = "sha256:9c97585245efacd4d97192f6b8e42d6d0de5f91f6b277942072a83f690f38db8"},
+]
+
+[package.extras]
+aws = ["aioboto3 (>=13.1,<14.0)"]
+keras = ["keras (>=2.12,<3.0) ; python_version < \"3.12\"", "keras (>=2.12,<4) ; python_version == \"3.12\""]
+scylla = ["scylla-driver (>=3,<4)"]
+sklearn = ["scikit-learn (>=1.2,<2.0) ; python_version < \"3.12\"", "scikit-learn (>=1.3,<2.0) ; python_version == \"3.12\""]
+sqlalchemy = ["sqlalchemy[asyncio] (>=1.4,<3)"]
+
+[[package]]
 name = "attrs"
 version = "25.3.0"
 description = "Classes Without Boilerplate"
@@ -222,20 +241,20 @@ botocore = "*"
 
 [[package]]
 name = "baml-py"
-version = "0.90.2"
+version = "0.211.2"
 description = "BAML python bindings (pyproject.toml)"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "baml_py-0.90.2-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:9397f8580568d56b178d1605dd309ebb7a91ed8f39608b0fbb3585a918736998"},
-    {file = "baml_py-0.90.2-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:da85705916ad88342fb041f64dd4c81651db1771b05af9f70b2ff3004d825a61"},
-    {file = "baml_py-0.90.2-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0818bb92b9184cd29d042bcc638f5d471c2a1dc9a302b4e178b1d20c51d3a139"},
-    {file = "baml_py-0.90.2-cp38-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:703e17bbc22272dc5dfa4537c9118e653f98deb1c4977918f3b9db3ea75de86e"},
-    {file = "baml_py-0.90.2-cp38-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:ac1c2fd4559a9d8a55c937997330796e33e498206d14c567a25e0ebe46a1beb4"},
-    {file = "baml_py-0.90.2-cp38-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:a0de73a3b2787019904edd0cdbe3561241edc4c1a66e487df2cb66dad6928e86"},
-    {file = "baml_py-0.90.2-cp38-abi3-win_amd64.whl", hash = "sha256:be00a0e5fb3bc933fd29eade37b7caa882f7598624d4a4177d34e4bd5790c2a4"},
-    {file = "baml_py-0.90.2-cp38-abi3-win_arm64.whl", hash = "sha256:c04fe6446a41fa6063f012b3a41c6c562709324696859183aaf634a53a7572dc"},
+    {file = "baml_py-0.211.2-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:27823a22636e4ef3e2a83a8a972158d1f3caea55a9555521b117c255a61b3452"},
+    {file = "baml_py-0.211.2-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:36c7a8a7fa37120aa00864d9543a7eaa062f172fd316fc51ca79054d0595896b"},
+    {file = "baml_py-0.211.2-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4cffc7bfe40e8a5089c6923678983458337f625d6a74ffae51ec1453d890ae3a"},
+    {file = "baml_py-0.211.2-cp38-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:539914a1b8d3327674c7e0e96dd00a4ed1738850d95819172163f41e8782a5b7"},
+    {file = "baml_py-0.211.2-cp38-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:ae5d499504deb36f2937a6173b9861db2eced7cc483cf2df7d71f2bcb1660c42"},
+    {file = "baml_py-0.211.2-cp38-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:e09ee1f2a5aadcb8e56777fa2480f07f96a28f556694e91c4343515001c1c01b"},
+    {file = "baml_py-0.211.2-cp38-abi3-win_amd64.whl", hash = "sha256:a3d84116bf1f845e0dc4d700db28b1bd8bac3ab4b44ac9e1b599047245b1469b"},
+    {file = "baml_py-0.211.2-cp38-abi3-win_arm64.whl", hash = "sha256:9828873c10f5d84d0e9d8f4ff6b430f67215f8edf048310e3788177503b3e232"},
 ]
 
 [[package]]
@@ -2372,4 +2391,4 @@ testing = ["coverage[toml]", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~=3.12.0"
-content-hash = "28f46a3881494bee6fd5f02c18ec2af01070179ae67c6f48b120f1511d6fea36"
+content-hash = "841b7cf1d0450bbfcdecee9677c44eee8da501ef8d6fab2cbdaa8a4668b1dd9b"

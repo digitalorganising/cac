@@ -1,13 +1,6 @@
 import pytest
 from baml_client.async_client import b
-from pipeline.services import anthropic_rate_limit
-from tenacity import retry
 from . import date_eq
-
-
-@retry(**anthropic_rate_limit)
-async def ExtractBargainingDecision(content):
-    return await b.ExtractBargainingDecision(content)
 
 
 @pytest.mark.parametrize(
@@ -17,7 +10,7 @@ async def ExtractBargainingDecision(content):
     ],
 )
 async def test_prospect_ashford_airport(cac_document_contents):
-    bd = await ExtractBargainingDecision(cac_document_contents)
+    bd = await b.ExtractBargainingDecision(cac_document_contents)
 
     assert date_eq(bd.decision_date, "11 January 2024")
     assert date_eq(bd.cac_involvement_date, "8 December 2023")
@@ -30,7 +23,7 @@ async def test_prospect_ashford_airport(cac_document_contents):
     ],
 )
 async def test_unite_hayakawa_international(cac_document_contents):
-    bd = await ExtractBargainingDecision(cac_document_contents)
+    bd = await b.ExtractBargainingDecision(cac_document_contents)
 
     assert date_eq(bd.decision_date, "26 October 2020")
     assert date_eq(bd.cac_involvement_date, "7 October 2020")
@@ -43,7 +36,7 @@ async def test_unite_hayakawa_international(cac_document_contents):
     ],
 )
 async def test_rmt_bespoke_facilities_management(cac_document_contents):
-    bd = await ExtractBargainingDecision(cac_document_contents)
+    bd = await b.ExtractBargainingDecision(cac_document_contents)
 
     assert date_eq(bd.decision_date, "11 July 2023")
     assert date_eq(bd.cac_involvement_date, "25 May 2023")
@@ -56,7 +49,7 @@ async def test_rmt_bespoke_facilities_management(cac_document_contents):
     ],
 )
 async def test_pcs_axis_security_services(cac_document_contents):
-    bd = await ExtractBargainingDecision(cac_document_contents)
+    bd = await b.ExtractBargainingDecision(cac_document_contents)
 
     assert date_eq(bd.decision_date, "16 April 2021")
     assert date_eq(bd.cac_involvement_date, "24 February 2021")
@@ -69,7 +62,7 @@ async def test_pcs_axis_security_services(cac_document_contents):
     ],
 )
 async def test_ucu_university_of_brighton(cac_document_contents):
-    bd = await ExtractBargainingDecision(cac_document_contents)
+    bd = await b.ExtractBargainingDecision(cac_document_contents)
 
     assert date_eq(bd.decision_date, "30 January 2023")
     assert date_eq(bd.cac_involvement_date, "7 October 2022")

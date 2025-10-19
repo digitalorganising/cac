@@ -1,14 +1,7 @@
 import pytest
 from baml_client.async_client import b
 from baml_client.types import QualifyingCondition
-from pipeline.services import anthropic_rate_limit
-from tenacity import retry
 from . import date_eq
-
-
-@retry(**anthropic_rate_limit)
-async def ExtractWhetherToBallotDecision(content):
-    return await b.ExtractWhetherToBallotDecision(content)
 
 
 @pytest.mark.parametrize(
@@ -18,7 +11,7 @@ async def ExtractWhetherToBallotDecision(content):
     ],
 )
 async def test_neu_radley_college(cac_document_contents):
-    wtbd = await ExtractWhetherToBallotDecision(cac_document_contents)
+    wtbd = await b.ExtractWhetherToBallotDecision(cac_document_contents)
 
     assert date_eq(wtbd.decision_date, "20 June 2023")
     assert wtbd.decision_to_ballot
@@ -37,7 +30,7 @@ async def test_neu_radley_college(cac_document_contents):
     ],
 )
 async def test_uvw_ocs_group(cac_document_contents):
-    wtbd = await ExtractWhetherToBallotDecision(cac_document_contents)
+    wtbd = await b.ExtractWhetherToBallotDecision(cac_document_contents)
 
     assert date_eq(wtbd.decision_date, "26 September 2019")
     assert wtbd.decision_to_ballot
@@ -52,7 +45,7 @@ async def test_uvw_ocs_group(cac_document_contents):
     ],
 )
 async def test_nuj_buzzfeed(cac_document_contents):
-    wtbd = await ExtractWhetherToBallotDecision(cac_document_contents)
+    wtbd = await b.ExtractWhetherToBallotDecision(cac_document_contents)
 
     assert date_eq(wtbd.decision_date, "11 April 2018")
     assert wtbd.decision_to_ballot
@@ -71,7 +64,7 @@ async def test_nuj_buzzfeed(cac_document_contents):
     ],
 )
 async def test_neu_bishops_stortford_college(cac_document_contents):
-    wtbd = await ExtractWhetherToBallotDecision(cac_document_contents)
+    wtbd = await b.ExtractWhetherToBallotDecision(cac_document_contents)
 
     assert date_eq(wtbd.decision_date, "9 November 2020")
     assert wtbd.decision_to_ballot
@@ -90,7 +83,7 @@ async def test_neu_bishops_stortford_college(cac_document_contents):
     ],
 )
 async def test_unison_abbey_healthcare(cac_document_contents):
-    wtbd = await ExtractWhetherToBallotDecision(cac_document_contents)
+    wtbd = await b.ExtractWhetherToBallotDecision(cac_document_contents)
 
     assert date_eq(wtbd.decision_date, "23 July 2018")
     assert wtbd.decision_to_ballot

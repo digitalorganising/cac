@@ -5,7 +5,7 @@ template_string BargainingUnitThinkingPrompt() #"
     
     There may also be cases where you do not feel that n_workers was verified: in this case, use the best number you can.
 
-    Before you answer, outline the following step by step with reference to the document.
+    Before you answer with the JSON output, outline the following step by step with reference to the document.
     Make sure to distinguish between claimed numbers and numbers verified by the case manager.
    
     - The number of workers in the bargaining unit (verified) [n_workers], if they were stated [n_workers_in_decision]

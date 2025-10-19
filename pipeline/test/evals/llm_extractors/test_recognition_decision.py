@@ -1,14 +1,7 @@
 import pytest
 from baml_client.async_client import b
 from baml_client.types import BallotResult, FormOfBallot
-from pipeline.services import anthropic_rate_limit
-from tenacity import retry
 from . import date_eq
-
-
-@retry(**anthropic_rate_limit)
-async def ExtractRecognitionDecision(content):
-    return await b.ExtractRecognitionDecision(content)
 
 
 @pytest.mark.parametrize(
@@ -18,7 +11,7 @@ async def ExtractRecognitionDecision(content):
     ],
 )
 async def test_gmb_apcoa_parking(cac_document_contents):
-    rd = await ExtractRecognitionDecision(cac_document_contents)
+    rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
     assert date_eq(rd.decision_date, "2 June 2023")
     assert rd.union_recognized
@@ -34,7 +27,7 @@ async def test_gmb_apcoa_parking(cac_document_contents):
     ],
 )
 async def test_unite_mitie_property_services(cac_document_contents):
-    rd = await ExtractRecognitionDecision(cac_document_contents)
+    rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
     assert date_eq(rd.decision_date, "15 June 2018")
     assert rd.union_recognized
@@ -50,7 +43,7 @@ async def test_unite_mitie_property_services(cac_document_contents):
     ],
 )
 async def test_gmb_sgl_carbon_fibres(cac_document_contents):
-    rd = await ExtractRecognitionDecision(cac_document_contents)
+    rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
     assert date_eq(rd.decision_date, "24 May 2022")
     assert rd.union_recognized
@@ -73,7 +66,7 @@ async def test_gmb_sgl_carbon_fibres(cac_document_contents):
     ],
 )
 async def test_unite_international_baccalaureate(cac_document_contents):
-    rd = await ExtractRecognitionDecision(cac_document_contents)
+    rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
     assert date_eq(rd.decision_date, "17 July 2019")
     assert rd.union_recognized
@@ -96,7 +89,7 @@ async def test_unite_international_baccalaureate(cac_document_contents):
     ],
 )
 async def test_nasuwt_radley_college(cac_document_contents):
-    rd = await ExtractRecognitionDecision(cac_document_contents)
+    rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
     assert date_eq(rd.decision_date, "23 October 2023")
     assert not rd.union_recognized
@@ -119,7 +112,7 @@ async def test_nasuwt_radley_college(cac_document_contents):
     ],
 )
 async def test_pda_boots_management_services(cac_document_contents):
-    rd = await ExtractRecognitionDecision(cac_document_contents)
+    rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
     assert date_eq(rd.decision_date, "13 March 2019")
     assert rd.union_recognized
@@ -142,7 +135,7 @@ async def test_pda_boots_management_services(cac_document_contents):
     ],
 )
 async def test_unite_sgs_united_kingdom(cac_document_contents):
-    rd = await ExtractRecognitionDecision(cac_document_contents)
+    rd = await b.ExtractRecognitionDecision(cac_document_contents)
 
     assert date_eq(rd.decision_date, "11 November 2015")
     assert rd.union_recognized
