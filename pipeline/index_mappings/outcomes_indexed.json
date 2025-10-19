@@ -66,10 +66,12 @@
           "copy_to": "full_text",
           "index": false
         },
-        "method_agreed": {
-          "type": "keyword"
-        },
         "para_35_decision": {
+          "type": "text",
+          "copy_to": "full_text",
+          "index": false
+        },
+        "method_agreed": {
           "type": "keyword"
         },
         "application_withdrawn": {
