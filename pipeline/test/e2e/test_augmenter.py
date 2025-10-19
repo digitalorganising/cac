@@ -1,4 +1,4 @@
-from . import invoke_lambda, index_populated, indexer
+from . import invoke_lambda, indexer
 
 test_docs = [
     {
@@ -31,7 +31,6 @@ async def test_augmenter(opensearch_client):
     ) as raw, index_for_test("outcomes-augmented", suffix=raw.suffix) as augmented:
         refs = [{"_id": t["id"], "_index": raw.index_name} for t in test_docs]
         await invoke_lambda("augmenter", {"refs": refs})
-        assert await index_populated(opensearch_client, augmented.index_name)
 
         results = await opensearch_client.search(index=augmented.index_name)
         hits = results["hits"]["hits"]

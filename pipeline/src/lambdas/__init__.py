@@ -49,7 +49,9 @@ def destination_index(*, source_index, dest_namespace):
     return dest_index
 
 
-async def map_docs(docs_source, *, transform, dest_namespace, dest_mapping):
+async def map_docs(
+    docs_source, *, transform, dest_namespace, dest_mapping, refresh_on_complete=True
+):
     seen_indices = set()
 
     async def update_actions():
@@ -84,4 +86,10 @@ async def map_docs(docs_source, *, transform, dest_namespace, dest_mapping):
             _index=update["_index"],
         )
         results.append(ref.model_dump(by_alias=True))
+
+    if refresh_on_complete:
+        indices = {r["_index"] for r in results}
+        for index in indices:
+            await client.indices.refresh(index=index)
+
     return results

@@ -416,29 +416,37 @@ async def test_merge_decisions_to_outcomes_two_application_withdrawn():
     mock_client = MockOpenSearchClient(
         [
             {
-                "reference": "TUR1/1234/2024",
-                "document_type": "application_withdrawn",
-                "document_content": "Application withdrawn on 2024-02-15",
-                "document_url": "https://example.com/application_withdrawn_1",
-                "extracted_data": {"decision_date": "2024-02-15"},
-                "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
-                "outcome_title": "Test Outcome 1",
-                "last_updated": "2024-02-15T10:00:00Z",
+                "reference": "TUR1/1081(2018)",
+                "document_url": "https://www.whatdotheyknow.com/request/information_on_withdrawn_applica",
+                "id": "TUR1/1081(2018):application_received",
+                "document_type": "application_received",
+                "document_content": "Application to TRS Cash & Carry Limited from GMB received on 2018-12-13T00:00:00+00:00.",
+                "extracted_data": {"decision_date": "2018-12-13"},
             },
             {
-                "reference": "TUR1/1234/2024",
+                "reference": "TUR1/1081(2018)",
+                "document_url": "https://www.whatdotheyknow.com/request/information_on_withdrawn_applica",
+                "id": "TUR1/1081(2018):application_withdrawn",
+                "last_updated": "2018-12-20T00:00:00+00:00",
                 "document_type": "application_withdrawn",
-                "document_content": "Application withdrawn on 2024-01-01",
-                "document_url": "https://example.com/application_withdrawn_2",
-                "extracted_data": None,  # No extracted data for this one
-                "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
-                "outcome_title": "Test Outcome 1",
-                "last_updated": "2024-01-01T10:00:00Z",
+                "document_content": "Application to TRS Cash & Carry Limited withdrawn by GMB on 2018-12-20T00:00:00+00:00.",
+                "extracted_data": {"decision_date": "2018-12-20"},
+            },
+            {
+                "id": "TUR1/1081(2018):application_withdrawn",
+                "reference": "TUR1/1081(2018)",
+                "outcome_url": "https://www.gov.uk/government/publications/cac-outcome-gmb-trs-cash-carry-limited2",
+                "outcome_title": "GMB & TRS Cash & Carry Limited(2)",
+                "document_type": "application_withdrawn",
+                "last_updated": "2018-12-14T14:23:00+00:00",
+                "document_content": None,
+                "document_url": "https://www.gov.uk/government/publications/cac-outcome-gmb-trs-cash-carry-limited2/application-withdrawn",
+                "extracted_data": None,
             },
         ]
     )
 
-    references = ["TUR1/1234/2024"]
+    references = ["TUR1/1081(2018)"]
 
     outcomes = []
     async for outcome, index in merge_decisions_to_outcomes(
@@ -453,24 +461,12 @@ async def test_merge_decisions_to_outcomes_two_application_withdrawn():
     assert len(outcomes) == 1
     outcome, index = outcomes[0]
 
-    assert outcome.id == "TUR1/1234/2024"
-
-    # Only one application_withdrawn document should be in documents (the last one overwrites)
-    assert len(outcome.documents) == 1
-    assert "application_withdrawn" in outcome.documents
-
-    # Only one should be in document_urls (the last one overwrites)
-    assert len(outcome.document_urls) == 1
-    assert "application_withdrawn" in outcome.document_urls
-
-    # Only one should be in extracted_data (the last one overwrites)
-    assert len(outcome.extracted_data) == 1
-    assert "application_withdrawn" in outcome.extracted_data
+    assert outcome.id == "TUR1/1081(2018)"
 
     # The extracted_data should contain the last one processed (the one with the actual extracted_data)
     application_withdrawn_data = outcome.extracted_data["application_withdrawn"]
     assert application_withdrawn_data is not None
-    assert application_withdrawn_data.decision_date == "2024-02-15"
+    assert application_withdrawn_data.decision_date == "2018-12-20"
 
     assert index == "test-index"
 

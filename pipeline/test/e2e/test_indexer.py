@@ -1,4 +1,4 @@
-from . import invoke_lambda, index_populated, indexer, load_docs
+from . import invoke_lambda, indexer, load_docs
 
 test_withdrawal_docs = [
     {
@@ -119,7 +119,6 @@ async def test_indexer(opensearch_client):
             for d in test_decision_docs[:3]
         ]
         await invoke_lambda("indexer", {"refs": refs})
-        assert await index_populated(opensearch_client, indexed.index_name)
 
         results = await opensearch_client.search(index=indexed.index_name)
         hits = results["hits"]["hits"]

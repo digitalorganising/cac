@@ -37,16 +37,7 @@ async def invoke_lambda(lambda_name, event):
         return json
 
 
-async def index_populated(opensearch_client, index_name) -> bool:
-    exists = await opensearch_client.indices.exists(index=index_name)
-    if not exists:
-        return False
-    await opensearch_client.indices.refresh(index=index_name)
-    count_response = await opensearch_client.count(index=index_name)
-    return count_response["count"] > 0
-
-
-async def load_docs(opensearch_client, index_name, docs):
+async def load_docs(opensearch_client, index_name, docs=[]):
     if index_name.startswith("outcomes-raw"):
         mapping = {"dynamic": "strict", "properties": decision_raw_mapping}
     elif (
@@ -86,8 +77,7 @@ def indexer(opensearch_client):
             index_name = namespace
 
         try:
-            if initial_docs:
-                await load_docs(opensearch_client, index_name, initial_docs)
+            await load_docs(opensearch_client, index_name, initial_docs or [])
             yield IndexForTest(index_name=index_name, suffix=suffix)
         finally:
             # Clean up: delete the index if it exists
