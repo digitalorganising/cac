@@ -5,13 +5,19 @@ from . import map_docs, RefsEvent, lambda_friendly_run_async, DocumentRef, clien
 
 
 async def decisions_from_refs(client, *, refs):
+    passthroughs = {ref.id for ref in refs if ref.passthrough}
     res = await client.mget(
-        body={"docs": [ref.model_dump(by_alias=True) for ref in refs]}
+        body={
+            "docs": [
+                ref.model_dump(by_alias=True, exclude={"passthrough"}) for ref in refs
+            ]
+        }
     )
     for doc in res["docs"]:
         ref = DocumentRef(
             _id=doc["_id"],
             _index=doc["_index"],
+            passthrough=doc["_id"] in passthroughs,
         )
         yield DecisionRaw.model_validate(doc["_source"]), ref
 

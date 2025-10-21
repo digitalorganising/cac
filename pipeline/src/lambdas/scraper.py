@@ -5,6 +5,7 @@ from typing import Optional
 
 import crochet
 from pydantic import BaseModel
+from opensearchpy import helpers
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.reactor import install_reactor
 from scrapy.utils.log import configure_logging
@@ -13,6 +14,8 @@ from pipeline.spider import QuietDroppedLogFormatter, ReferencePipeline
 from pipeline.spider.updated_outcomes import UpdatedOutcomesSpider
 from pipeline.spider.cac_outcome_spider import CacOutcomeOpensearchPipeline
 from pipeline.types.decisions import decision_raw_mapping
+
+from . import client, lambda_friendly_run_async
 
 # Install the asyncio reactor for Lambda compatibility
 install_reactor("twisted.internet.asyncioreactor.AsyncioSelectorReactor")
@@ -26,11 +29,17 @@ log_settings = {
 configure_logging(log_settings)
 
 
+class Redrive(BaseModel):
+    complete: bool = False
+    augment: bool = True
+    ids: Optional[list[str]] = None
+
+
 class ScraperEvent(BaseModel):
     indexSuffix: Optional[str] = None
     limitItems: Optional[int] = None
     forceLastUpdated: Optional[str] = None
-    redrive: list[str] = []
+    redrive: Optional[Redrive] = None
 
 
 def int_env(name, default=None):
@@ -40,19 +49,36 @@ def int_env(name, default=None):
     return int(value)
 
 
+def do_redrive(redrive: Redrive, index: str):
+    if redrive.ids and not redrive.complete:
+        return [
+            {"_id": id, "_index": index, "passthrough": redrive.augment}
+            for id in redrive.ids
+        ]
+    if redrive.complete:
+
+        async def get_all_refs():
+            refs = []
+            async for doc in helpers.async_scan(client, index=index, size=20):
+                refs.append(
+                    {
+                        "_id": doc["_id"],
+                        "_index": doc["_index"],
+                        "passthrough": redrive.augment,
+                    }
+                )
+            return refs
+
+        return lambda_friendly_run_async(get_all_refs())
+
+
 def handler(event, context):
     scraper_event = ScraperEvent.model_validate(event)
     index_suffix = scraper_event.indexSuffix
     index = f"outcomes-raw-{index_suffix}" if index_suffix else "outcomes-raw"
 
     if scraper_event.redrive:
-        return [
-            {
-                "_id": id,
-                "_index": index,
-            }
-            for id in scraper_event.redrive
-        ]
+        return do_redrive(scraper_event.redrive, index)
 
     references = []
 
