@@ -52,7 +52,7 @@ def int_env(name, default=None):
 def do_redrive(redrive: Redrive, index: str):
     if redrive.ids and not redrive.complete:
         return [
-            {"_id": id, "_index": index, "passthrough": redrive.augment}
+            {"_id": id, "_index": index, "passthrough": not redrive.augment}
             for id in redrive.ids
         ]
     if redrive.complete:
@@ -64,7 +64,7 @@ def do_redrive(redrive: Redrive, index: str):
                     {
                         "_id": doc["_id"],
                         "_index": doc["_index"],
-                        "passthrough": redrive.augment,
+                        "passthrough": not redrive.augment,
                     }
                 )
             return refs

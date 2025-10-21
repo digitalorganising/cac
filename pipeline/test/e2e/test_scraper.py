@@ -64,3 +64,4 @@ async def test_scraper_redrive(opensearch_client):
         assert "test1" in [r["_id"] for r in result]
         assert "test2" in [r["_id"] for r in result]
         assert "test3" in [r["_id"] for r in result]
+        assert all(r["passthrough"] for r in result)
