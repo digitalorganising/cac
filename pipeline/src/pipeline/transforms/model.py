@@ -22,7 +22,7 @@ class EventType(LabelledEnum):
     )
     BargainingUnitInappropriate = (
         "bargaining_unit_inappropriate",
-        "Bargaining unit not appropriate",
+        "Bargaining unit modified",
     )
 
     BallotRequirementDecided = (
