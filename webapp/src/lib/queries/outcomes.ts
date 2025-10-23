@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+import { cacheLife } from "next/cache";
 import "server-only";
 import { SortKey } from "../search-params";
 import { Outcome } from "../types";
@@ -18,52 +18,48 @@ export type GetOutcomesOptions = PaginationOptions &
   QueryOptions &
   FilterOptions;
 
-export const getOutcomes = unstable_cache(
-  async (
-    { from, size, sortKey, sortOrder, ...queryOptions }: GetOutcomesOptions,
-    debug = false,
-  ): Promise<{ size: number; docs: Outcome[] }> => {
-    const client = await getClient();
-    const body = {
-      from,
-      size,
-      track_total_hits: true,
-      query: {
-        bool: {
-          should: getQuery(queryOptions),
-          filter: getFilters(queryOptions),
-        },
+export const getOutcomes = async (
+  { from, size, sortKey, sortOrder, ...queryOptions }: GetOutcomesOptions,
+  debug = false,
+): Promise<{ size: number; docs: Outcome[] }> => {
+  "use cache";
+  cacheLife("hours");
+
+  const client = await getClient();
+  const body = {
+    from,
+    size,
+    track_total_hits: true,
+    query: {
+      bool: {
+        should: getQuery(queryOptions),
+        filter: getFilters(queryOptions),
       },
-      sort: getSort(sortKey, sortOrder),
-      _source: ["display"],
-    };
+    },
+    sort: getSort(sortKey, sortOrder),
+    _source: ["display"],
+  };
 
-    if (debug) {
-      console.log("Request body (outcomes):", body);
-    }
+  if (debug) {
+    console.log("Request body (outcomes):", body);
+  }
 
-    const response = await client.search({ index: outcomesIndex, body });
+  const response = await client.search({ index: outcomesIndex, body });
 
-    if (debug) {
-      console.log("Response body (outcomes):", response.body);
-    }
+  if (debug) {
+    console.log("Response body (outcomes):", response.body);
+  }
 
-    const totalHits =
-      typeof response.body.hits.total === "number"
-        ? response.body.hits.total
-        : (response.body.hits.total?.value ?? 0);
+  const totalHits =
+    typeof response.body.hits.total === "number"
+      ? response.body.hits.total
+      : (response.body.hits.total?.value ?? 0);
 
-    return {
-      size: totalHits,
-      docs: response.body.hits.hits.map((hit: any) => hit._source.display),
-    };
-  },
-  ["getClient", "getFilters", "getQuery", "getSort"],
-  {
-    revalidate: 60 * 15, // 15 minutes
-    tags: ["outcomes-index"],
-  },
-);
+  return {
+    size: totalHits,
+    docs: response.body.hits.hits.map((hit: any) => hit._source.display),
+  };
+};
 
 const getSort = (sortKey?: SortKey, sortOrder?: "asc" | "desc") => {
   const documentKeys = {

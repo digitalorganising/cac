@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 import bundleAnalyzer from "@next/bundle-analyzer";
 
-const nextConfig = {};
+const nextConfig = {
+  cacheComponents: true,
+};
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",

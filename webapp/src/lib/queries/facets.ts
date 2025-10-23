@@ -1,5 +1,5 @@
 import { Types as OpenSearchTypes } from "@opensearch-project/opensearch";
-import { unstable_cache } from "next/cache";
+import { cacheLife } from "next/cache";
 import "server-only";
 import { hasDeepProperty } from "../utils";
 import {
@@ -35,80 +35,69 @@ const pick = <T extends object, const K extends keyof T>(
 ): Pick<T, K> =>
   Object.fromEntries(keys.map((key) => [key, obj[key]])) as Pick<T, K>;
 
-export const getFacets = unstable_cache(
-  async (options: GetFacetsOptions, debug = false): Promise<Facets> => {
-    const client = await getClient();
-    const filters = getFilters(options);
-    const body = {
-      size: 0,
-      query: {
-        bool: {
-          should: getQuery(options),
-        },
-      },
-      aggs: {
-        ...facetAgg("parties.unions", filters),
-        ...facetAgg("state", filters),
-        ...facetAgg("events.type", filters),
-        ...histogramAgg("bargainingUnit.size", filters, {
-          // These are magic numbers that make the histogram look nice
-          min: 0,
-          max: 250,
-          interval: 5,
-        }),
-      },
-    };
-    if (debug) {
-      console.log("Request body (facets):", body);
-    }
-    const response = await client.search({ index: outcomesIndex, body });
+export const getFacets = async (
+  options: GetFacetsOptions,
+  debug = false,
+): Promise<Facets> => {
+  "use cache";
+  cacheLife("hours");
 
-    if (debug) {
-      console.log("Response body (facets):", response.body);
-    }
-
-    const aggs = response.body.aggregations;
-    const bucketedFacets = Object.fromEntries(
-      [...multiSelectFacetNames, ...histogramFacetNames].flatMap((name) => {
-        const agg = aggs?.[facetPrefix + name];
-        if (!agg || !("filtered" in agg)) {
-          return [];
-        }
-        const buckets = agg.filtered
-          .buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
-        return [
-          [
-            name,
-            buckets.map(({ key, doc_count }) => ({
-              ...getFacetProps(key),
-              count: doc_count,
-            })),
-          ],
-        ];
+  const client = await getClient();
+  const filters = getFilters(options);
+  const body = {
+    size: 0,
+    query: {
+      bool: {
+        should: getQuery(options),
+      },
+    },
+    aggs: {
+      ...facetAgg("parties.unions", filters),
+      ...facetAgg("state", filters),
+      ...facetAgg("events.type", filters),
+      ...histogramAgg("bargainingUnit.size", filters, {
+        // These are magic numbers that make the histogram look nice
+        min: 0,
+        max: 250,
+        interval: 5,
       }),
-    );
+    },
+  };
+  if (debug) {
+    console.log("Request body (facets):", body);
+  }
+  const response = await client.search({ index: outcomesIndex, body });
 
-    return {
-      multiSelect: pick(bucketedFacets, multiSelectFacetNames),
-      histogram: pick(bucketedFacets, histogramFacetNames),
-    };
-  },
-  [
-    "getClient",
-    "getFilters",
-    "getQuery",
-    "facetAgg",
-    "histogramAgg",
-    "getFacetProps",
-    "multiSelectFacetNames",
-    "histogramFacetNames",
-    "pick",
-  ],
-  {
-    revalidate: 60 * 15, // 15 minutes
-    tags: ["outcomes-index"],
-  },
-);
+  if (debug) {
+    console.log("Response body (facets):", response.body);
+  }
+
+  const aggs = response.body.aggregations;
+  const bucketedFacets = Object.fromEntries(
+    [...multiSelectFacetNames, ...histogramFacetNames].flatMap((name) => {
+      const agg = aggs?.[facetPrefix + name];
+      if (!agg || !("filtered" in agg)) {
+        return [];
+      }
+      const buckets = agg.filtered
+        .buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
+      return [
+        [
+          name,
+          buckets.map(({ key, doc_count }) => ({
+            ...getFacetProps(key),
+            count: doc_count,
+          })),
+        ],
+      ];
+    }),
+  );
+
+  return {
+    multiSelect: pick(bucketedFacets, multiSelectFacetNames),
+    histogram: pick(bucketedFacets, histogramFacetNames),
+  };
+};
 
 const facetPrefix = "facet.";
 
