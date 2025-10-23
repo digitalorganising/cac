@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "prepare": "cd .. && husky webapp/.husky"
   },
   "dependencies": {
@@ -30,23 +30,25 @@
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
     "lucide-react": "^0.428.0",
-    "next": "^15.3.2",
+    "next": "16.0.0",
     "nextjs-toploader": "^3.8.16",
     "nuqs": "^2.4.3",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
     "react18-json-view": "^0.2.9",
     "recharts": "^2.15.3",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "^15.3.3",
+    "@next/bundle-analyzer": "16.0.0",
     "@tailwindcss/postcss": "^4.0.0",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/node": "^20",
-    "@types/react": "npm:types-react@19.0.0-rc.1",
-    "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "eslint": "^9.38.0",
+    "eslint-config-next": "^16.0.0",
     "husky": "^9.1.4",
     "lint-staged": "^15.2.9",
     "postcss": "^8.4.41",
@@ -59,7 +61,7 @@
     "*.{js,css,md}": "prettier --write"
   },
   "overrides": {
-    "@types/react": "npm:types-react@19.0.0-rc.1",
-    "@types/react-dom": "npm:types-react-dom@19.0.0-rc.1"
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2"
   }
 }

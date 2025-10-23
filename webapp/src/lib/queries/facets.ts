@@ -105,7 +105,7 @@ export const getFacets = unstable_cache(
     "pick",
   ],
   {
-    revalidate: 60 * 60, // 1 hour
+    revalidate: 60 * 15, // 15 minutes
     tags: ["outcomes-index"],
   },
 );

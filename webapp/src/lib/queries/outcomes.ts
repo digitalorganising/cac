@@ -60,7 +60,7 @@ export const getOutcomes = unstable_cache(
   },
   ["getClient", "getFilters", "getQuery", "getSort"],
   {
-    revalidate: 60 * 60, // 1 hour
+    revalidate: 60 * 15, // 15 minutes
     tags: ["outcomes-index"],
   },
 );
