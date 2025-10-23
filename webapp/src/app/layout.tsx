@@ -4,6 +4,7 @@ import Form from "next/form";
 import Link from "next/link";
 import NextTopLoader from "nextjs-toploader";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
+import GithubCorner from "@/components/GithubCorner";
 import SearchInputs from "@/components/SearchInputs";
 import "./globals.css";
 
@@ -38,6 +39,7 @@ export default function RootLayout({
             <h1 className="text-5xl font-extrabold text-center mt-8 xs:mt-10 sm:mt-12">
               <Link href="/">CAC Outcomes</Link>
             </h1>
+            <GithubCorner href="https://github.com/digitalorganising/cac" />
             <Form
               action=""
               className="mt-8 xs:mt-12 max-w-2xl mx-auto"
