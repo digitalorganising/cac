@@ -24,22 +24,27 @@ large_client_registry.set_primary("LargeClient")
 large_client = authenticated_client.with_options(client_registry=large_client_registry)
 
 
-def with_retry_client(default_client, retry_client, wait=wait_fixed(3)):
+def with_retry_client(default_client, retry_client, wait=wait_fixed(3), max_attempts=2):
     def decorator(func):
-        attempt = 0
-
-        @retry(
-            retry=retry_if_exception_type(BamlValidationError),
-            stop=stop_after_attempt(2),
-            wait=wait,
-            reraise=True,
-        )
         def wrapper(*args, **kwargs):
-            nonlocal attempt
-            attempt += 1
-            if attempt > 1:
-                return func(*args, **kwargs, client=retry_client)
-            return func(*args, **kwargs, client=default_client)
+            attempt = 0
+
+            @retry(
+                retry=retry_if_exception_type(BamlValidationError),
+                stop=stop_after_attempt(max_attempts),
+                wait=wait,
+                reraise=True,
+            )
+            def _retry_func():
+                nonlocal attempt
+                attempt += 1
+                if attempt == max_attempts:
+                    return func(*args, **kwargs, client=retry_client)
+                elif attempt > max_attempts:
+                    raise RuntimeError("You shouldn't be seeing this error!")
+                return func(*args, **kwargs, client=default_client)
+
+            return _retry_func()
 
         return wrapper
 
