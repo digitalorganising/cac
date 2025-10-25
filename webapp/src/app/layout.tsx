@@ -22,8 +22,10 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export default function RootLayout({
   children,
+  faceting,
 }: Readonly<{
   children: React.ReactNode;
+  faceting: React.ReactNode;
 }>) {
   return (
     <html lang="en" className={inter.variable}>
@@ -49,6 +51,7 @@ export default function RootLayout({
                 <SearchInputs />
               </div>
             </Form>
+            {faceting}
             {children}
           </main>
         </NuqsAdapter>

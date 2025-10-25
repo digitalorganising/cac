@@ -7,9 +7,9 @@ import { appSearchParamsParser } from "@/lib/search-params";
 const loadParams = createLoader(appSearchParamsParser);
 
 export async function GET(request: NextRequest) {
-  const searchParams = await loadParams(request.nextUrl.searchParams);
+  const searchParams = loadParams(request.nextUrl.searchParams);
   const options = appSearchParamsToOutcomesOptions(15, searchParams);
-  const outcomes = await getOutcomes(options);
+  const outcomes = await getOutcomes(options, searchParams.debug);
 
   const currentPage = searchParams.page || 1;
   const totalPages = Math.ceil(outcomes.size / 15);
