@@ -141,10 +141,7 @@ def get_durations(key_dates, outcome: Outcome):
     if outcome_concluded:
         durations["outcomeConcluded"] = outcome_concluded - application_received
     else:
-        last_updated_datetime = datetime.datetime.combine(
-            outcome.last_updated, datetime.datetime.min.time()
-        )
-        durations["current"] = last_updated_datetime - application_received
+        durations["current"] = outcome.last_updated.date() - application_received
     if method_agreed:
         durations["methodAgreed"] = method_agreed - application_received
 
