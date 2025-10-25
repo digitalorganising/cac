@@ -84,6 +84,11 @@ export type OutcomeKeyDates = {
   methodAgreed?: string;
 };
 
+export type OutcomeDuration = {
+  value: number;
+  relation: "eq" | "gte";
+};
+
 export type Outcome = {
   title: string;
   reference: string;
@@ -95,4 +100,5 @@ export type Outcome = {
   ballot?: OutcomeBallot;
   events: OutcomeEvent[];
   keyDates: OutcomeKeyDates;
+  duration: OutcomeDuration;
 };

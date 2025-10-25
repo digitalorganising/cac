@@ -18,12 +18,16 @@ export type GetOutcomesOptions = PaginationOptions &
   QueryOptions &
   FilterOptions;
 
+export const PAGE_SIZE = 15;
+
 export const getOutcomes = async (
   { from, size, sortKey, sortOrder, ...queryOptions }: GetOutcomesOptions,
   debug = false,
 ): Promise<{ size: number; docs: Outcome[] }> => {
-  "use cache";
-  cacheLife("hours");
+  // "use cache";
+  // cacheLife("hours");
+
+  console.log(queryOptions);
 
   const client = await getClient();
   const body = {
@@ -41,13 +45,15 @@ export const getOutcomes = async (
   };
 
   if (debug) {
-    console.log("Request body (outcomes):", body);
+    console.log("Request body (outcomes):");
+    console.dir(body, { depth: null });
   }
 
   const response = await client.search({ index: outcomesIndex, body });
 
   if (debug) {
-    console.log("Response body (outcomes):", response.body);
+    console.log("Response body (outcomes):");
+    // console.dir(response.body);
   }
 
   const totalHits =

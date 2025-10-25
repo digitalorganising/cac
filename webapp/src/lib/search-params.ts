@@ -60,6 +60,8 @@ export const appSearchParamsParser = {
   state: parseAsUniqueArrayOf(parseAsStringLiteral(outcomeStates)),
   "bargainingUnit.size.from": parseAsInteger,
   "bargainingUnit.size.to": parseAsInteger,
+  "duration.from": parseAsInteger,
+  "duration.to": parseAsInteger,
   "events.type": parseAsUniqueArrayOf(parseAsStringLiteral(eventTypes)),
   "events.date.from": parseAsIsoDate,
   "events.date.to": parseAsIsoDate,
