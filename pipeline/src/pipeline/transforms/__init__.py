@@ -127,6 +127,30 @@ def get_ballot_result(outcome: Outcome):
     return None
 
 
+def get_durations(key_dates, outcome: Outcome):
+    application_received = key_dates["applicationReceived"]
+    outcome_concluded = key_dates["outcomeConcluded"]
+    method_agreed = key_dates["methodAgreed"]
+
+    durations = {
+        "outcomeConcluded": None,
+        "methodAgreed": None,
+        "current": None,
+    }
+    if outcome_concluded:
+        durations["outcomeConcluded"] = outcome_concluded - application_received
+    else:
+        durations["current"] = outcome.last_updated - application_received
+    if method_agreed:
+        durations["methodAgreed"] = method_agreed - application_received
+
+    for k, v in durations.items():
+        if v is not None:
+            durations[k] = v.total_seconds()
+
+    return durations
+
+
 def flatten_facets(facets):
     def flatten(obj):
         if obj is None:
@@ -151,6 +175,7 @@ def transform_for_index(outcome: Outcome):
     ballot = get_ballot_result(outcome)
     state = events.labelled_state()
     events_json = events.dump_events()
+    durations = get_durations(key_dates, outcome)
     json_state = {"value": state.value, "label": state.label}
 
     return {
@@ -167,6 +192,7 @@ def transform_for_index(outcome: Outcome):
             "ballot": ballot,
             "events": events_json,
             "keyDates": key_dates,
+            "durations": durations,
         },
         "filter": {
             "lastUpdated": outcome.last_updated,
@@ -179,6 +205,9 @@ def transform_for_index(outcome: Outcome):
             "events.date": [e["date"] for e in events_json],
             "keyDates.applicationReceived": key_dates["applicationReceived"],
             "keyDates.outcomeConcluded": key_dates["outcomeConcluded"],
+            "durations.outcomeConcluded": durations["outcomeConcluded"],
+            "durations.methodAgreed": durations["methodAgreed"],
+            "durations.current": durations["current"],
         },
         "facet": flatten_facets(
             {

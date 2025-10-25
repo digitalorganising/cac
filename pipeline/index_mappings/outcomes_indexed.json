@@ -131,6 +131,15 @@
         },
         "keyDates.outcomeConcluded": {
           "type": "date"
+        },
+        "durations.outcomeConcluded": {
+          "type": "long"
+        },
+        "durations.methodAgreed": {
+          "type": "long"
+        },
+        "durations.current": {
+          "type": "long"
         }
       }
     },
