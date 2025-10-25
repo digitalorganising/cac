@@ -1,5 +1,6 @@
 import json
 import re
+import datetime
 
 from .events import EventsBuilder, events_from_outcome
 from .model import EventType, OutcomeState
@@ -140,7 +141,10 @@ def get_durations(key_dates, outcome: Outcome):
     if outcome_concluded:
         durations["outcomeConcluded"] = outcome_concluded - application_received
     else:
-        durations["current"] = outcome.last_updated - application_received
+        last_updated_datetime = datetime.datetime.combine(
+            outcome.last_updated, datetime.datetime.min.time()
+        )
+        durations["current"] = last_updated_datetime - application_received
     if method_agreed:
         durations["methodAgreed"] = method_agreed - application_received
 
