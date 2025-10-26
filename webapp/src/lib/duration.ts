@@ -1,8 +1,16 @@
 import dayjs from "dayjs";
 import { OutcomeKeyDates } from "@/lib/types";
 
-function pluralize(singular: string, quantity: number): string {
+export function pluralize(singular: string, quantity: number): string {
   return quantity === 1 ? singular : `${singular}s`;
+}
+
+export function formatSecondsDuration(seconds: number): string {
+  const weeks = Math.floor(seconds / (7 * 24 * 60 * 60));
+  const months = Math.floor(weeks / 4.345);
+  const formattedValue = months > 2 ? months : weeks;
+  const unit = months > 2 ? "months" : pluralize("week", weeks);
+  return `${formattedValue} ${unit}`;
 }
 
 export function formatDuration({

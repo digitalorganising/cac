@@ -32,3 +32,6 @@ export function hasDeepProperty<V, O extends object>(
   };
   return searchObj(obj);
 }
+
+export const clamp = (value: number, min: number, max: number) =>
+  Math.max(min, Math.min(value, max));

@@ -25,7 +25,7 @@ export function BargainingUnitSizeSelect({
   return (
     <Popover modal={true}>
       <PopoverTrigger asChild>
-        <InputTriggerButton icon={<BarChartIcon />}>
+        <InputTriggerButton icon={<BarChartIcon />} selected={!!min || !!max}>
           Bargaining Unit Size
         </InputTriggerButton>
       </PopoverTrigger>

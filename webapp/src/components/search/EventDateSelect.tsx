@@ -3,12 +3,7 @@
 import { CalendarIcon, Cross2Icon } from "@radix-ui/react-icons";
 import { useState } from "react";
 import { useAppQueryState } from "@/lib/app-query-state";
-import {
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../ui/accordion";
-import CountBadge from "../ui/count-badge";
+import { AccordionContent, AccordionItem } from "../ui/accordion";
 import { DateRange } from "../ui/date-range";
 import {
   Dialog,
@@ -71,6 +66,7 @@ function MobileDateSelect({
             id={name}
             icon={<CalendarIcon />}
             className="w-full flex-row-reverse justify-end relative"
+            selected={!!value}
           >
             {value ? (
               humanizeDate(value)

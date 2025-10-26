@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 
 type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   loading?: boolean;
+  selected?: boolean;
   icon: React.ReactNode;
 };
 
@@ -11,6 +12,7 @@ export function InputTriggerButton({
   className,
   children,
   icon,
+  selected,
   ...props
 }: Props) {
   return (
@@ -23,7 +25,16 @@ export function InputTriggerButton({
       {...props}
     >
       {children}
-      {icon}
+      <span
+        className={cn(
+          "inline-flex items-center justify-center size-5 px-1 rounded-full pointer-events-none",
+          selected
+            ? "bg-slate-600 [&>svg]:text-white! [&>svg]:size-3!"
+            : "bg-transparent [&>svg]:text-muted-foreground",
+        )}
+      >
+        {icon}
+      </span>
     </button>
   );
 }

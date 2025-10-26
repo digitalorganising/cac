@@ -1,6 +1,7 @@
 import {
   BarChartIcon,
   ChevronDownIcon,
+  ClockIcon,
   Cross2Icon,
   MixerHorizontalIcon,
 } from "@radix-ui/react-icons";
@@ -57,6 +58,9 @@ function FacetFallback() {
       <DateRange loading={true} />
       <InputTriggerButton loading={true} icon={<BarChartIcon />}>
         Bargaining Unit Size
+      </InputTriggerButton>
+      <InputTriggerButton loading={true} icon={<ClockIcon />}>
+        Duration
       </InputTriggerButton>
     </>
   );

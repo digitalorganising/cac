@@ -2,6 +2,7 @@ import { Cross2Icon } from "@radix-ui/react-icons";
 import Link from "next/link";
 import React from "react";
 import { Entries } from "type-fest";
+import { formatSecondsDuration } from "@/lib/duration";
 import {
   AppSearchParams,
   appSearchParamsCache,
@@ -15,7 +16,14 @@ export type FilterEntries = Record<
   { value: string | Date | number; label?: string }[]
 >;
 
-const renderValue = (value?: string | Date | number): string | undefined => {
+const renderValue = (
+  value?: string | Date | number,
+  key?: keyof AppSearchParams,
+): string | undefined => {
+  // TODO: make this less terrible; renderers for each key
+  if (key === "duration.from" || key === "duration.to") {
+    return formatSecondsDuration(value as number);
+  }
   if (typeof value === "string") {
     return value;
   }
@@ -52,7 +60,7 @@ export default function AppliedFilters({
               <span className="text-sm text-nowrap">
                 <strong className="font-semibold">{filterLabels[key]}</strong>:{" "}
                 <span className="no-underline group-hover:underline">
-                  {label ?? renderValue(value)}
+                  {label ?? renderValue(value, key)}
                 </span>
               </span>
               <Cross2Icon className="size-3 text-slate-500 group-hover:text-slate-700" />

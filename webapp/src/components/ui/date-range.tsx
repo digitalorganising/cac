@@ -17,24 +17,6 @@ type Props = {
   loading?: boolean;
 };
 
-function CalendarBadge({ selected }: { selected: boolean }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center justify-center text-white size-5 px-1 rounded-full pointer-events-none",
-        selected ? "bg-slate-600" : "bg-transparent",
-      )}
-    >
-      <CalendarIcon
-        className={cn(
-          "size-3",
-          selected ? "text-white" : "text-muted-foreground",
-        )}
-      />
-    </span>
-  );
-}
-
 export function DateRange({
   start,
   end,
@@ -70,7 +52,8 @@ export function DateRange({
           title="Start date"
           disabled={disabled === "start" || disabled === true}
           loading={loading}
-          icon={<CalendarBadge selected={start !== undefined} />}
+          icon={<CalendarIcon />}
+          selected={start !== undefined}
         >
           Start
         </InputTriggerButton>
@@ -92,7 +75,8 @@ export function DateRange({
           title="End date"
           disabled={disabled === "end" || disabled === true}
           loading={loading}
-          icon={<CalendarBadge selected={end !== undefined} />}
+          icon={<CalendarIcon />}
+          selected={end !== undefined}
         >
           End
         </InputTriggerButton>

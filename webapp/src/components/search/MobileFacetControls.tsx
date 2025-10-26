@@ -3,6 +3,7 @@ import { Facets } from "@/lib/queries/facets";
 import { appSearchParamsCache } from "@/lib/search-params";
 import { Accordion } from "../ui/accordion";
 import { BargainingUnitSizeSelectMobile } from "./BargainingUnitSizeSelect";
+import { DurationSelectMobile } from "./DurationSelect";
 import { EventDateSelectMobile } from "./EventDateSelect";
 import { FacetSelectMobile } from "./FacetSelect";
 import { filterLabels } from "./common";
@@ -38,6 +39,7 @@ export default async function MobileFacetControls({
             }),
           )}
         />
+        <DurationSelectMobile />
       </Accordion>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
+import { clamp } from "@/lib/utils";
 import type { Bin } from "./histogram";
 import { Input } from "./input";
 import { Label } from "./label";
@@ -22,9 +23,6 @@ type Props = {
 };
 
 const ensureNumber = (value: string) => Number(value.replace(/\D/, ""));
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.max(min, Math.min(value, max));
 
 function SliderInput({
   name,
