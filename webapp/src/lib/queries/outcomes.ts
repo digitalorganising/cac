@@ -24,10 +24,8 @@ export const getOutcomes = async (
   { from, size, sortKey, sortOrder, ...queryOptions }: GetOutcomesOptions,
   debug = false,
 ): Promise<{ size: number; docs: Outcome[] }> => {
-  // "use cache";
-  // cacheLife("hours");
-
-  console.log(queryOptions);
+  "use cache";
+  cacheLife("hours");
 
   const client = await getClient();
   const body = {
@@ -53,7 +51,7 @@ export const getOutcomes = async (
 
   if (debug) {
     console.log("Response body (outcomes):");
-    // console.dir(response.body);
+    console.dir(response.body);
   }
 
   const totalHits =
