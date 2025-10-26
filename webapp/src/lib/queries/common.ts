@@ -125,6 +125,68 @@ const filterRange = <T extends string | number>(
   ];
 };
 
+const filterDuration = (from?: number, to?: number) => {
+  if (!from && !to) {
+    return [];
+  }
+
+  return [
+    {
+      bool: {
+        should: [
+          {
+            bool: {
+              filter: [
+                {
+                  term: {
+                    [filterPrefix + "duration.relation"]: "eq",
+                  },
+                },
+                ...filterRange("duration.value", from, to),
+              ],
+            },
+          },
+          {
+            bool: {
+              filter: [
+                {
+                  term: {
+                    [filterPrefix + "duration.relation"]: "gte",
+                  },
+                },
+                {
+                  script: {
+                    script: {
+                      source: `
+                        ZoneId london = ZoneId.of("Europe/London");
+                        ZonedDateTime applicationReceived = doc['filter.keyDates.applicationReceived'].value.withZoneSameInstant(london);
+                        long duration = params.now - applicationReceived.toEpochSecond();
+                        if (params.from != null && params.to != null) {
+                          return duration >= params.from && duration <= params.to;
+                        } else if (params.from != null) {
+                          return duration >= params.from;
+                        } else {
+                          return duration <= params.to;
+                        }
+                    `,
+                      params: {
+                        from: from ?? null,
+                        to: to ?? null,
+                        now: Math.floor(Date.now() / 1000),
+                      },
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+        _name: `filter-duration`,
+      },
+    } as OpenSearchTypes.Common_QueryDsl.QueryContainer,
+  ];
+};
+
 export const getFilters = ({
   "parties.unions": unions,
   "parties.employer": employer,
@@ -150,7 +212,7 @@ export const getFilters = ({
       bargainingUnitSizeFrom,
       bargainingUnitSizeTo,
     ),
-    filterRange("duration.value", durationFrom, durationTo),
+    filterDuration(durationFrom, durationTo),
   ].flat();
 
 export const getQuery = ({ query }: QueryOptions) =>
