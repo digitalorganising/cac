@@ -4,13 +4,8 @@ import React from "react";
 import { useAppQueryState } from "@/lib/app-query-state";
 import { MultiSelectFacet } from "@/lib/queries/facets";
 import { cn } from "@/lib/utils";
-import {
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../ui/accordion";
+import { AccordionContent, AccordionItem } from "../ui/accordion";
 import { LabelledCheckbox } from "../ui/checkbox";
-import CountBadge from "../ui/count-badge";
 import MultiSelect from "../ui/multi-select";
 import { AccordionFilter } from "./common";
 
@@ -19,7 +14,7 @@ type Props = Omit<
   "selected" | "onSelect" | "name"
 > & { name: MultiSelectFacet; className?: string };
 
-export function FacetSelectDesktop(props: Props) {
+export function MultiSelectDesktop(props: Props) {
   const [selected, setSelected] = useAppQueryState(props.name);
 
   const handleSelect = (value: string, checked: boolean) => {
@@ -40,7 +35,7 @@ export function FacetSelectDesktop(props: Props) {
   );
 }
 
-export function FacetSelectMobile({
+export function MultiSelectMobile({
   label,
   options,
   className,

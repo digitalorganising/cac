@@ -1,5 +1,5 @@
 import { SearchParams } from "nuqs/server";
-import FilteringControls from "@/components/search/FilteringControls";
+import { FacetingControls } from "@/components/facets";
 import { PAGE_SIZE } from "@/lib/queries/outcomes";
 import { appSearchParamsToOutcomesOptions } from "@/lib/queries/util";
 import { appSearchParamsCache } from "@/lib/search-params";
@@ -11,5 +11,5 @@ export default async function DefaultFaceting({
 }) {
   const params = await appSearchParamsCache.parse(searchParams);
   const options = appSearchParamsToOutcomesOptions(PAGE_SIZE, params);
-  return <FilteringControls options={options} />;
+  return <FacetingControls options={options} />;
 }

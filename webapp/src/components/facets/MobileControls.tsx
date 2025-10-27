@@ -1,14 +1,13 @@
 import { Entries } from "type-fest";
 import { Facets } from "@/lib/queries/facets";
-import { appSearchParamsCache } from "@/lib/search-params";
 import { Accordion } from "../ui/accordion";
 import { BargainingUnitSizeSelectMobile } from "./BargainingUnitSizeSelect";
 import { DurationSelectMobile } from "./DurationSelect";
 import { EventDateSelectMobile } from "./EventDateSelect";
-import { FacetSelectMobile } from "./FacetSelect";
+import { MultiSelectMobile } from "./MultiSelect";
 import { filterLabels } from "./common";
 
-export default async function MobileFacetControls({
+export default async function MobileControls({
   facetsPromise,
 }: {
   facetsPromise: Promise<Facets>;
@@ -20,7 +19,7 @@ export default async function MobileFacetControls({
         {(
           Object.entries(facets.multiSelect) as Entries<Facets["multiSelect"]>
         ).map(([name, buckets]) => (
-          <FacetSelectMobile
+          <MultiSelectMobile
             key={name}
             label={filterLabels[name] ?? ""}
             name={name}

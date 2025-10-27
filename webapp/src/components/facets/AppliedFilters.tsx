@@ -3,6 +3,7 @@ import Link from "next/link";
 import React from "react";
 import { Entries } from "type-fest";
 import { formatSecondsDuration } from "@/lib/duration";
+import { Facets, MultiSelectFacet } from "@/lib/queries/facets";
 import {
   AppSearchParams,
   appSearchParamsCache,
@@ -35,6 +36,30 @@ const renderValue = (
   }
   return value;
 };
+
+export async function AppliedLabelledFilters({
+  filterEntries,
+  facetsPromise,
+}: {
+  filterEntries: FilterEntries;
+  facetsPromise: Promise<Facets>;
+}) {
+  const facets = await facetsPromise;
+  const filterEntriesWithLabels = Object.fromEntries(
+    (Object.entries(filterEntries) as Entries<FilterEntries>).map(
+      ([key, entries]) => [
+        key,
+        entries.map((entry) => ({
+          ...entry,
+          label: Object.values(
+            facets.multiSelect[key as MultiSelectFacet] ?? {},
+          )?.find((f) => f.value === entry.value)?.label,
+        })),
+      ],
+    ),
+  ) as FilterEntries;
+  return <AppliedFilters filterEntries={filterEntriesWithLabels} />;
+}
 
 export default function AppliedFilters({
   filterEntries,

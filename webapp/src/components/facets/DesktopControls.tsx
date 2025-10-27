@@ -1,12 +1,43 @@
+import {
+  BarChartIcon,
+  ChevronDownIcon,
+  ClockIcon,
+} from "@radix-ui/react-icons";
 import { Entries } from "type-fest";
 import { Facets } from "@/lib/queries/facets";
+import { DateRange } from "../ui/date-range";
+import { InputTriggerButton } from "../ui/input-trigger-button";
 import { BargainingUnitSizeSelect } from "./BargainingUnitSizeSelect";
 import { DurationSelect } from "./DurationSelect";
 import { EventDateSelect } from "./EventDateSelect";
-import { FacetSelectDesktop } from "./FacetSelect";
+import { MultiSelectDesktop } from "./MultiSelect";
 import { filterLabels } from "./common";
 
-export default async function FacetControls({
+export function DesktopControlsFallback() {
+  return (
+    <>
+      {["Unions", "Status", "Events"].map((label) => (
+        <InputTriggerButton
+          key={label}
+          loading={true}
+          aria-label={`${label} filter`}
+          icon={<ChevronDownIcon className="size-4 opacity-50" />}
+        >
+          {label}
+        </InputTriggerButton>
+      ))}
+      <DateRange loading={true} />
+      <InputTriggerButton loading={true} icon={<BarChartIcon />}>
+        Bargaining Unit Size
+      </InputTriggerButton>
+      <InputTriggerButton loading={true} icon={<ClockIcon />}>
+        Duration
+      </InputTriggerButton>
+    </>
+  );
+}
+
+export default async function DesktopControls({
   facetsPromise,
 }: {
   facetsPromise: Promise<Facets>;
@@ -17,7 +48,7 @@ export default async function FacetControls({
       {(
         Object.entries(facets.multiSelect) as Entries<Facets["multiSelect"]>
       ).map(([name, buckets]) => (
-        <FacetSelectDesktop
+        <MultiSelectDesktop
           key={name}
           label={filterLabels[name] ?? ""}
           name={name}
