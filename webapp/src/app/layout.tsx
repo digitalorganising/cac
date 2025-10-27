@@ -37,11 +37,11 @@ export default function RootLayout({
             color="hsl(222.2 84% 4.9%)"
             showSpinner={false}
           />
-          <main className="container max-w-(--breakpoint-xl) px-4 xs:px-5 sm:px-6 pb-6">
-            <h1 className="text-5xl font-extrabold text-center mt-8 xs:mt-10 sm:mt-12">
+          <GithubCorner href="https://github.com/digitalorganising/cac" />
+          <main className="container max-w-(--breakpoint-xl) px-4 xs:px-5 sm:px-6 pb-6 pt-8 xs:pt-10 sm:pt-12">
+            <h1 className="text-5xl font-extrabold text-center">
               <Link href="/">CAC Outcomes</Link>
             </h1>
-            <GithubCorner href="https://github.com/digitalorganising/cac" />
             <Form
               action=""
               className="mt-8 xs:mt-12 max-w-2xl mx-auto"
