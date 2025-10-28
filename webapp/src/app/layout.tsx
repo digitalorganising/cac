@@ -43,7 +43,7 @@ export default function RootLayout({
               <Link href="/">CAC Outcomes</Link>
             </h1>
             <Form
-              action=""
+              action="/"
               className="mt-8 xs:mt-12 max-w-2xl mx-auto"
               id="outcomes-search-form"
             >
