@@ -5,12 +5,19 @@ import createMDX from "@next/mdx";
 const nextConfig = {
   cacheComponents: true,
   pageExtensions: ["ts", "tsx", "mdx"],
+  images: {
+    localPatterns: [{ pathname: "/assets/**", search: "" }],
+  },
 };
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
-const withMDX = createMDX();
+const withMDX = createMDX({
+  options: {
+    rehypePlugins: ["rehype-mermaid"],
+  },
+});
 
 export default withBundleAnalyzer(withMDX(nextConfig));
