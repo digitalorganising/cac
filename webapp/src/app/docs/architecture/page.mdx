@@ -17,4 +17,55 @@ BAML is really excellent for the data extraction tasks, as shown by the suite of
 
 Once the data is extracted, it's transformed into the event-based format with a state machine for validation:
 
-![The state machine diagram for the event transformation](/assets/event-state-diagram.svg)
+<br />
+
+```mermaid
+---
+State Machine
+---
+stateDiagram-v2
+  direction LR
+  classDef s_default fill:white,color:black
+  classDef s_inactive fill:white,color:black
+  classDef s_parallel color:black,fill:white
+  classDef s_active color:red,fill:darksalmon
+  classDef s_previous color:blue,fill:azure
+
+  state "initial" as initial
+  Class initial s_active
+  state "withdrawn" as withdrawn
+  Class withdrawn s_default
+  state "pending_application_decision" as pending_application_decision
+  Class pending_application_decision s_default
+  state "application_rejected" as application_rejected
+  Class application_rejected s_default
+  state "pending_recognition_decision" as pending_recognition_decision
+  Class pending_recognition_decision s_default
+  state "balloting" as balloting
+  Class balloting s_default
+  state "recognized" as recognized
+  Class recognized s_default
+  state "not_recognized" as not_recognized
+  Class not_recognized s_default
+  state "method_agreed" as method_agreed
+  Class method_agreed s_default
+  state "closed" as closed
+  Class closed s_default
+
+  initial --> pending_application_decision: application_received
+  pending_application_decision --> pending_application_decision: application_p35_valid
+  pending_application_decision --> application_rejected: application_p35_invalid | application_rejected
+  pending_application_decision --> withdrawn: application_withdrawn
+  pending_application_decision --> pending_recognition_decision: application_accepted
+  pending_recognition_decision --> withdrawn: application_withdrawn
+  pending_recognition_decision --> application_rejected: application_rejected
+  pending_recognition_decision --> pending_recognition_decision: bargaining_unit_appropriate | bargaining_unit_inappropriate | ballot_requirement_decided | ballot_not_required | ballot_form_postal | ballot_form_workplace | ballot_form_combination
+  pending_recognition_decision --> recognized: union_recognized
+  pending_recognition_decision --> balloting: ballot_held
+  pending_recognition_decision --> closed: case_closed
+  balloting --> recognized: union_recognized
+  balloting --> not_recognized: union_not_recognized
+  recognized --> method_agreed: method_decision | method_agreed
+  recognized --> closed: case_closed
+  [*] --> initial
+```
