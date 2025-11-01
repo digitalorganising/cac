@@ -15,6 +15,10 @@ jobs:
       repository-projects: write
     steps:
       - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: npm ci
+      - name: Set up playwright for rehype-mermaid
+        run: npx playwright install --with-deps chromium
       - uses: amondnet/vercel-action@v20
         with:
           working-directory: ./webapp
