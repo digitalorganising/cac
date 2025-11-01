@@ -1,3 +1,4 @@
+import { BarChartIcon } from "@radix-ui/react-icons";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Form from "next/form";
@@ -38,12 +39,17 @@ export default function RootLayout({
             color="hsl(222.2 84% 4.9%)"
             showSpinner={false}
           />
-          <nav className="m-2 xs:m-3 sm:m-6">
+          <nav className="m-2 xs:m-3 sm:m-4">
             <Button asChild variant="ghost" className="hidden sm:inline-flex">
               <Link href="/">Home</Link>
             </Button>
             <Button asChild variant="ghost">
               <Link href="/docs">Docs</Link>
+            </Button>
+            <Button asChild variant="ghost">
+              <Link href="/dashboard">
+                Dashboard <BarChartIcon />
+              </Link>
             </Button>
           </nav>
           <GithubCorner href="https://github.com/digitalorganising/cac" />
