@@ -9,6 +9,9 @@ jobs:
   build_and_deploy:
     name: Build and deploy Vercel app
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./webapp
     permissions:
       contents: write
       pull-requests: write
