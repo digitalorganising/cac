@@ -13,6 +13,7 @@ import {
 } from "@/lib/search-params";
 import { Outcome, OutcomeState } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { getStateCategory } from "@/lib/utils/state-category";
 import DebugView from "./DebugView";
 import DecisionTimelineItem from "./DecisionTimelineItem";
 
@@ -23,20 +24,18 @@ type Props = {
 };
 
 const classForState = (outcomeState: OutcomeState): string => {
-  switch (outcomeState.value) {
+  const category = getStateCategory(outcomeState);
+  switch (category) {
     case "withdrawn":
-    case "closed":
       return "bg-slate-200";
-    case "pending_application_decision":
-    case "pending_recognition_decision":
-    case "balloting":
+    case "pending":
       return "bg-amber-200";
-    case "recognized":
-    case "method_agreed":
+    case "successful":
       return "bg-green-300";
-    case "not_recognized":
-    case "application_rejected":
+    case "unsuccessful":
       return "bg-red-300";
+    default:
+      return "bg-slate-200";
   }
 };
 

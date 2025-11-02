@@ -1,5 +1,6 @@
 import {
   getApplicationsPerUnion,
+  getBargainingUnitSizeVsTurnout,
   getBargainingUnitSizes,
   getCategoryCounts,
   getTimeToAcceptance,
@@ -7,6 +8,7 @@ import {
 } from "@/lib/queries/dashboard";
 import ApplicationsPerUnionChartClient from "./ApplicationsPerUnionChart";
 import BargainingUnitSizeChartClient from "./BargainingUnitSizeChart";
+import BargainingUnitSizeVsTurnoutChartClient from "./BargainingUnitSizeVsTurnoutChart";
 import CategoryCountCardsClient from "./CategoryCountCards";
 import TimeToAcceptanceChartClient from "./TimeToAcceptanceChart";
 import TimeToConclusionChartClient from "./TimeToConclusionChart";
@@ -34,4 +36,9 @@ export async function TimeToAcceptanceChart() {
 export async function TimeToConclusionChart() {
   const data = await getTimeToConclusion();
   return <TimeToConclusionChartClient data={data} />;
+}
+
+export async function BargainingUnitSizeVsTurnoutChart() {
+  const data = await getBargainingUnitSizeVsTurnout();
+  return <BargainingUnitSizeVsTurnoutChartClient data={data} />;
 }

@@ -2,12 +2,12 @@
 
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
-  ChartContainer,
   ChartConfig,
-  ChartTooltip,
-  ChartTooltipContent,
+  ChartContainer,
   ChartLegend,
   ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
 } from "@/components/ui/chart";
 import { TimeToConclusionData } from "@/lib/queries/dashboard";
 
@@ -38,6 +38,9 @@ export default function TimeToConclusionChart({ data }: Props) {
           tickLine={false}
           axisLine={false}
           tickMargin={8}
+          type="number"
+          domain={[0, 104]}
+          tickCount={20}
           label={{
             value: "Weeks",
             position: "insideBottom",
@@ -48,20 +51,13 @@ export default function TimeToConclusionChart({ data }: Props) {
         <YAxis tickLine={false} axisLine={false} tickMargin={8} />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
-        <Bar
-          dataKey="successful"
-          stackId="a"
-          fill="var(--color-successful)"
-          radius={[0, 0, 0, 0]}
-        />
+        <Bar dataKey="successful" stackId="a" fill="var(--color-successful)" />
         <Bar
           dataKey="unsuccessful"
           stackId="a"
           fill="var(--color-unsuccessful)"
-          radius={[4, 4, 0, 0]}
         />
       </BarChart>
     </ChartContainer>
   );
 }
-

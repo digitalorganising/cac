@@ -55,15 +55,9 @@ export default function ApplicationsPerUnionChart({ data }: Props) {
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
         <Bar
-          dataKey="successful"
+          dataKey="withdrawn"
           stackId="a"
-          fill="var(--color-successful)"
-          radius={[0, 0, 0, 0]}
-        />
-        <Bar
-          dataKey="unsuccessful"
-          stackId="a"
-          fill="var(--color-unsuccessful)"
+          fill="var(--color-withdrawn)"
           radius={[0, 0, 0, 0]}
         />
         <Bar
@@ -73,9 +67,15 @@ export default function ApplicationsPerUnionChart({ data }: Props) {
           radius={[0, 0, 0, 0]}
         />
         <Bar
-          dataKey="withdrawn"
+          dataKey="unsuccessful"
           stackId="a"
-          fill="var(--color-withdrawn)"
+          fill="var(--color-unsuccessful)"
+          radius={[0, 0, 0, 0]}
+        />
+        <Bar
+          dataKey="successful"
+          stackId="a"
+          fill="var(--color-successful)"
           radius={[4, 4, 0, 0]}
         />
       </BarChart>

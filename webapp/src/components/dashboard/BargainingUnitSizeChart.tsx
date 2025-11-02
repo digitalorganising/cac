@@ -2,12 +2,12 @@
 
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
-  ChartContainer,
   ChartConfig,
-  ChartTooltip,
-  ChartTooltipContent,
+  ChartContainer,
   ChartLegend,
   ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
 } from "@/components/ui/chart";
 import { BargainingUnitSizeData } from "@/lib/queries/dashboard";
 
@@ -46,36 +46,22 @@ export default function BargainingUnitSizeChart({ data }: Props) {
           tickLine={false}
           axisLine={false}
           tickMargin={8}
+          type="number"
+          domain={[0, 500]}
+          tickCount={20}
         />
         <YAxis tickLine={false} axisLine={false} tickMargin={8} />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
-        <Bar
-          dataKey="successful"
-          stackId="a"
-          fill="var(--color-successful)"
-          radius={[0, 0, 0, 0]}
-        />
+        <Bar dataKey="withdrawn" stackId="a" fill="var(--color-withdrawn)" />
+        <Bar dataKey="pending" stackId="a" fill="var(--color-pending)" />
         <Bar
           dataKey="unsuccessful"
           stackId="a"
           fill="var(--color-unsuccessful)"
-          radius={[0, 0, 0, 0]}
         />
-        <Bar
-          dataKey="pending"
-          stackId="a"
-          fill="var(--color-pending)"
-          radius={[0, 0, 0, 0]}
-        />
-        <Bar
-          dataKey="withdrawn"
-          stackId="a"
-          fill="var(--color-withdrawn)"
-          radius={[4, 4, 0, 0]}
-        />
+        <Bar dataKey="successful" stackId="a" fill="var(--color-successful)" />
       </BarChart>
     </ChartContainer>
   );
 }
-

@@ -1,5 +1,9 @@
+import { Types as OpenSearchTypes } from "@opensearch-project/opensearch";
+import { cacheLife } from "next/cache";
 import "server-only";
-import { getClient, outcomesIndex } from "./common";
+import { getStateCategory } from "../utils/state-category";
+import { filterPrefix, getClient, outcomesIndex } from "./common";
+import { getFacetProps } from "./facets";
 
 export type CategoryCounts = {
   successful: number;
@@ -30,92 +34,284 @@ export type TimeToAcceptanceData = {
 }[];
 
 export type TimeToConclusionData = {
-  timeRange: string;
+  timeRange: number;
   successful: number;
   unsuccessful: number;
 }[];
 
-// TODO: Replace with real OpenSearch aggregation query
-export async function getCategoryCounts(): Promise<CategoryCounts> {
-  // Placeholder: Return mock data for now
-  // In the future, this will query OpenSearch with aggregations on the state field
-  return {
-    successful: 1247,
-    unsuccessful: 892,
-    pending: 156,
-    withdrawn: 203,
+export type BargainingUnitSizeVsTurnoutData = {
+  size: number;
+  turnout: number;
+  title: string;
+  success: boolean;
+}[];
+
+const stateCounts = (
+  buckets: OpenSearchTypes.Common_Aggregations.StringTermsBucket[],
+): CategoryCounts => {
+  const counts: CategoryCounts = {
+    successful: 0,
+    unsuccessful: 0,
+    pending: 0,
+    withdrawn: 0,
   };
+
+  for (const bucket of buckets) {
+    const facet = getFacetProps(bucket.key);
+    const category = getStateCategory(facet.value.toString());
+    if (category) {
+      counts[category] += bucket.doc_count;
+    }
+  }
+  return counts;
+};
+
+export async function getCategoryCounts(): Promise<CategoryCounts> {
+  "use cache";
+  cacheLife("hours");
+
+  const client = await getClient();
+  const body = {
+    size: 0,
+    aggs: {
+      state: {
+        terms: {
+          field: "facet.state",
+          size: 10,
+        },
+      },
+    },
+  };
+
+  const response = await client.search({ index: outcomesIndex, body });
+  const agg = response.body.aggregations
+    ?.state as OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
+  const buckets =
+    agg?.buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
+
+  return stateCounts(buckets);
 }
 
-// TODO: Replace with real OpenSearch aggregation query
 export async function getApplicationsPerUnion(): Promise<ApplicationsPerUnionData> {
-  // Placeholder: Return mock data for now
-  // In the future, this will query OpenSearch with terms aggregation on parties.unions
-  // and nested aggregations for state distribution
-  return [
-    { union: "UNITE", successful: 45, unsuccessful: 32, pending: 5, withdrawn: 8 },
-    { union: "GMB", successful: 38, unsuccessful: 28, pending: 4, withdrawn: 6 },
-    { union: "UNISON", successful: 52, unsuccessful: 41, pending: 7, withdrawn: 12 },
-    { union: "CWU", successful: 29, unsuccessful: 19, pending: 3, withdrawn: 4 },
-    { union: "PCS", successful: 34, unsuccessful: 25, pending: 6, withdrawn: 7 },
-    { union: "RMT", successful: 21, unsuccessful: 15, pending: 2, withdrawn: 3 },
-    { union: "UCU", successful: 18, unsuccessful: 12, pending: 1, withdrawn: 2 },
-  ];
+  "use cache";
+  cacheLife("hours");
+
+  const client = await getClient();
+  const body = {
+    size: 0,
+    aggs: {
+      unions: {
+        terms: {
+          field: "facet.parties.unions",
+          size: 15,
+        },
+        aggs: {
+          states: {
+            terms: {
+              field: "facet.state",
+              size: 10,
+            },
+          },
+        },
+      },
+    },
+  };
+
+  const response = await client.search({ index: outcomesIndex, body });
+  const unionsAgg = response.body.aggregations
+    ?.unions as OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
+  const unionBuckets =
+    unionsAgg?.buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
+
+  return unionBuckets.map((unionBucket: any) => {
+    const unionFacet = getFacetProps(unionBucket.key);
+    const union = unionFacet.value.toString();
+    const stateBuckets = unionBucket.states?.buckets || [];
+
+    return {
+      union,
+      ...stateCounts(stateBuckets),
+    };
+  });
 }
 
-// TODO: Replace with real OpenSearch aggregation query
 export async function getBargainingUnitSizes(): Promise<BargainingUnitSizeData> {
-  // Placeholder: Return mock data for now
-  // In the future, this will query OpenSearch with range aggregation on bargainingUnit.size
-  // and nested aggregations for state distribution
-  return [
-    { sizeRange: "0-50", successful: 12, unsuccessful: 8, pending: 2, withdrawn: 3 },
-    { sizeRange: "51-100", successful: 28, unsuccessful: 19, pending: 4, withdrawn: 5 },
-    { sizeRange: "101-200", successful: 45, unsuccessful: 32, pending: 6, withdrawn: 8 },
-    { sizeRange: "201-500", successful: 62, unsuccessful: 44, pending: 8, withdrawn: 12 },
-    { sizeRange: "501-1000", successful: 48, unsuccessful: 35, pending: 5, withdrawn: 7 },
-    { sizeRange: "1001-2000", successful: 35, unsuccessful: 25, pending: 4, withdrawn: 6 },
-    { sizeRange: "2001-5000", successful: 22, unsuccessful: 16, pending: 2, withdrawn: 3 },
-    { sizeRange: "5000+", successful: 15, unsuccessful: 11, pending: 1, withdrawn: 2 },
-  ];
+  "use cache";
+  cacheLife("hours");
+
+  const client = await getClient();
+  const body = {
+    size: 0,
+    aggs: {
+      bargainingUnitSize: {
+        histogram: {
+          field: "facet.bargainingUnit.size",
+          interval: 5,
+          hard_bounds: {
+            min: 0,
+            max: 500,
+          },
+          extended_bounds: {
+            min: 0,
+            max: 500,
+          },
+        },
+        aggs: {
+          states: {
+            terms: {
+              field: "facet.state",
+              size: 10,
+            },
+          },
+        },
+      },
+    },
+  };
+
+  const response = await client.search({ index: outcomesIndex, body });
+  const agg = response.body.aggregations
+    ?.bargainingUnitSize as OpenSearchTypes.Common_Aggregations.HistogramAggregate;
+  const buckets =
+    agg?.buckets as OpenSearchTypes.Common_Aggregations.HistogramBucket[];
+
+  return buckets.map((bucket: any) => {
+    const facet = getFacetProps(bucket.key);
+    const sizeRange = facet.value.toString();
+    const stateBuckets = bucket.states?.buckets || [];
+    return {
+      sizeRange,
+      ...stateCounts(stateBuckets),
+    };
+  });
 }
 
-// TODO: Replace with real OpenSearch aggregation query
 export async function getTimeToAcceptance(): Promise<TimeToAcceptanceData> {
-  // Placeholder: Return mock data for now
-  // In the future, this will query OpenSearch and calculate time difference between
-  // applicationReceived and application_accepted event dates, then aggregate into week ranges
-  return [
-    { timeRange: "0-4", count: 45 },
-    { timeRange: "5-8", count: 68 },
-    { timeRange: "9-12", count: 52 },
-    { timeRange: "13-16", count: 38 },
-    { timeRange: "17-20", count: 29 },
-    { timeRange: "21-24", count: 22 },
-    { timeRange: "25-28", count: 15 },
-    { timeRange: "29-32", count: 12 },
-    { timeRange: "33-36", count: 8 },
-    { timeRange: "37+", count: 6 },
-  ];
+  "use cache";
+  cacheLife("hours");
+
+  const client = await getClient();
+  return {} as any;
 }
 
-// TODO: Replace with real OpenSearch aggregation query
 export async function getTimeToConclusion(): Promise<TimeToConclusionData> {
-  // Placeholder: Return mock data for now
-  // In the future, this will query OpenSearch and calculate time difference between
-  // applicationReceived and outcomeConcluded dates, then aggregate into week ranges
-  // split by successful (recognized) vs unsuccessful (not_recognized/application_rejected)
-  return [
-    { timeRange: "0-4", successful: 12, unsuccessful: 8 },
-    { timeRange: "5-8", successful: 28, unsuccessful: 19 },
-    { timeRange: "9-12", successful: 35, unsuccessful: 24 },
-    { timeRange: "13-16", successful: 42, unsuccessful: 29 },
-    { timeRange: "17-20", successful: 38, unsuccessful: 26 },
-    { timeRange: "21-24", successful: 32, unsuccessful: 22 },
-    { timeRange: "25-28", successful: 25, unsuccessful: 17 },
-    { timeRange: "29-32", successful: 18, unsuccessful: 12 },
-    { timeRange: "33-36", successful: 12, unsuccessful: 8 },
-    { timeRange: "37+", successful: 8, unsuccessful: 5 },
-  ];
+  "use cache";
+  cacheLife("hours");
+
+  const client = await getClient();
+  const body = {
+    size: 0,
+    query: {
+      term: {
+        "filter.duration.relation": "eq",
+      },
+    },
+    aggs: {
+      timeToConclusion: {
+        histogram: {
+          field: "filter.duration.value",
+          interval: 7 * 24 * 60 * 60,
+          extended_bounds: {
+            min: 0,
+            max: 104 * 7 * 24 * 60 * 60,
+          },
+          hard_bounds: {
+            min: 0,
+            max: 104 * 7 * 24 * 60 * 60,
+          },
+        },
+        aggs: {
+          states: {
+            terms: {
+              field: "facet.state",
+              size: 10,
+            },
+          },
+        },
+      },
+    },
+  };
+
+  const response = await client.search({ index: outcomesIndex, body });
+  const agg = response.body.aggregations
+    ?.timeToConclusion as OpenSearchTypes.Common_Aggregations.HistogramAggregate;
+  const buckets =
+    agg?.buckets as OpenSearchTypes.Common_Aggregations.HistogramBucket[];
+
+  return buckets.map((bucket: any) => {
+    const facet = getFacetProps(bucket.key);
+    const seconds = Number(facet.value);
+    const timeRange = Math.floor(seconds / (7 * 24 * 60 * 60));
+    const stateBuckets = bucket.states?.buckets || [];
+    return {
+      timeRange,
+      ...stateCounts(stateBuckets),
+    };
+  });
 }
 
+export async function getBargainingUnitSizeVsTurnout(): Promise<BargainingUnitSizeVsTurnoutData> {
+  "use cache";
+  cacheLife("hours");
+
+  const client = await getClient();
+  // Fetch outcomes that have both bargaining unit size and ballot data
+  const body = {
+    size: 1000,
+    query: {
+      bool: {
+        filter: [
+          {
+            range: {
+              "filter.bargainingUnit.size": {
+                gte: 0,
+                lte: 1000,
+              },
+            },
+          },
+          {
+            term: {
+              "filter.events.type": "ballot_held",
+            },
+          },
+        ],
+      },
+    },
+    _source: [
+      "display.bargainingUnit.size",
+      "display.ballot.turnoutPercent",
+      "display.title",
+      "display.state.value",
+    ],
+  };
+
+  const response = await client.search({ index: outcomesIndex, body });
+  const hits = response.body.hits?.hits || [];
+
+  const data: BargainingUnitSizeVsTurnoutData = [];
+
+  for (const hit of hits) {
+    if (!hit._source?.display) continue;
+    const outcome = hit._source.display;
+    const size = outcome.bargainingUnit?.size;
+    const turnout = outcome.ballot?.turnoutPercent;
+    const title = outcome.title;
+    const state = outcome.state.value;
+    // Only include outcomes that have both size and turnout data
+    if (
+      size !== undefined &&
+      size !== null &&
+      turnout !== undefined &&
+      turnout !== null &&
+      title
+    ) {
+      data.push({
+        size,
+        turnout,
+        title,
+        success: state === "successful" || state === "method_agreed",
+      });
+    }
+  }
+
+  return data;
+}

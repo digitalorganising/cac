@@ -22,6 +22,29 @@ export type HistogramFacet = (typeof histogramFacetNames)[number];
 
 type Bucket = { value: string | number; label?: string; count: number };
 
+export const normalizeBuckets = (
+  aggregations: Record<string, OpenSearchTypes.Common_Aggregations.Aggregate>,
+): Record<string, Bucket[]> =>
+  Object.fromEntries(
+    [...multiSelectFacetNames, ...histogramFacetNames].flatMap((name) => {
+      const agg = aggregations?.[facetPrefix + name];
+      if (!agg || !("filtered" in agg)) {
+        return [];
+      }
+      const buckets = agg.filtered
+        .buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
+      return [
+        [
+          name,
+          buckets.map(({ key, doc_count }) => ({
+            ...getFacetProps(key),
+            count: doc_count,
+          })),
+        ],
+      ];
+    }),
+  );
+
 export type Facets = {
   multiSelect: Record<MultiSelectFacet, Bucket[]>;
   histogram: Record<HistogramFacet, Bucket[]>;
@@ -73,26 +96,7 @@ export const getFacets = async (
   }
 
   const aggs = response.body.aggregations;
-  const bucketedFacets = Object.fromEntries(
-    [...multiSelectFacetNames, ...histogramFacetNames].flatMap((name) => {
-      const agg = aggs?.[facetPrefix + name];
-      if (!agg || !("filtered" in agg)) {
-        return [];
-      }
-      const buckets = agg.filtered
-        .buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
-      return [
-        [
-          name,
-          buckets.map(({ key, doc_count }) => ({
-            ...getFacetProps(key),
-            count: doc_count,
-          })),
-        ],
-      ];
-    }),
-  );
-
+  const bucketedFacets = normalizeBuckets(aggs ?? {});
   return {
     multiSelect: pick(bucketedFacets, multiSelectFacetNames),
     histogram: pick(bucketedFacets, histogramFacetNames),
@@ -159,7 +163,7 @@ const histogramAgg = (
   },
 });
 
-const getFacetProps = (
+export const getFacetProps = (
   key: OpenSearchTypes.Common.FieldValue,
 ): { value: string | number; label?: string } => {
   switch (typeof key) {
