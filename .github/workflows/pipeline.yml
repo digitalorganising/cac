@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
     paths:
       - "pipeline/**"
+      - ".github/workflows/pipeline.yml"
 
 jobs:
   build_test_push:
