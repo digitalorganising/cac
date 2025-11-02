@@ -22,7 +22,9 @@ jobs:
         run: npm ci
       - name: Set up playwright for rehype-mermaid
         run: npx playwright install --with-deps chromium
-      - uses: amondnet/vercel-action@v20
+      - name: Build webapp
+        run: npm run build
+      - uses: amondnet/vercel-action@v41
         with:
           working-directory: ./webapp
           vercel-token: ${{ secrets.VERCEL_TOKEN }}

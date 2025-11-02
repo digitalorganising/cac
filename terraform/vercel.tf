@@ -1,6 +1,6 @@
 resource "vercel_project" "cac_webapp" {
-  name      = "cac-webapp"
-  framework = "nextjs"
+  name          = "cac-webapp"
+  build_command = ""
 
   oidc_token_config = {
     enabled     = true
