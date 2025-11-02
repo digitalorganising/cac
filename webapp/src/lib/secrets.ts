@@ -2,16 +2,21 @@ import {
   GetSecretValueCommand,
   SecretsManagerClient,
 } from "@aws-sdk/client-secrets-manager";
+import { fromNodeProviderChain } from "@aws-sdk/credential-providers";
 import { awsCredentialsProvider } from "@vercel/functions/oidc";
 import { unstable_cache } from "next/cache";
 
-const awsCredentials = awsCredentialsProvider({
-  roleArn: process.env.AWS_ROLE_ARN!,
-});
-
 const client = new SecretsManagerClient({
   region: process.env.AWS_REGION!,
-  credentials: awsCredentials,
+  credentials: async () => {
+    try {
+      return await awsCredentialsProvider({
+        roleArn: process.env.AWS_ROLE_ARN!,
+      })();
+    } catch (err) {
+      return fromNodeProviderChain()();
+    }
+  },
 });
 
 export const getSecret = unstable_cache(async (secretName: string) => {
