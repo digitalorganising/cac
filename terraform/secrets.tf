@@ -13,6 +13,7 @@ module "opensearch_credentials" {
     module.augmenter.role.name,
     module.indexer.role.name,
     module.scraper.role.name,
-    aws_iam_role.cac_webapp_vercel.name
+    aws_iam_role.cac_webapp_vercel.name,
+    aws_iam_role.github_actions.name
   ]
 }

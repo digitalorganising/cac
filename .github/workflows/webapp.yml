@@ -19,12 +19,22 @@ jobs:
       repository-projects: write
     steps:
       - uses: actions/checkout@v4
+
       - name: Install dependencies
         run: npm ci
+
       - name: Set up playwright for rehype-mermaid
         run: npx playwright install --with-deps chromium
+
+      - name: Authenticate with AWS for prerendering
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::510900713680:role/github-actions
+          aws-region: eu-west-1
+
       - name: Build webapp
         run: npm run build
+
       - uses: amondnet/vercel-action@v25
         with:
           working-directory: ./webapp
