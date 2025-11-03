@@ -14,10 +14,6 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
-const withMDX = createMDX({
-  options: {
-    rehypePlugins: ["rehype-mermaid"],
-  },
-});
+const withMDX = createMDX();
 
 export default withBundleAnalyzer(withMDX(nextConfig));

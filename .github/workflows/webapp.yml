@@ -21,54 +21,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Get installed Playwright version
-        id: playwright-version
-        run: echo -n "::set-output name=version::$(npm ls @playwright/test --json | jq --raw-output '.dependencies["@playwright/test"].version')"
-
-      - uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: "~/.cache/ms-playwright"
-          key: "${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}"
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
-      - uses: actions/cache@v4
-        with:
-          path: |
-            ~/.npm
-            ${{ github.workspace }}/webapp/.next/cache
-          # Generate a new cache whenever packages or source files change.
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
-          # If source files changed but packages didn't, rebuild from a prior cache.
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Set up playwright for rehype-mermaid
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
-
-      - name: Build webapp
+      - name: Build & deploy webapp
         env:
           VERCEL_ORG_ID: ${{ secrets.ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.PROJECT_ID }}
         run: |
           npm install -g vercel
-          vercel --token ${{ secrets.VERCEL_TOKEN }} link --yes
-          vercel --token ${{ secrets.VERCEL_TOKEN }} env pull --environment=production --yes
-
-          vercel --token ${{ secrets.VERCEL_TOKEN }} build --yes --target=production; status=$?; \
-          rm .env.local && rm -r .vercel; \
-          exit $status
-
-      - uses: amondnet/vercel-action@v25
-        with:
-          working-directory: ./webapp
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          vercel-args: "--prod --prebuilt"
-          vercel-org-id: ${{ secrets.ORG_ID }}
-          vercel-project-id: ${{ secrets.PROJECT_ID }}
+          vercel deploy --prod --yes --token ${{ secrets.VERCEL_TOKEN }}
