@@ -53,7 +53,7 @@ jobs:
 
       - name: Build webapp
         run: |
-          npx --yes vercel --token ${{ secrets.VERCEL_TOKEN }} pull --environment=production && \
+          npx --yes vercel --token ${{ secrets.VERCEL_TOKEN }} pull --environment=production --yes && \
           npm run build; \
           rm -rf .vercel
 
