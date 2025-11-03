@@ -51,16 +51,11 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
-      - name: Authenticate with AWS for prerendering
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::510900713680:role/github-actions
-          aws-region: eu-west-1
-
       - name: Build webapp
-        env:
-          OPENSEARCH_CREDENTIALS_SECRET: ${{ secrets.OPENSEARCH_CREDENTIALS_SECRET }}
-        run: npm run build
+        run: |
+          npx --yes vercel --token ${{ secrets.VERCEL_TOKEN }} pull --environment=production && \
+          npm run build; \
+          rm -rf .vercel
 
       - uses: amondnet/vercel-action@v25
         with:
