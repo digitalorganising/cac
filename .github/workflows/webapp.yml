@@ -58,6 +58,8 @@ jobs:
           aws-region: eu-west-1
 
       - name: Build webapp
+        env:
+          OPENSEARCH_CREDENTIALS_SECRET: ${{ secrets.OPENSEARCH_CREDENTIALS_SECRET }}
         run: npm run build
 
       - uses: amondnet/vercel-action@v25
