@@ -53,9 +53,9 @@ jobs:
 
       - name: Build webapp
         run: |
-          npx --yes vercel --token ${{ secrets.VERCEL_TOKEN }} pull --environment=production --yes && \
+          npx --yes vercel --token ${{ secrets.VERCEL_TOKEN }} env pull --environment=production --yes && \
           npm run build; status=$?; \
-          rm -rf .vercel; \
+          rm .env.local && rm -r .vercel; \
           exit $status
 
       - uses: amondnet/vercel-action@v25
