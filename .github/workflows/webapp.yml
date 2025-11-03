@@ -57,7 +57,7 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.PROJECT_ID }}
         run: |
           npm install -g vercel
-          vercel --token ${{ secrets.VERCEL_TOKEN }} link
+          vercel --token ${{ secrets.VERCEL_TOKEN }} link --yes
           vercel --token ${{ secrets.VERCEL_TOKEN }} env pull --environment=production --yes
 
           npm run build; status=$?; \
@@ -70,5 +70,5 @@ jobs:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           vercel-args: "--prod"
-          vercel-org-id: ${{ secrets.ORG_ID}}
-          vercel-project-id: ${{ secrets.PROJECT_ID}}
+          vercel-org-id: ${{ secrets.ORG_ID }}
+          vercel-project-id: ${{ secrets.PROJECT_ID }}
