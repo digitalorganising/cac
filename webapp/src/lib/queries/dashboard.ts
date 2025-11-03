@@ -66,59 +66,160 @@ const stateCounts = (
   return counts;
 };
 
-export async function getCategoryCounts(): Promise<CategoryCounts> {
-  "use cache";
-  cacheLife("hours");
-
-  const client = await getClient();
-  const body = {
-    size: 0,
-    aggs: {
-      state: {
-        terms: {
-          field: "facet.state",
-          size: 10,
-        },
+// Request creators
+const createCategoryCountsRequest = () => ({
+  size: 0,
+  aggs: {
+    state: {
+      terms: {
+        field: "facet.state",
+        size: 10,
       },
     },
-  };
+  },
+});
 
-  const response = await client.search({ index: outcomesIndex, body });
-  const agg = response.body.aggregations
-    ?.state as OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
-  const buckets =
-    agg?.buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
-
-  return stateCounts(buckets);
-}
-
-export async function getApplicationsPerUnion(): Promise<ApplicationsPerUnionData> {
-  "use cache";
-  cacheLife("hours");
-
-  const client = await getClient();
-  const body = {
-    size: 0,
-    aggs: {
-      unions: {
-        terms: {
-          field: "facet.parties.unions",
-          size: 15,
-        },
-        aggs: {
-          states: {
-            terms: {
-              field: "facet.state",
-              size: 10,
-            },
+const createApplicationsPerUnionRequest = () => ({
+  size: 0,
+  aggs: {
+    unions: {
+      terms: {
+        field: "facet.parties.unions",
+        size: 15,
+      },
+      aggs: {
+        states: {
+          terms: {
+            field: "facet.state",
+            size: 10,
           },
         },
       },
     },
-  };
+  },
+});
 
-  const response = await client.search({ index: outcomesIndex, body });
-  const unionsAgg = response.body.aggregations
+const createBargainingUnitSizesRequest = () => ({
+  size: 0,
+  aggs: {
+    bargainingUnitSize: {
+      histogram: {
+        field: "facet.bargainingUnit.size",
+        interval: 5,
+        hard_bounds: {
+          min: 0,
+          max: 500,
+        },
+        extended_bounds: {
+          min: 0,
+          max: 500,
+        },
+      },
+      aggs: {
+        states: {
+          terms: {
+            field: "facet.state",
+            size: 10,
+          },
+        },
+      },
+    },
+  },
+});
+
+const createTimeToAcceptanceRequest = () => ({
+  size: 0,
+});
+
+const createTimeToConclusionRequest = () => ({
+  size: 0,
+  query: {
+    term: {
+      "filter.duration.relation": "eq",
+    },
+  },
+  aggs: {
+    timeToConclusion: {
+      histogram: {
+        field: "filter.duration.value",
+        interval: 7 * 24 * 60 * 60,
+        extended_bounds: {
+          min: 0,
+          max: 104 * 7 * 24 * 60 * 60,
+        },
+        hard_bounds: {
+          min: 0,
+          max: 104 * 7 * 24 * 60 * 60,
+        },
+      },
+      aggs: {
+        states: {
+          terms: {
+            field: "facet.state",
+            size: 10,
+          },
+        },
+      },
+    },
+  },
+});
+
+const createBargainingUnitSizeVsTurnoutRequest = () => ({
+  size: 1000,
+  query: {
+    bool: {
+      filter: [
+        {
+          range: {
+            "filter.bargainingUnit.size": {
+              gte: 0,
+              lte: 1000,
+            },
+          },
+        },
+        {
+          term: {
+            "filter.events.type": "ballot_held",
+          },
+        },
+      ],
+    },
+  },
+  _source: [
+    "display.bargainingUnit.size",
+    "display.ballot.turnoutPercent",
+    "display.title",
+    "display.state.value",
+  ],
+});
+
+const isSearchResponse = (
+  response: OpenSearchTypes.Core_Msearch.ResponseItem,
+): response is OpenSearchTypes.Core_Msearch.MultiSearchItem => {
+  if ("error" in response) {
+    console.error(response);
+    throw new Error("Response is an error response, not a search response");
+  }
+  return true;
+};
+
+// Response parsers
+const parseCategoryCountsResponse = (
+  response: OpenSearchTypes.Core_Msearch.ResponseItem,
+): CategoryCounts => {
+  const body = isSearchResponse(response) ? response : undefined;
+  const agg = body?.aggregations
+    ?.state as OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
+  const buckets =
+    agg?.buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
+  return stateCounts(buckets);
+};
+
+const parseApplicationsPerUnionResponse = (
+  response: OpenSearchTypes.Core_Msearch.ResponseItem,
+): ApplicationsPerUnionData => {
+  const body = isSearchResponse(response) ? response : undefined;
+  const unionsAgg = body?.aggregations
     ?.unions as OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
   const unionBuckets =
     unionsAgg?.buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
@@ -133,43 +234,13 @@ export async function getApplicationsPerUnion(): Promise<ApplicationsPerUnionDat
       ...stateCounts(stateBuckets),
     };
   });
-}
+};
 
-export async function getBargainingUnitSizes(): Promise<BargainingUnitSizeData> {
-  "use cache";
-  cacheLife("hours");
-
-  const client = await getClient();
-  const body = {
-    size: 0,
-    aggs: {
-      bargainingUnitSize: {
-        histogram: {
-          field: "facet.bargainingUnit.size",
-          interval: 5,
-          hard_bounds: {
-            min: 0,
-            max: 500,
-          },
-          extended_bounds: {
-            min: 0,
-            max: 500,
-          },
-        },
-        aggs: {
-          states: {
-            terms: {
-              field: "facet.state",
-              size: 10,
-            },
-          },
-        },
-      },
-    },
-  };
-
-  const response = await client.search({ index: outcomesIndex, body });
-  const agg = response.body.aggregations
+const parseBargainingUnitSizesResponse = (
+  response: OpenSearchTypes.Core_Msearch.ResponseItem,
+): BargainingUnitSizeData => {
+  const body = isSearchResponse(response) ? response : undefined;
+  const agg = body?.aggregations
     ?.bargainingUnitSize as OpenSearchTypes.Common_Aggregations.HistogramAggregate;
   const buckets =
     agg?.buckets as OpenSearchTypes.Common_Aggregations.HistogramBucket[];
@@ -183,56 +254,20 @@ export async function getBargainingUnitSizes(): Promise<BargainingUnitSizeData> 
       ...stateCounts(stateBuckets),
     };
   });
-}
+};
 
-export async function getTimeToAcceptance(): Promise<TimeToAcceptanceData> {
-  "use cache";
-  cacheLife("hours");
+const parseTimeToAcceptanceResponse = (
+  response: OpenSearchTypes.Core_Msearch.ResponseItem,
+): TimeToAcceptanceData => {
+  const body = isSearchResponse(response) ? response : undefined;
+  return [] as TimeToAcceptanceData;
+};
 
-  const client = await getClient();
-  return {} as any;
-}
-
-export async function getTimeToConclusion(): Promise<TimeToConclusionData> {
-  "use cache";
-  cacheLife("hours");
-
-  const client = await getClient();
-  const body = {
-    size: 0,
-    query: {
-      term: {
-        "filter.duration.relation": "eq",
-      },
-    },
-    aggs: {
-      timeToConclusion: {
-        histogram: {
-          field: "filter.duration.value",
-          interval: 7 * 24 * 60 * 60,
-          extended_bounds: {
-            min: 0,
-            max: 104 * 7 * 24 * 60 * 60,
-          },
-          hard_bounds: {
-            min: 0,
-            max: 104 * 7 * 24 * 60 * 60,
-          },
-        },
-        aggs: {
-          states: {
-            terms: {
-              field: "facet.state",
-              size: 10,
-            },
-          },
-        },
-      },
-    },
-  };
-
-  const response = await client.search({ index: outcomesIndex, body });
-  const agg = response.body.aggregations
+const parseTimeToConclusionResponse = (
+  response: OpenSearchTypes.Core_Msearch.ResponseItem,
+): TimeToConclusionData => {
+  const body = isSearchResponse(response) ? response : undefined;
+  const agg = body?.aggregations
     ?.timeToConclusion as OpenSearchTypes.Common_Aggregations.HistogramAggregate;
   const buckets =
     agg?.buckets as OpenSearchTypes.Common_Aggregations.HistogramBucket[];
@@ -247,46 +282,13 @@ export async function getTimeToConclusion(): Promise<TimeToConclusionData> {
       ...stateCounts(stateBuckets),
     };
   });
-}
+};
 
-export async function getBargainingUnitSizeVsTurnout(): Promise<BargainingUnitSizeVsTurnoutData> {
-  "use cache";
-  cacheLife("hours");
-
-  const client = await getClient();
-  // Fetch outcomes that have both bargaining unit size and ballot data
-  const body = {
-    size: 1000,
-    query: {
-      bool: {
-        filter: [
-          {
-            range: {
-              "filter.bargainingUnit.size": {
-                gte: 0,
-                lte: 1000,
-              },
-            },
-          },
-          {
-            term: {
-              "filter.events.type": "ballot_held",
-            },
-          },
-        ],
-      },
-    },
-    _source: [
-      "display.bargainingUnit.size",
-      "display.ballot.turnoutPercent",
-      "display.title",
-      "display.state.value",
-    ],
-  };
-
-  const response = await client.search({ index: outcomesIndex, body });
-  const hits = response.body.hits?.hits || [];
-
+const parseBargainingUnitSizeVsTurnoutResponse = (
+  response: OpenSearchTypes.Core_Msearch.ResponseItem,
+): BargainingUnitSizeVsTurnoutData => {
+  const body = isSearchResponse(response) ? response : undefined;
+  const hits = body?.hits.hits || [];
   const data: BargainingUnitSizeVsTurnoutData = [];
 
   for (const hit of hits) {
@@ -314,4 +316,54 @@ export async function getBargainingUnitSizeVsTurnout(): Promise<BargainingUnitSi
   }
 
   return data;
+};
+
+// Single msearch function
+export type DashboardData = {
+  categoryCounts: CategoryCounts;
+  applicationsPerUnion: ApplicationsPerUnionData;
+  bargainingUnitSizes: BargainingUnitSizeData;
+  timeToAcceptance: TimeToAcceptanceData;
+  timeToConclusion: TimeToConclusionData;
+  bargainingUnitSizeVsTurnout: BargainingUnitSizeVsTurnoutData;
+};
+
+export async function getAllDashboardData(): Promise<DashboardData> {
+  "use cache";
+  cacheLife("hours");
+
+  const client = await getClient();
+
+  // Build msearch body: alternating index and query pairs
+  const msearchBody = [
+    { index: outcomesIndex },
+    createCategoryCountsRequest(),
+    { index: outcomesIndex },
+    createApplicationsPerUnionRequest(),
+    { index: outcomesIndex },
+    createBargainingUnitSizesRequest(),
+    { index: outcomesIndex },
+    createTimeToAcceptanceRequest(),
+    { index: outcomesIndex },
+    createTimeToConclusionRequest(),
+    { index: outcomesIndex },
+    createBargainingUnitSizeVsTurnoutRequest(),
+  ];
+
+  const msearchResponse = await client.msearch({
+    body: msearchBody,
+  });
+
+  // Parse responses in order
+  const responses = msearchResponse.body.responses;
+  return {
+    categoryCounts: parseCategoryCountsResponse(responses[0]),
+    applicationsPerUnion: parseApplicationsPerUnionResponse(responses[1]),
+    bargainingUnitSizes: parseBargainingUnitSizesResponse(responses[2]),
+    timeToAcceptance: parseTimeToAcceptanceResponse(responses[3]),
+    timeToConclusion: parseTimeToConclusionResponse(responses[4]),
+    bargainingUnitSizeVsTurnout: parseBargainingUnitSizeVsTurnoutResponse(
+      responses[5],
+    ),
+  };
 }
