@@ -57,17 +57,18 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.PROJECT_ID }}
         run: |
           npm install -g vercel
-          vercel --token ${{ secrets.VERCEL_TOKEN }} pull --yes --environment=production
+          vercel --token ${{ secrets.VERCEL_TOKEN }} link --yes
+          vercel --token ${{ secrets.VERCEL_TOKEN }} env pull --environment=production --yes
 
-          vercel --token ${{ secrets.VERCEL_TOKEN }} build; status=$?; \
+          vercel --token ${{ secrets.VERCEL_TOKEN }} build --yes --target=production; status=$?; \
           rm .env.local && rm -r .vercel; \
           exit $status
 
       - uses: amondnet/vercel-action@v25
         with:
-          working-directory: ./webapp/.next
+          working-directory: ./webapp
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          vercel-args: "--prod --prebuilt --archive=tgz"
+          vercel-args: "--prod --prebuilt"
           vercel-org-id: ${{ secrets.ORG_ID }}
           vercel-project-id: ${{ secrets.PROJECT_ID }}
