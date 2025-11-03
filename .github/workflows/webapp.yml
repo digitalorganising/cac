@@ -66,9 +66,9 @@ jobs:
 
       - uses: amondnet/vercel-action@v25
         with:
-          working-directory: ./webapp
+          working-directory: ./webapp/.next
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          vercel-args: "--prod"
+          vercel-args: "--prod --prebuilt"
           vercel-org-id: ${{ secrets.ORG_ID }}
           vercel-project-id: ${{ secrets.PROJECT_ID }}
