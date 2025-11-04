@@ -2,12 +2,12 @@ import { cacheLife } from "next/cache";
 import "server-only";
 import { SortKey } from "../search-params";
 import { Outcome } from "../types";
+import { getClient } from "./client";
 import {
   FilterOptions,
   PaginationOptions,
   QueryOptions,
   SortOptions,
-  getClient,
   getFilters,
   getQuery,
   outcomesIndex,

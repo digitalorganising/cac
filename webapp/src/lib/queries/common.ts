@@ -1,31 +1,6 @@
-import {
-  Client,
-  Types as OpenSearchTypes,
-} from "@opensearch-project/opensearch";
+import { Types as OpenSearchTypes } from "@opensearch-project/opensearch";
 import "server-only";
 import { SortKey, SortOrder } from "../search-params";
-import { getSecret } from "../secrets";
-
-let _client: Client | undefined = undefined;
-export const getClient = async () => {
-  if (_client) {
-    return _client;
-  }
-
-  const secret = await getSecret(process.env.OPENSEARCH_CREDENTIALS_SECRET!);
-  if (!secret) {
-    throw new Error("Failed to get opensearch credentials");
-  }
-  const { username, password } = JSON.parse(secret);
-  _client = new Client({
-    node: process.env.OPENSEARCH_ENDPOINT!,
-    auth: {
-      username,
-      password,
-    },
-  });
-  return _client;
-};
 
 export const outcomesIndex = process.env.OUTCOMES_INDEX!;
 

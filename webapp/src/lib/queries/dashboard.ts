@@ -2,7 +2,8 @@ import { Types as OpenSearchTypes } from "@opensearch-project/opensearch";
 import { cacheLife } from "next/cache";
 import "server-only";
 import { getStateCategory } from "../utils/state-category";
-import { filterPrefix, getClient, outcomesIndex } from "./common";
+import { getClient } from "./client";
+import { outcomesIndex } from "./common";
 import { getFacetProps } from "./facets";
 
 export type CategoryCounts = {

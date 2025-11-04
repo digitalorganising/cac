@@ -2,10 +2,10 @@ import { Types as OpenSearchTypes } from "@opensearch-project/opensearch";
 import { cacheLife } from "next/cache";
 import "server-only";
 import { hasDeepProperty } from "../utils";
+import { getClient } from "./client";
 import {
   FilterOptions,
   QueryOptions,
-  getClient,
   getFilters,
   getQuery,
   outcomesIndex,
