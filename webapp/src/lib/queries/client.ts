@@ -9,13 +9,21 @@ type Options = Parameters<Transport["request"]>[1];
 
 class RetryingTransport extends Transport {
   override request(params: Params, options: Options) {
-    const res = backOff(() => super.request(params, options), {
-      startingDelay: 50,
-      numOfAttempts: 3,
-      jitter: "full",
-      retry: (e, _) => e.meta.statusCode === 429,
-    });
-    (res as any).abort = () => {};
+    let abort = () => {};
+    const res = backOff(
+      () => {
+        const res = super.request(params, options);
+        abort = res.abort;
+        return res;
+      },
+      {
+        startingDelay: 50,
+        numOfAttempts: 3,
+        jitter: "full",
+        retry: (e, _) => e.meta.statusCode === 429,
+      },
+    );
+    (res as any).abort = abort;
     return res as typeof res & { abort: () => void };
   }
 }
