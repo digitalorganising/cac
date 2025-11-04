@@ -62,7 +62,7 @@ export const getFacets = async (
   options: GetFacetsOptions,
   debug = false,
 ): Promise<Facets> => {
-  "use cache";
+  "use cache: remote";
   cacheLife("hours");
 
   const client = await getClient();

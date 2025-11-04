@@ -330,7 +330,7 @@ export type DashboardData = {
 };
 
 export async function getAllDashboardData(): Promise<DashboardData> {
-  "use cache";
+  "use cache: remote";
   cacheLife("hours");
 
   const client = await getClient();
