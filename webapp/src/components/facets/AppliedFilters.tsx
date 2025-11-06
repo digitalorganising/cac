@@ -22,7 +22,7 @@ const renderValue = (
   key?: keyof AppSearchParams,
 ): string | undefined => {
   // TODO: make this less terrible; renderers for each key
-  if (key === "duration.from" || key === "duration.to") {
+  if (key === "durations.overall.from" || key === "durations.overall.to") {
     return formatSecondsDuration(value as number);
   }
   if (typeof value === "string") {

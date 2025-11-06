@@ -132,10 +132,19 @@
         "keyDates.outcomeConcluded": {
           "type": "date"
         },
-        "duration.value": {
+        "keyDates.acceptanceDecided": {
+          "type": "date"
+        },
+        "durations.overall.value": {
           "type": "long"
         },
-        "duration.relation": {
+        "durations.overall.relation": {
+          "type": "keyword"
+        },
+        "durations.acceptance.value": {
+          "type": "long"
+        },
+        "durations.acceptance.relation": {
           "type": "keyword"
         }
       }

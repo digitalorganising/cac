@@ -93,11 +93,15 @@ function DurationSelectSlider({
         thumbClassName="size-4"
       />
       <div className="flex justify-between mt-6">
-        <DurationValue value={uiMin} label="From" name="duration.from" />
+        <DurationValue
+          value={uiMin}
+          label="From"
+          name="durations.overall.from"
+        />
         <DurationValue
           value={uiMax}
           label="To"
-          name="duration.to"
+          name="durations.overall.to"
           bound={MAX_DURATION}
         />
       </div>
@@ -106,8 +110,8 @@ function DurationSelectSlider({
 }
 
 export function DurationSelect() {
-  const [min, setMin] = useAppQueryState("duration.from");
-  const [max, setMax] = useAppQueryState("duration.to");
+  const [min, setMin] = useAppQueryState("durations.overall.from");
+  const [max, setMax] = useAppQueryState("durations.overall.to");
 
   const handleSelectRange = (newMin?: number, newMax?: number) => {
     setMin(newMin ?? null);
@@ -133,8 +137,8 @@ export function DurationSelect() {
 }
 
 export function DurationSelectMobile() {
-  const [min, setMin] = useAppQueryState("duration.from");
-  const [max, setMax] = useAppQueryState("duration.to");
+  const [min, setMin] = useAppQueryState("durations.overall.from");
+  const [max, setMax] = useAppQueryState("durations.overall.to");
 
   const handleSelectRange = (newMin?: number, newMax?: number) => {
     setMin(newMin ?? null);

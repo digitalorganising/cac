@@ -1,6 +1,5 @@
 import json
 import re
-import datetime
 
 from .events import EventsBuilder, events_from_outcome
 from .model import EventType, OutcomeState
@@ -83,8 +82,19 @@ def get_key_dates(events: EventsBuilder):
         concluded = recognition.date
         method_agreed = events.event_list[-1].date
 
+    acceptance_decision = events.get_event(EventType.ApplicationAccepted)
+    rejection_decision = events.get_event(EventType.ApplicationRejected)
+
+    if acceptance_decision:
+        acceptance_decided = acceptance_decision.date
+    elif rejection_decision:
+        acceptance_decided = rejection_decision.date
+    else:
+        acceptance_decided = None
+
     return {
         "applicationReceived": application_received.date,
+        "acceptanceDecided": acceptance_decided,
         "outcomeConcluded": concluded,
         "methodAgreed": method_agreed,
     }
@@ -128,22 +138,36 @@ def get_ballot_result(outcome: Outcome):
     return None
 
 
-def get_duration(key_dates, outcome: Outcome):
+def get_durations(key_dates, outcome: Outcome):
     application_received = key_dates["applicationReceived"]
     outcome_concluded = key_dates["outcomeConcluded"]
+    acceptance_decided = key_dates["acceptanceDecided"]
 
     if outcome_concluded:
-        return {
+        overall = {
             "value": (outcome_concluded - application_received).total_seconds(),
             "relation": "eq",
         }
     else:
-        return {
+        overall = {
             "value": (
                 outcome.last_updated.date() - application_received
             ).total_seconds(),
             "relation": "gte",
         }
+
+    if acceptance_decided:
+        acceptance = {
+            "value": (acceptance_decided - application_received).total_seconds(),
+            "relation": "eq",
+        }
+    else:
+        acceptance = overall
+
+    return {
+        "overall": overall,
+        "acceptance": acceptance,
+    }
 
 
 def flatten_facets(facets):
@@ -170,7 +194,7 @@ def transform_for_index(outcome: Outcome):
     ballot = get_ballot_result(outcome)
     state = events.labelled_state()
     events_json = events.dump_events()
-    duration = get_duration(key_dates, outcome)
+    durations = get_durations(key_dates, outcome)
     json_state = {"value": state.value, "label": state.label}
 
     return {
@@ -187,7 +211,7 @@ def transform_for_index(outcome: Outcome):
             "ballot": ballot,
             "events": events_json,
             "keyDates": key_dates,
-            "duration": duration,
+            "durations": durations,
         },
         "filter": {
             "lastUpdated": outcome.last_updated,
@@ -200,8 +224,10 @@ def transform_for_index(outcome: Outcome):
             "events.date": [e["date"] for e in events_json],
             "keyDates.applicationReceived": key_dates["applicationReceived"],
             "keyDates.outcomeConcluded": key_dates["outcomeConcluded"],
-            "duration.value": duration["value"],
-            "duration.relation": duration["relation"],
+            "durations.overall.value": durations["overall"]["value"],
+            "durations.overall.relation": durations["overall"]["relation"],
+            "durations.acceptance.value": durations["acceptance"]["value"],
+            "durations.acceptance.relation": durations["acceptance"]["relation"],
         },
         "facet": flatten_facets(
             {

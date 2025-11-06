@@ -100,5 +100,8 @@ export type Outcome = {
   ballot?: OutcomeBallot;
   events: OutcomeEvent[];
   keyDates: OutcomeKeyDates;
-  duration: OutcomeDuration;
+  durations: {
+    overall: OutcomeDuration;
+    acceptance: OutcomeDuration;
+  };
 };

@@ -28,8 +28,8 @@ export type FilterOptions = {
   "events.date.to"?: string;
   "bargainingUnit.size.from"?: number;
   "bargainingUnit.size.to"?: number;
-  "duration.from"?: number;
-  "duration.to"?: number;
+  "durations.overall.from"?: number;
+  "durations.overall.to"?: number;
 };
 
 export const filterPrefix = "filter.";
@@ -172,8 +172,8 @@ export const getFilters = ({
   "events.date.to": eventsDateTo,
   "bargainingUnit.size.from": bargainingUnitSizeFrom,
   "bargainingUnit.size.to": bargainingUnitSizeTo,
-  "duration.from": durationFrom,
-  "duration.to": durationTo,
+  "durations.overall.from": durationsOverallFrom,
+  "durations.overall.to": durationsOverallTo,
 }: FilterOptions): OpenSearchTypes.Common_QueryDsl.QueryContainer[] =>
   [
     filterText("parties.unions", unions),
@@ -187,7 +187,7 @@ export const getFilters = ({
       bargainingUnitSizeFrom,
       bargainingUnitSizeTo,
     ),
-    filterDuration(durationFrom, durationTo),
+    filterDuration(durationsOverallFrom, durationsOverallTo),
   ].flat();
 
 export const getQuery = ({ query }: QueryOptions) =>

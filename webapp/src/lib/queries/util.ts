@@ -20,8 +20,8 @@ export const appSearchParamsToOutcomesOptions = (
     "events.date.to": params["events.date.to"]?.toISOString() ?? undefined,
     "bargainingUnit.size.from": params["bargainingUnit.size.from"] ?? undefined,
     "bargainingUnit.size.to": params["bargainingUnit.size.to"] ?? undefined,
-    "duration.from": params["duration.from"] ?? undefined,
-    "duration.to": params["duration.to"] ?? undefined,
+    "durations.overall.from": params["durations.overall.from"] ?? undefined,
+    "durations.overall.to": params["durations.overall.to"] ?? undefined,
     sortKey,
     sortOrder,
   };
