@@ -1,5 +1,6 @@
 import { type DashboardData } from "@/lib/queries/dashboard";
 import ApplicationsPerUnionChartClient from "./ApplicationsPerUnionChart";
+import AverageDurationCardsClient from "./AverageDurationCards";
 import BargainingUnitSizeChartClient from "./BargainingUnitSizeChart";
 import BargainingUnitSizeVsTurnoutChartClient from "./BargainingUnitSizeVsTurnoutChart";
 import CategoryCountCardsClient from "./CategoryCountCards";
@@ -63,4 +64,13 @@ export async function BargainingUnitSizeVsTurnoutChart({
       data={data.bargainingUnitSizeVsTurnout}
     />
   );
+}
+
+export async function AverageDurationCards({
+  promise,
+}: {
+  promise: Promise<DashboardData>;
+}) {
+  const data = await promise;
+  return <AverageDurationCardsClient data={data.averageDurations} />;
 }

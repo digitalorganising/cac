@@ -1,8 +1,10 @@
 import { Suspense } from "react";
+import AverageDurationCardsClient from "@/components/dashboard/AverageDurationCards";
 import CategoryCountCardsClient from "@/components/dashboard/CategoryCountCards";
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import {
   ApplicationsPerUnionChart,
+  AverageDurationCards,
   BargainingUnitSizeChart,
   BargainingUnitSizeVsTurnoutChart,
   CategoryCountCards,
@@ -16,9 +18,12 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6 mt-12">
-      <div className="mb-8">
+      <div className="mb-8 space-y-6">
         <Suspense fallback={<CategoryCountCardsClient data={undefined} />}>
           <CategoryCountCards promise={dashboardDataPromise} />
+        </Suspense>
+        <Suspense fallback={<AverageDurationCardsClient data={undefined} />}>
+          <AverageDurationCards promise={dashboardDataPromise} />
         </Suspense>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

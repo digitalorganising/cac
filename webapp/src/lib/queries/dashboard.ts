@@ -1,7 +1,7 @@
 import { Types as OpenSearchTypes } from "@opensearch-project/opensearch";
 import { cacheLife } from "next/cache";
 import "server-only";
-import { getStateCategory } from "../utils/state-category";
+import { StateCategory, getStateCategory } from "../utils/state-category";
 import { getClient } from "./client";
 import { outcomesIndex } from "./common";
 import { getFacetProps } from "./facets";
@@ -46,6 +46,13 @@ export type BargainingUnitSizeVsTurnoutData = {
   title: string;
   success: boolean;
 }[];
+
+export type AverageDurations = {
+  successful?: number;
+  unsuccessful?: number;
+  withdrawn?: number;
+  pending?: number;
+};
 
 const stateCounts = (
   buckets: OpenSearchTypes.Common_Aggregations.StringTermsBucket[],
@@ -194,6 +201,68 @@ const createBargainingUnitSizeVsTurnoutRequest = () => ({
   ],
 });
 
+const createAverageDurationsRequest = () => ({
+  size: 0,
+  aggs: {
+    completed: {
+      filter: {
+        term: {
+          "filter.duration.relation": "eq",
+        },
+      },
+      aggs: {
+        byState: {
+          terms: {
+            field: "filter.state",
+            size: 20,
+          },
+          aggs: {
+            avgDuration: {
+              avg: {
+                field: "filter.duration.value",
+              },
+            },
+          },
+        },
+      },
+    },
+    pending: {
+      filter: {
+        term: {
+          "filter.duration.relation": "gte",
+        },
+      },
+      aggs: {
+        avgDuration: {
+          scripted_metric: {
+            init_script: "state.duration = 0L; state.count = 0;",
+            map_script: `
+              ZoneId london = ZoneId.of("Europe/London");
+              ZonedDateTime applicationReceived = doc['filter.keyDates.applicationReceived'].value.withZoneSameInstant(london);
+              long duration = params.now - applicationReceived.toEpochSecond();
+              state.duration += duration;
+              state.count += 1;
+            `,
+            combine_script: "return state;",
+            reduce_script: `
+              long total = 0L;
+              long count = 0;
+              for (shardResult in states) {
+                total += shardResult.duration;
+                count += shardResult.count;
+              }
+              return count > 0 ? total / count : null;
+            `,
+            params: {
+              now: Math.floor(Date.now() / 1000),
+            },
+          },
+        },
+      },
+    },
+  },
+});
+
 const isSearchResponse = (
   response: OpenSearchTypes.Core_Msearch.ResponseItem,
 ): response is OpenSearchTypes.Core_Msearch.MultiSearchItem => {
@@ -319,6 +388,57 @@ const parseBargainingUnitSizeVsTurnoutResponse = (
   return data;
 };
 
+const parseAverageDurationsResponse = (
+  response: OpenSearchTypes.Core_Msearch.ResponseItem,
+): AverageDurations => {
+  const body = isSearchResponse(response) ? response : undefined;
+  const aggs = body?.aggregations;
+
+  const pendingAgg = aggs?.pending as
+    | { avgDuration?: { doc_count?: number; value?: number } }
+    | undefined;
+  const pendingAverageDuration = pendingAgg?.avgDuration?.value;
+
+  const completedAgg = aggs?.completed as {
+    byState?: OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
+  };
+  const stateBuckets = completedAgg?.byState
+    ?.buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
+
+  const completedAverageDurations: Record<StateCategory, number> = {
+    successful: 0,
+    unsuccessful: 0,
+    withdrawn: 0,
+    pending: 0,
+  };
+
+  const completedAverageN: Record<StateCategory, number> = {
+    successful: 0,
+    unsuccessful: 0,
+    withdrawn: 0,
+    pending: 0,
+  };
+
+  for (const bucket of stateBuckets) {
+    const state = bucket.key;
+    const docCount = bucket.doc_count;
+    const avgDuration = (bucket as { avgDuration?: { value?: number } })
+      .avgDuration?.value;
+    const category = getStateCategory(state?.toString() ?? "");
+    if (category && avgDuration !== undefined) {
+      completedAverageN[category] += docCount;
+      completedAverageDurations[category] +=
+        (docCount / completedAverageN[category]) *
+        (avgDuration - completedAverageDurations[category]);
+    }
+  }
+
+  return {
+    ...completedAverageDurations,
+    pending: pendingAverageDuration,
+  };
+};
+
 // Single msearch function
 export type DashboardData = {
   categoryCounts: CategoryCounts;
@@ -327,6 +447,7 @@ export type DashboardData = {
   timeToAcceptance: TimeToAcceptanceData;
   timeToConclusion: TimeToConclusionData;
   bargainingUnitSizeVsTurnout: BargainingUnitSizeVsTurnoutData;
+  averageDurations: AverageDurations;
 };
 
 export async function getAllDashboardData(): Promise<DashboardData> {
@@ -349,6 +470,8 @@ export async function getAllDashboardData(): Promise<DashboardData> {
     createTimeToConclusionRequest(),
     { index: outcomesIndex },
     createBargainingUnitSizeVsTurnoutRequest(),
+    { index: outcomesIndex },
+    createAverageDurationsRequest(),
   ];
 
   const msearchResponse = await client.msearch({
@@ -366,5 +489,6 @@ export async function getAllDashboardData(): Promise<DashboardData> {
     bargainingUnitSizeVsTurnout: parseBargainingUnitSizeVsTurnoutResponse(
       responses[5],
     ),
+    averageDurations: parseAverageDurationsResponse(responses[6]),
   };
 }
