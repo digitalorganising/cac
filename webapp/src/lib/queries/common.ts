@@ -114,10 +114,10 @@ const filterDuration = (from?: number, to?: number) => {
               filter: [
                 {
                   term: {
-                    [filterPrefix + "duration.relation"]: "eq",
+                    [filterPrefix + "durations.overall.relation"]: "eq",
                   },
                 },
-                ...filterRange("duration.value", from, to),
+                ...filterRange("durations.overall.value", from, to),
               ],
             },
           },
@@ -126,7 +126,7 @@ const filterDuration = (from?: number, to?: number) => {
               filter: [
                 {
                   term: {
-                    [filterPrefix + "duration.relation"]: "gte",
+                    [filterPrefix + "durations.overall.relation"]: "gte",
                   },
                 },
                 {
