@@ -1,7 +1,8 @@
 import { Types as OpenSearchTypes } from "@opensearch-project/opensearch";
 import { cacheLife } from "next/cache";
 import "server-only";
-import { StateCategory, getStateCategory } from "../utils/state-category";
+import { StateCategory } from "@/components/timeline/types";
+import { getStateCategory } from "../utils";
 import { getClient } from "./client";
 import { outcomesIndex } from "./common";
 import { getFacetProps } from "./facets";
@@ -30,8 +31,9 @@ export type BargainingUnitSizeData = {
 }[];
 
 export type TimeToAcceptanceData = {
-  timeRange: string;
-  count: number;
+  timeRange: number;
+  accepted: number;
+  rejected: number;
 }[];
 
 export type TimeToConclusionData = {
@@ -137,19 +139,48 @@ const createBargainingUnitSizesRequest = () => ({
 
 const createTimeToAcceptanceRequest = () => ({
   size: 0,
+  query: {
+    term: {
+      "filter.durations.acceptance.relation": "eq",
+    },
+  },
+  aggs: {
+    timeToAcceptance: {
+      histogram: {
+        field: "filter.durations.acceptance.value",
+        interval: 7 * 24 * 60 * 60, // 1 week in seconds
+        extended_bounds: {
+          min: 0,
+          max: 52 * 7 * 24 * 60 * 60, // 52 weeks (1 year)
+        },
+        hard_bounds: {
+          min: 0,
+          max: 52 * 7 * 24 * 60 * 60,
+        },
+      },
+      aggs: {
+        byDecision: {
+          terms: {
+            field: "filter.state",
+            size: 10,
+          },
+        },
+      },
+    },
+  },
 });
 
 const createTimeToConclusionRequest = () => ({
   size: 0,
   query: {
     term: {
-      "filter.duration.relation": "eq",
+      "filter.durations.overall.relation": "eq",
     },
   },
   aggs: {
     timeToConclusion: {
       histogram: {
-        field: "filter.duration.value",
+        field: "filter.durations.overall.value",
         interval: 7 * 24 * 60 * 60,
         extended_bounds: {
           min: 0,
@@ -207,7 +238,7 @@ const createAverageDurationsRequest = () => ({
     completed: {
       filter: {
         term: {
-          "filter.duration.relation": "eq",
+          "filter.durations.overall.relation": "eq",
         },
       },
       aggs: {
@@ -219,7 +250,7 @@ const createAverageDurationsRequest = () => ({
           aggs: {
             avgDuration: {
               avg: {
-                field: "filter.duration.value",
+                field: "filter.durations.overall.value",
               },
             },
           },
@@ -229,7 +260,7 @@ const createAverageDurationsRequest = () => ({
     pending: {
       filter: {
         term: {
-          "filter.duration.relation": "gte",
+          "filter.durations.overall.relation": "gte",
         },
       },
       aggs: {
@@ -330,7 +361,49 @@ const parseTimeToAcceptanceResponse = (
   response: OpenSearchTypes.Core_Msearch.ResponseItem,
 ): TimeToAcceptanceData => {
   const body = isSearchResponse(response) ? response : undefined;
-  return [] as TimeToAcceptanceData;
+  const agg = body?.aggregations
+    ?.timeToAcceptance as OpenSearchTypes.Common_Aggregations.HistogramAggregate;
+  const buckets =
+    agg?.buckets as (OpenSearchTypes.Common_Aggregations.HistogramBucket & {
+      byDecision?: OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
+    })[];
+
+  if (!buckets) {
+    return [];
+  }
+
+  return buckets.map((bucket) => {
+    const key = bucket.key;
+    const weekNumber = Math.floor(
+      (typeof key === "number" ? key : Number(key)) / (7 * 24 * 60 * 60),
+    );
+
+    // Count rejected (application_rejected) vs accepted (all others)
+    const decisionBuckets =
+      (bucket.byDecision
+        ?.buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[]) ||
+      [];
+    let rejected = 0;
+    let accepted = 0;
+
+    for (const decisionBucket of decisionBuckets) {
+      const state =
+        typeof decisionBucket.key === "string"
+          ? decisionBucket.key
+          : String(decisionBucket.key);
+      if (state === "application_rejected") {
+        rejected += decisionBucket.doc_count ?? 0;
+      } else {
+        accepted += decisionBucket.doc_count ?? 0;
+      }
+    }
+
+    return {
+      timeRange: weekNumber,
+      accepted,
+      rejected,
+    };
+  });
 };
 
 const parseTimeToConclusionResponse = (

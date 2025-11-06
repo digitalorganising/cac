@@ -27,3 +27,8 @@ export interface TimelineProps {
   connectorColor?: TimelineColor;
   className?: string;
 }
+export type StateCategory =
+  | "successful"
+  | "unsuccessful"
+  | "pending"
+  | "withdrawn";

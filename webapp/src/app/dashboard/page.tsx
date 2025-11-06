@@ -34,13 +34,6 @@ export default function Dashboard() {
         >
           <ApplicationsPerUnionChart promise={dashboardDataPromise} />
         </DashboardCard>
-        {/* <DashboardCard
-          title="Time to Acceptance"
-          description="Distribution of time taken from application to acceptance"
-        >
-         
-            <TimeToAcceptanceChart promise={dashboardDataPromise} />
-        </DashboardCard> */}
         <DashboardCard
           className="lg:col-span-3"
           title="Bargaining Unit Sizes"
@@ -54,6 +47,13 @@ export default function Dashboard() {
           description="Distribution of time taken to reach conclusion, comparing successful and unsuccessful outcomes"
         >
           <TimeToConclusionChart promise={dashboardDataPromise} />
+        </DashboardCard>
+        <DashboardCard
+          className="lg:col-span-2"
+          title="Time to Acceptance"
+          description="Distribution of time taken from application to acceptance, split by accepted and rejected decisions"
+        >
+          <TimeToAcceptanceChart promise={dashboardDataPromise} />
         </DashboardCard>
         <DashboardCard
           className="lg:col-span-3"

@@ -13,7 +13,7 @@ import {
 } from "@/lib/search-params";
 import { Outcome, OutcomeState } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { getStateCategory } from "@/lib/utils/state-category";
+import { getStateCategory } from "@/lib/utils";
 import DebugView from "./DebugView";
 import DecisionTimelineItem from "./DecisionTimelineItem";
 

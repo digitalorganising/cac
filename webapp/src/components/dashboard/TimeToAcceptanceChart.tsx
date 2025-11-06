@@ -2,8 +2,10 @@
 
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
-  ChartContainer,
   ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
@@ -14,9 +16,13 @@ type Props = {
 };
 
 const chartConfig: ChartConfig = {
-  count: {
-    label: "Applications",
-    color: "hsl(221, 83%, 53%)",
+  accepted: {
+    label: "Accepted",
+    color: "hsl(142, 76%, 36%)",
+  },
+  rejected: {
+    label: "Rejected",
+    color: "hsl(0, 84%, 60%)",
   },
 };
 
@@ -32,6 +38,9 @@ export default function TimeToAcceptanceChart({ data }: Props) {
           tickLine={false}
           axisLine={false}
           tickMargin={8}
+          type="number"
+          domain={[0, 52]}
+          tickCount={20}
           label={{
             value: "Weeks",
             position: "insideBottom",
@@ -41,9 +50,10 @@ export default function TimeToAcceptanceChart({ data }: Props) {
         />
         <YAxis tickLine={false} axisLine={false} tickMargin={8} />
         <ChartTooltip content={<ChartTooltipContent />} />
-        <Bar dataKey="count" fill="var(--color-count)" radius={[4, 4, 0, 0]} />
+        <ChartLegend content={<ChartLegendContent />} />
+        <Bar dataKey="accepted" stackId="a" fill="var(--color-accepted)" />
+        <Bar dataKey="rejected" stackId="a" fill="var(--color-rejected)" />
       </BarChart>
     </ChartContainer>
   );
 }
-
