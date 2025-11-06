@@ -49,6 +49,11 @@ export type BargainingUnitSizeVsTurnoutData = {
   success: boolean;
 }[];
 
+export type ApplicationsReceivedPerMonthData = {
+  month: string; // ISO date string (YYYY-MM-DD)
+  count: number;
+}[];
+
 export type AverageDurations = {
   successful?: number;
   unsuccessful?: number;
@@ -202,6 +207,37 @@ const createTimeToConclusionRequest = () => ({
     },
   },
 });
+
+const createApplicationsReceivedPerMonthRequest = () => {
+  const threeYearsAgo = new Date();
+  threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+  const threeYearsAgoISO = threeYearsAgo.toISOString().split("T")[0];
+
+  return {
+    size: 0,
+    query: {
+      range: {
+        "filter.keyDates.applicationReceived": {
+          gte: threeYearsAgoISO,
+        },
+      },
+    },
+    aggs: {
+      applicationsPerMonth: {
+        date_histogram: {
+          field: "filter.keyDates.applicationReceived",
+          calendar_interval: "month",
+          format: "yyyy-MM-dd",
+          min_doc_count: 0,
+          extended_bounds: {
+            min: threeYearsAgoISO,
+            max: "now",
+          },
+        },
+      },
+    },
+  };
+};
 
 const createBargainingUnitSizeVsTurnoutRequest = () => ({
   size: 1000,
@@ -461,6 +497,32 @@ const parseBargainingUnitSizeVsTurnoutResponse = (
   return data;
 };
 
+const parseApplicationsReceivedPerMonthResponse = (
+  response: OpenSearchTypes.Core_Msearch.ResponseItem,
+): ApplicationsReceivedPerMonthData => {
+  const body = isSearchResponse(response) ? response : undefined;
+  const agg = body?.aggregations
+    ?.applicationsPerMonth as OpenSearchTypes.Common_Aggregations.DateHistogramAggregate;
+  const buckets =
+    agg?.buckets as OpenSearchTypes.Common_Aggregations.DateHistogramBucket[];
+
+  if (!buckets) {
+    return [];
+  }
+
+  return buckets.map((bucket) => {
+    const key = bucket.key;
+    // key is a timestamp in milliseconds, convert to ISO date string
+    const date = new Date(typeof key === "number" ? key : Number(key));
+    const monthStr = date.toISOString().split("T")[0]; // YYYY-MM-DD format
+
+    return {
+      month: monthStr,
+      count: bucket.doc_count ?? 0,
+    };
+  });
+};
+
 const parseAverageDurationsResponse = (
   response: OpenSearchTypes.Core_Msearch.ResponseItem,
 ): AverageDurations => {
@@ -521,6 +583,7 @@ export type DashboardData = {
   timeToConclusion: TimeToConclusionData;
   bargainingUnitSizeVsTurnout: BargainingUnitSizeVsTurnoutData;
   averageDurations: AverageDurations;
+  applicationsReceivedPerMonth: ApplicationsReceivedPerMonthData;
 };
 
 export async function getAllDashboardData(): Promise<DashboardData> {
@@ -545,6 +608,8 @@ export async function getAllDashboardData(): Promise<DashboardData> {
     createBargainingUnitSizeVsTurnoutRequest(),
     { index: outcomesIndex },
     createAverageDurationsRequest(),
+    { index: outcomesIndex },
+    createApplicationsReceivedPerMonthRequest(),
   ];
 
   const msearchResponse = await client.msearch({
@@ -563,5 +628,8 @@ export async function getAllDashboardData(): Promise<DashboardData> {
       responses[5],
     ),
     averageDurations: parseAverageDurationsResponse(responses[6]),
+    applicationsReceivedPerMonth: parseApplicationsReceivedPerMonthResponse(
+      responses[7],
+    ),
   };
 }

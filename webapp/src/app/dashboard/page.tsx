@@ -4,6 +4,7 @@ import CategoryCountCardsClient from "@/components/dashboard/CategoryCountCards"
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import {
   ApplicationsPerUnionChart,
+  ApplicationsReceivedPerMonthChart,
   AverageDurationCards,
   BargainingUnitSizeChart,
   BargainingUnitSizeVsTurnoutChart,
@@ -61,6 +62,13 @@ export default function Dashboard() {
           description="Relationship between bargaining unit size and ballot turnout percentage"
         >
           <BargainingUnitSizeVsTurnoutChart promise={dashboardDataPromise} />
+        </DashboardCard>
+        <DashboardCard
+          className="lg:col-span-3"
+          title="Applications Received Per Month"
+          description="Number of applications received per month over the last 3 years"
+        >
+          <ApplicationsReceivedPerMonthChart promise={dashboardDataPromise} />
         </DashboardCard>
       </div>
     </div>
