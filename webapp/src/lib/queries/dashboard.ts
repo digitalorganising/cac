@@ -120,7 +120,7 @@ const createBargainingUnitSizesRequest = () => ({
     bargainingUnitSize: {
       histogram: {
         field: "facet.bargainingUnit.size",
-        interval: 5,
+        interval: 10,
         hard_bounds: {
           min: 0,
           max: 500,
@@ -186,7 +186,7 @@ const createTimeToConclusionRequest = () => ({
     timeToConclusion: {
       histogram: {
         field: "filter.durations.overall.value",
-        interval: 7 * 24 * 60 * 60,
+        interval: 2 * 7 * 24 * 60 * 60,
         extended_bounds: {
           min: 0,
           max: 104 * 7 * 24 * 60 * 60,
