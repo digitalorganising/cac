@@ -10,6 +10,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { ApplicationsPerUnionData } from "@/lib/queries/dashboard";
+import { CHART_MARGIN } from "./DashboardCard";
 
 type Props = {
   data: ApplicationsPerUnionData;
@@ -34,13 +35,27 @@ const chartConfig: ChartConfig = {
   },
 };
 
+// Incredibly lazy but also incredibly pragmatic
+const fixNames = (
+  entry: ApplicationsPerUnionData[number],
+): ApplicationsPerUnionData[number] => ({
+  ...entry,
+  union: (() => {
+    switch (entry.union) {
+      case "United Voices of the World":
+        return "UWV";
+      case "Unite the Union":
+        return "Unite";
+      default:
+        return entry.union;
+    }
+  })(),
+});
+
 export default function ApplicationsPerUnionChart({ data }: Props) {
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <BarChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
-      >
+      <BarChart data={data.map(fixNames)} margin={CHART_MARGIN}>
         <XAxis
           dataKey="union"
           tickLine={false}
@@ -53,7 +68,7 @@ export default function ApplicationsPerUnionChart({ data }: Props) {
         />
         <YAxis tickLine={false} axisLine={false} tickMargin={8} />
         <ChartTooltip content={<ChartTooltipContent />} />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<ChartLegendContent className="flex-wrap" />} />
         <Bar
           dataKey="withdrawn"
           stackId="a"

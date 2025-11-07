@@ -8,6 +8,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { ApplicationsReceivedPerMonthData } from "@/lib/queries/dashboard";
+import { CHART_MARGIN } from "./DashboardCard";
 
 type Props = {
   data: ApplicationsReceivedPerMonthData;
@@ -23,10 +24,7 @@ const chartConfig: ChartConfig = {
 export default function ApplicationsReceivedPerMonthChart({ data }: Props) {
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <LineChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
-      >
+      <LineChart data={data} margin={CHART_MARGIN}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           dataKey="month"
@@ -43,7 +41,7 @@ export default function ApplicationsReceivedPerMonthChart({ data }: Props) {
           label={{
             value: "Month",
             position: "insideBottom",
-            offset: -5,
+            offset: -10,
             style: { textAnchor: "middle" },
           }}
         />

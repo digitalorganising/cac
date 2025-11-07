@@ -14,6 +14,8 @@ type Props = {
   className?: string;
 };
 
+export const CHART_MARGIN = { top: 15, right: 40, left: -10, bottom: 10 };
+
 export default async function DashboardCard({
   title,
   description,

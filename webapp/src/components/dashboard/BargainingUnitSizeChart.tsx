@@ -10,6 +10,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { BargainingUnitSizeData } from "@/lib/queries/dashboard";
+import { CHART_MARGIN } from "./DashboardCard";
 
 type Props = {
   data: BargainingUnitSizeData;
@@ -37,10 +38,7 @@ const chartConfig: ChartConfig = {
 export default function BargainingUnitSizeChart({ data }: Props) {
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <BarChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-      >
+      <BarChart data={data} margin={CHART_MARGIN}>
         <XAxis
           dataKey="sizeRange"
           tickLine={false}
@@ -52,7 +50,7 @@ export default function BargainingUnitSizeChart({ data }: Props) {
         />
         <YAxis tickLine={false} axisLine={false} tickMargin={8} />
         <ChartTooltip content={<ChartTooltipContent />} />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<ChartLegendContent className="flex-wrap" />} />
         <Bar dataKey="withdrawn" stackId="a" fill="var(--color-withdrawn)" />
         <Bar dataKey="pending" stackId="a" fill="var(--color-pending)" />
         <Bar

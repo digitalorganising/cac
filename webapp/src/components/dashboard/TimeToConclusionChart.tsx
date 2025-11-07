@@ -10,6 +10,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { TimeToConclusionData } from "@/lib/queries/dashboard";
+import { CHART_MARGIN } from "./DashboardCard";
 
 type Props = {
   data: TimeToConclusionData;
@@ -29,10 +30,7 @@ const chartConfig: ChartConfig = {
 export default function TimeToConclusionChart({ data }: Props) {
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <BarChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 20, bottom: 40 }}
-      >
+      <BarChart data={data} margin={CHART_MARGIN}>
         <XAxis
           dataKey="timeRange"
           tickLine={false}
@@ -44,7 +42,7 @@ export default function TimeToConclusionChart({ data }: Props) {
           label={{
             value: "Weeks",
             position: "insideBottom",
-            offset: -5,
+            offset: -10,
             style: { textAnchor: "middle" },
           }}
         />

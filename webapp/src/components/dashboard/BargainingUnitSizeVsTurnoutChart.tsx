@@ -8,6 +8,7 @@ import {
   ChartTooltip,
 } from "@/components/ui/chart";
 import { BargainingUnitSizeVsTurnoutData } from "@/lib/queries/dashboard";
+import { CHART_MARGIN } from "./DashboardCard";
 
 type Props = {
   data: BargainingUnitSizeVsTurnoutData;
@@ -60,7 +61,7 @@ export default function BargainingUnitSizeVsTurnoutChart({ data }: Props) {
   );
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
-      <ComposedChart margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+      <ComposedChart margin={{ ...CHART_MARGIN, bottom: 20 }}>
         <XAxis
           type="number"
           dataKey="size"
@@ -73,7 +74,7 @@ export default function BargainingUnitSizeVsTurnoutChart({ data }: Props) {
           label={{
             value: "Bargaining Unit Size",
             position: "insideBottom",
-            offset: -5,
+            offset: -10,
             style: { textAnchor: "middle" },
           }}
         />
