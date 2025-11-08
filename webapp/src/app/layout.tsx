@@ -7,7 +7,7 @@ import NextTopLoader from "nextjs-toploader";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import GithubCorner from "@/components/GithubCorner";
 import SearchInputs from "@/components/SearchInputs";
-import { Button } from "@/components/ui/button";
+import Navbar from "@/components/ui/navbar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -37,19 +37,20 @@ export default function RootLayout({
             color="hsl(222.2 84% 4.9%)"
             showSpinner={false}
           />
-          <nav className="m-2 xs:m-3 sm:m-4">
-            <Button asChild variant="ghost" className="hidden sm:inline-flex">
-              <Link href="/">Home</Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link href="/docs">Docs</Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link href="/dashboard">
-                Dashboard <BarChartIcon />
-              </Link>
-            </Button>
-          </nav>
+          <Navbar
+            navigationLinks={[
+              { href: "/", label: "Home" },
+              { href: "/docs", label: "Docs" },
+              {
+                href: "/dashboard",
+                label: (
+                  <span className="flex items-center gap-2">
+                    Dashboard <BarChartIcon />
+                  </span>
+                ),
+              },
+            ]}
+          />
           <GithubCorner href="https://github.com/digitalorganising/cac" />
           <main className="container max-w-(--breakpoint-xl) px-4 xs:px-5 sm:px-6 pb-6">
             <h1 className="text-5xl font-extrabold text-center">
