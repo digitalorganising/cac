@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
+import { Skeleton } from "../ui/skeleton";
 
 type Props = {
   title: string;
@@ -15,6 +16,10 @@ type Props = {
 };
 
 export const CHART_MARGIN = { top: 15, right: 40, left: -10, bottom: 10 };
+
+function ChartLoading() {
+  return <Skeleton className="w-full h-[400px]" />;
+}
 
 export default async function DashboardCard({
   title,
@@ -29,7 +34,7 @@ export default async function DashboardCard({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+        <Suspense fallback={<ChartLoading />}>{children}</Suspense>
       </CardContent>
     </Card>
   );

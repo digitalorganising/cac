@@ -54,7 +54,10 @@ const fixNames = (
 
 export default function ApplicationsPerUnionChart({ data }: Props) {
   return (
-    <ChartContainer config={chartConfig} className="h-[400px] w-full">
+    <ChartContainer
+      config={chartConfig}
+      className="h-[400px] w-full text-[0.675rem] xs:text-xs"
+    >
       <BarChart data={data.map(fixNames)} margin={CHART_MARGIN}>
         <XAxis
           dataKey="union"
@@ -91,7 +94,7 @@ export default function ApplicationsPerUnionChart({ data }: Props) {
           dataKey="successful"
           stackId="a"
           fill="var(--color-successful)"
-          radius={[4, 4, 0, 0]}
+          radius={[2, 2, 0, 0]}
         />
       </BarChart>
     </ChartContainer>
