@@ -89,10 +89,16 @@ export default function OutcomePagination({
         )}
         <PaginationItem
           className={
-            page === totalPages ? "pointer-events-none opacity-30" : undefined
+            page === totalPages || totalPages === 0
+              ? "pointer-events-none opacity-30"
+              : undefined
           }
         >
-          <PaginationNext href={page === totalPages ? "" : pageUrl(page + 1)} />
+          <PaginationNext
+            href={
+              page === totalPages || totalPages === 0 ? "" : pageUrl(page + 1)
+            }
+          />
         </PaginationItem>
       </PaginationContent>
     </Pagination>
