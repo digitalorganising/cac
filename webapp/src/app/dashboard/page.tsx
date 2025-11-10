@@ -14,6 +14,10 @@ import {
 } from "@/components/dashboard/dashboard-charts";
 import { getAllDashboardData } from "@/lib/queries/dashboard";
 
+export const metadata = {
+  title: "Dashboard",
+};
+
 export default function Dashboard() {
   const dashboardDataPromise = getAllDashboardData();
 

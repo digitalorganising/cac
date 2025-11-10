@@ -8,6 +8,28 @@ import { appSearchParamsToOutcomesOptions } from "@/lib/queries/util";
 import { appSearchParamsCache } from "@/lib/search-params";
 import { Outcome } from "@/lib/types";
 
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await appSearchParamsCache.parse(searchParams);
+  if (!!params.reference) {
+    const options = appSearchParamsToOutcomesOptions(PAGE_SIZE, params);
+    const outcomes = await getOutcomes(options, params.debug);
+    if (outcomes.size === 1) {
+      return {
+        title: outcomes.docs[0].title,
+      };
+    }
+  }
+  if (!!params.query) {
+    return {
+      title: params.query,
+    };
+  }
+}
+
 export default async function Home({
   searchParams,
 }: {

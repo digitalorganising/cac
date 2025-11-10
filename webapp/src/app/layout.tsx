@@ -11,8 +11,12 @@ import Navbar from "@/components/ui/navbar";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CAC Outcomes",
-  description: "A dashboard for CAC statutory recognition outcomes",
+  title: {
+    default: "CAC Outcomes",
+    template: "%s | CAC Outcomes",
+  },
+  description: "Search and explore statutory union recognition outcomes",
+  metadataBase: new URL("https://cac.digitalganis.ing"),
 };
 
 export const viewport: Viewport = {
@@ -40,7 +44,7 @@ export default function RootLayout({
           <Navbar
             navigationLinks={[
               { href: "/", label: "Home" },
-              { href: "/docs", label: "Docs" },
+              { href: "/docs", label: "Documentation" },
               {
                 href: "/dashboard",
                 label: (
