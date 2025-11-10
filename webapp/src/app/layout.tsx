@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s | CAC Outcomes",
   },
   description: "Search and explore statutory union recognition outcomes",
-  metadataBase: new URL("https://cac.digitalganis.ing"),
+  metadataBase: new URL("https://cac.digitalorganis.ing"),
 };
 
 export const viewport: Viewport = {
