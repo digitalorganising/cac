@@ -32,12 +32,9 @@ def doc_ordering(fallback_date):
 
 def events_from_outcome(outcome):
     fallback_date = date_parse(outcome.last_updated.isoformat()[:10])
-    data = outcome.extracted_data
-    fixed_data = {k: fix_extracted_data(v) for k, v in data.items()}
-    ref = outcome.id
-    sorted_docs = OrderedDict(
-        sorted(fixed_data.items(), key=doc_ordering(fallback_date))
-    )
+    fixed_outcome = fix_extracted_data(outcome)
+    data = fixed_outcome.extracted_data
+    sorted_docs = OrderedDict(sorted(data.items(), key=doc_ordering(fallback_date)))
     document_urls = outcome.document_urls
 
     # Escape hatch below: this only happens where there is a previous application receipt
@@ -62,7 +59,7 @@ def events_from_outcome(outcome):
             raise InvalidEventError(
                 {
                     "root_cause": e,
-                    "outcome_reference": ref,
+                    "outcome_reference": fixed_outcome.id,
                     "current_events": events.dump_events(),
                 }
             )

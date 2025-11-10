@@ -1,6 +1,10 @@
-def fix_extracted_data(data):
-    match data:
+from ..types.documents import DocumentType
+
+
+def fix_extracted_data(outcome):
+    match outcome.id:
         case "TUR1/1006(2017)":
+            data = outcome.extracted_data[DocumentType.recognition_decision]
             # Ballot dates have the wrong year
             data.ballot.start_ballot_period = data.ballot.start_ballot_period.replace(
                 "2017", "2018"
@@ -8,17 +12,18 @@ def fix_extracted_data(data):
             data.ballot.end_ballot_period = data.ballot.end_ballot_period.replace(
                 "2017", "2018"
             )
-            return data
+            outcome.extracted_data[DocumentType.recognition_decision] = data
+            return outcome
         case "TUR1/1198(2020)":
             # Public "last updated" date is wrong
-            data.last_updated = "2020-09-16"
-            return data
+            outcome.last_updated = "2020-09-16"
+            return outcome
         case "TUR1/1184(2020)":
             # Public "last updated" date is wrong
-            data.last_updated = "2020-10-21"
-            return data
+            outcome.last_updated = "2020-10-21"
+            return outcome
         case _:
-            return data
+            return outcome
 
 
 def override_reference(outcome_reference):

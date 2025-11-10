@@ -491,9 +491,6 @@ def test_events_from_outcome_access_dispute():
     assert events[2]["type"]["value"] == "unfair_practice_upheld"
     assert events[2]["date"] == "2024-09-15"
     assert events[2]["description"] == "Complaint from union."
-
-
-def test_events_from_outcome_allowed_transform_error():
     """Test events_from_outcome with allowed transform errors"""
     outcome = create_outcome(
         id="TUR1/1006(2017)",  # Known bad reference that allows errors
