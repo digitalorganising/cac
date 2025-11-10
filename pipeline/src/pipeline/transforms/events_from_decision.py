@@ -227,7 +227,12 @@ def events_from_decision(
             qualifying_condition_labels[condition]
             for condition in whether_to_ballot_decision.qualifying_conditions
         ]
-        description = f"For the reasons of {'; '.join(qualifying_conditions)}."
+        if qualifying_conditions:
+            description = f"For the reasons of {'; '.join(qualifying_conditions)}."
+        elif not whether_to_ballot_decision.majority_membership:
+            description = "There was not sufficient evidence of a majority membership."
+        else:
+            description = "A ballot was decided to not be required."
         return [
             Event(
                 type=EventType.BallotRequirementDecided,
