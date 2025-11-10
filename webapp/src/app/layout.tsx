@@ -1,4 +1,5 @@
 import { BarChartIcon } from "@radix-ui/react-icons";
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import Form from "next/form";
@@ -70,6 +71,7 @@ export default function RootLayout({
               </div>
             </Form>
             {children}
+            <Analytics />
           </main>
         </NuqsAdapter>
       </body>
