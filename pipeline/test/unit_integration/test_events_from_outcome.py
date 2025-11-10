@@ -493,7 +493,7 @@ def test_events_from_outcome_access_dispute():
     assert events[2]["description"] == "Complaint from union."
     """Test events_from_outcome with allowed transform errors"""
     outcome = create_outcome(
-        id="TUR1/1006(2017)",  # Known bad reference that allows errors
+        id="TUR1/1234(2017)",
         last_updated="2024-01-15T10:30:00Z",
         extracted_data={
             "acceptance_decision": {
