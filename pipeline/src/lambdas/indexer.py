@@ -1,10 +1,8 @@
 from pipeline.transforms import transform_for_index
 from pipeline.transforms.events import InvalidEventError
-from pipeline.transforms.known_bad_data import allow_transform_errors
 from pipeline.decisions_to_outcomes import merge_decisions_to_outcomes
 from pipeline.services.opensearch_utils import get_mapping_from_path
 from . import map_docs, RefsEvent, lambda_friendly_run_async, client, DocumentRef
-from pydantic import ValidationError
 
 
 async def transform_if_possible(doc):
@@ -14,11 +12,6 @@ async def transform_if_possible(doc):
     except InvalidEventError as e:
         print(f"Invalid event error: {e}")
         return None
-    except Exception as e:
-        if allow_transform_errors(doc.id):
-            print(f"Allowed error: [{e}] for {doc.id}")
-            return None
-        raise
 
 
 def reference_from_id(id):

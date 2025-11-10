@@ -1,9 +1,24 @@
-def allow_transform_errors(outcome_reference):
-    match outcome_reference:
-        case "TUR1/1006(2017)" | "TUR1/1202(2020)" | "TUR1/1386(2024)":
-            return True
+def fix_extracted_data(data):
+    match data:
+        case "TUR1/1006(2017)":
+            # Ballot dates have the wrong year
+            data.ballot.start_ballot_period = data.ballot.start_ballot_period.replace(
+                "2017", "2018"
+            )
+            data.ballot.end_ballot_period = data.ballot.end_ballot_period.replace(
+                "2017", "2018"
+            )
+            return data
+        case "TUR1/1198(2020)":
+            # Public "last updated" date is wrong
+            data.last_updated = "2020-09-16"
+            return data
+        case "TUR1/1184(2020)":
+            # Public "last updated" date is wrong
+            data.last_updated = "2020-10-21"
+            return data
         case _:
-            return False
+            return data
 
 
 def override_reference(outcome_reference):

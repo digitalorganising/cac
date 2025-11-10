@@ -740,9 +740,7 @@ def test_events_from_outcome_empty_extracted_data():
         document_urls={},
     )
 
-    # This should raise StopIteration when trying to get last_doc from empty OrderedDict
-    with pytest.raises(StopIteration):
-        events_from_outcome(outcome)
+    assert not events_from_outcome(outcome).dump_events()
 
 
 def test_events_from_outcome_none_extracted_data():
@@ -758,9 +756,7 @@ def test_events_from_outcome_none_extracted_data():
         extracted_data={},  # Empty extracted data
     )
 
-    # This should raise StopIteration when trying to get last_doc from empty OrderedDict
-    with pytest.raises(StopIteration):
-        events_from_outcome(outcome)
+    assert not events_from_outcome(outcome).dump_events()
 
 
 def test_events_from_outcome_duplicate_event_prevention():

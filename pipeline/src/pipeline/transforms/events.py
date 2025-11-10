@@ -5,7 +5,7 @@ from dateutil.parser import parse as date_parse
 from ..types.documents import DocumentType
 from .events_machine import EventsBuilder, InvalidEventError
 from .events_from_decision import events_from_decision, Decision
-from .known_bad_data import allow_transform_errors
+from .known_bad_data import fix_extracted_data
 
 
 def doc_ordering(fallback_date):
@@ -33,8 +33,11 @@ def doc_ordering(fallback_date):
 def events_from_outcome(outcome):
     fallback_date = date_parse(outcome.last_updated.isoformat()[:10])
     data = outcome.extracted_data
+    fixed_data = {k: fix_extracted_data(v) for k, v in data.items()}
     ref = outcome.id
-    sorted_docs = OrderedDict(sorted(data.items(), key=doc_ordering(fallback_date)))
+    sorted_docs = OrderedDict(
+        sorted(fixed_data.items(), key=doc_ordering(fallback_date))
+    )
     document_urls = outcome.document_urls
 
     # Escape hatch below: this only happens where there is a previous application receipt
@@ -46,18 +49,7 @@ def events_from_outcome(outcome):
     ):
         document_urls["application_received"] = document_urls["application_withdrawn"]
 
-    # There seem to be a few cases where the last_updated date is wrong
-    last_doc = sorted_docs[next(reversed(sorted_docs))]
-    if (
-        last_doc
-        and last_doc.decision_date
-        and fallback_date < date_parse(last_doc.decision_date)
-    ):
-        fallback_date = date_parse(last_doc.decision_date)
-        sorted_docs = OrderedDict(sorted(data.items(), key=doc_ordering(fallback_date)))
-
     events = EventsBuilder()
-
     for doc_type, doc in sorted_docs.items():
         try:
             decision = Decision[doc_type](
@@ -67,14 +59,11 @@ def events_from_outcome(outcome):
                 events.add_event(event)
 
         except (MachineError, ValueError, TypeError) as e:
-            if allow_transform_errors(ref):
-                print(f"Allowed error: [{e}] for {ref}")
-            else:
-                raise InvalidEventError(
-                    {
-                        "root_cause": e,
-                        "outcome_reference": ref,
-                        "current_events": events.dump_events(),
-                    }
-                )
+            raise InvalidEventError(
+                {
+                    "root_cause": e,
+                    "outcome_reference": ref,
+                    "current_events": events.dump_events(),
+                }
+            )
     return events

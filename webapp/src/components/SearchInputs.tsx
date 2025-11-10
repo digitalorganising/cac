@@ -43,10 +43,7 @@ export default function SearchInputs() {
     <Suspense
       fallback={
         <>
-          <Input
-            placeholder="Search outcomes and decision documents..."
-            name="query"
-          />
+          <Input placeholder="Search outcomes..." name="query" />
           <Button
             type="reset"
             variant="secondary"
