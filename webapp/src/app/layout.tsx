@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   },
   description: "Search and explore statutory union recognition outcomes",
   metadataBase: new URL("https://cac.digitalorganis.ing"),
+  openGraph: {
+    title: "CAC Outcomes",
+    description: "Search and explore statutory union recognition outcomes",
+  },
 };
 
 export const viewport: Viewport = {

@@ -20,6 +20,9 @@ export async function generateMetadata({
     if (outcomes.size === 1) {
       return {
         title: outcomes.docs[0].title,
+        openGraph: {
+          title: outcomes.docs[0].title,
+        },
       };
     }
   }
