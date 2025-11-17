@@ -1,4 +1,3 @@
-import { BarChartIcon } from "@radix-ui/react-icons";
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
@@ -8,6 +7,7 @@ import NextTopLoader from "nextjs-toploader";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import GithubCorner from "@/components/GithubCorner";
 import SearchInputs from "@/components/SearchInputs";
+import WigglyBarChart from "@/components/WigglyBarChart";
 import Navbar from "@/components/ui/navbar";
 import "./globals.css";
 
@@ -53,8 +53,8 @@ export default function RootLayout({
               {
                 href: "/dashboard",
                 label: (
-                  <span className="flex items-center gap-2">
-                    Dashboard <BarChartIcon />
+                  <span className="group flex items-center gap-2">
+                    Dashboard <WigglyBarChart />
                   </span>
                 ),
               },
