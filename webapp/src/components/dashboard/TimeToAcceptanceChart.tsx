@@ -47,7 +47,10 @@ export default function TimeToAcceptanceChart({ data }: Props) {
           }}
         />
         <YAxis tickLine={false} axisLine={false} tickMargin={8} />
-        <ChartTooltip content={<ChartTooltipContent />} />
+        <ChartTooltip content={<ChartTooltipContent labelFormatter={(_, payload) => { 
+          const timeRange = payload?.[0]?.payload?.timeRange;
+          return timeRange ? `${timeRange}-${Number(timeRange) + 1} weeks` : "";
+         }}/>} />
         <ChartLegend content={<ChartLegendContent />} />
         <Bar dataKey="accepted" stackId="a" fill="var(--color-accepted)" />
         <Bar dataKey="rejected" stackId="a" fill="var(--color-rejected)" />

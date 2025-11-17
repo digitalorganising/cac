@@ -47,9 +47,10 @@ export default function BargainingUnitSizeChart({ data }: Props) {
           type="number"
           domain={[0, 500]}
           tickCount={20}
+          interval="equidistantPreserveStart"
         />
         <YAxis tickLine={false} axisLine={false} tickMargin={8} />
-        <ChartTooltip content={<ChartTooltipContent />} />
+        <ChartTooltip content={<ChartTooltipContent labelFormatter={value => `${value}-${Number(value) + 10} workers`}/>} />
         <ChartLegend content={<ChartLegendContent className="flex-wrap" />} />
         <Bar dataKey="withdrawn" stackId="a" fill="var(--color-withdrawn)" />
         <Bar dataKey="pending" stackId="a" fill="var(--color-pending)" />

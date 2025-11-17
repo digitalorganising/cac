@@ -47,7 +47,10 @@ export default function TimeToConclusionChart({ data }: Props) {
           }}
         />
         <YAxis tickLine={false} axisLine={false} tickMargin={8} />
-        <ChartTooltip content={<ChartTooltipContent />} />
+        <ChartTooltip content={<ChartTooltipContent labelFormatter={(_, payload) => { 
+          const timeRange = payload?.[0]?.payload?.timeRange;
+          return timeRange ? `${timeRange}-${Number(timeRange) + 1} weeks` : "";
+         }}/>} />
         <ChartLegend content={<ChartLegendContent />} />
         <Bar dataKey="successful" stackId="a" fill="var(--color-successful)" />
         <Bar
