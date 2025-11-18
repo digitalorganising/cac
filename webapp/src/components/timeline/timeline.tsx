@@ -29,7 +29,7 @@ const Timeline = React.forwardRef<HTMLOListElement, TimelineProps>(
       <ol
         ref={ref}
         aria-label="Timeline"
-        className={cn("relative pt-3", className)}
+        className={cn("relative", className)}
         {...props}
       >
         {React.Children.map(children, (child, index) => {

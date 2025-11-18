@@ -70,7 +70,7 @@ const OutcomeDetails = ({ outcome, className }: Props) => {
   return (
     <dl
       className={cn(
-        "m-2 max-md:mt-0 lg:m-4 grid grid-cols-[minmax(160px,_1fr)_auto] lg:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min items-baseline",
+        "grid grid-cols-[minmax(160px,_1fr)_auto] lg:grid-cols-[160px_minmax(auto,_100%)] auto-rows-min items-baseline",
         "xs:gap-x-2 md:gap-x-4 xs:gap-y-0.5 lg:gap-y-3",
         "[&>dt]:font-medium [&>dt]:col-start-1 [&>dd]:col-start-1 lg:[&>dd]:col-start-2 max-lg:[&>dt]:mt-2.5",
         className,
@@ -158,12 +158,20 @@ const OutcomeDetails = ({ outcome, className }: Props) => {
 
 const OutcomeCard = ({ outcome, showDebugView = false }: Props) => (
   <Card>
-    <CardHeader className="space-y-0 xs:space-x-2 block xs:flex flex-row-reverse items-center justify-between mb-2">
+    <CardHeader className="space-y-0 space-x-3 flex flex-row items-center justify-between mb-2">
+      <Link
+        href={appSearchParamsSerializer({ reference: outcome.reference })}
+        className="flex items-center gap-x-2 group"
+      >
+        <CardTitle className="text-md xs:text-xl group-hover:underline">
+          {outcome.title}
+        </CardTitle>
+      </Link>
       <Link
         aria-label="View this outcome on gov.uk"
         href={outcome.cacUrl}
         target="_blank"
-        className="size-6 xs:size-auto p-0 float-right xs:m-1 flex flex-row items-center justify-center text-nowrap xs:space-x-2 rounded-full border xs:px-2.5 xs:py-0.5 text-xs border-transparent bg-slate-200 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-slate-300"
+        className="shrink-0 self-start size-6 xs:size-auto p-0 xs:m-1 flex flex-row items-center justify-center text-nowrap xs:space-x-2 rounded-full border xs:px-2.5 xs:py-0.5 text-xs border-transparent bg-slate-200 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-slate-300"
       >
         <span className="hidden xs:inline">
           Last updated:&nbsp;
@@ -173,17 +181,9 @@ const OutcomeCard = ({ outcome, showDebugView = false }: Props) => (
         </span>
         <ExternalLinkIcon className="size-3" />
       </Link>
-      <Link
-        href={appSearchParamsSerializer({ reference: outcome.reference })}
-        className="flex items-center gap-x-2 group"
-      >
-        <CardTitle className="text-md xs:text-xl group-hover:underline">
-          {outcome.title}
-        </CardTitle>
-      </Link>
     </CardHeader>
-    <CardContent className="flex flex-col md:flex-row sm:space-x-4 w-full">
-      <Timeline className="ml-2 md:w-1/2">
+    <CardContent className="flex flex-col p-3 md:p-5 md:pt-2.5 md:flex-row sm:space-x-4 w-full">
+      <Timeline className="md:w-1/2">
         {outcome.events.map((e) => (
           <DecisionTimelineItem
             key={e.type.value}
