@@ -43,7 +43,7 @@ const fixNames = (
   union: (() => {
     switch (entry.union) {
       case "United Voices of the World":
-        return "UWV";
+        return "UVW";
       case "Unite the Union":
         return "Unite";
       default:
