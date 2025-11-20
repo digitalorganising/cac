@@ -2,7 +2,12 @@ import os
 from baml_client import b
 from baml_py.errors import BamlValidationError
 from baml_py import ClientRegistry
-from tenacity import retry, stop_after_attempt, wait_fixed, retry_if_exception_type
+from tenacity import (
+    stop_after_attempt,
+    wait_fixed,
+    retry_if_exception_type,
+    AsyncRetrying,
+)
 from .secrets import secrets_store
 
 env_key = os.getenv("GOOGLE_API_KEY")
@@ -26,26 +31,20 @@ large_client = authenticated_client.with_options(client_registry=large_client_re
 
 def with_retry_client(default_client, retry_client, wait=wait_fixed(3), max_attempts=2):
     def decorator(func):
-        def wrapper(*args, **kwargs):
-            attempt = 0
-
-            @retry(
+        async def async_wrapper(*args, **kwargs):
+            async for attempt_ctx in AsyncRetrying(
                 retry=retry_if_exception_type(BamlValidationError),
                 stop=stop_after_attempt(max_attempts),
                 wait=wait,
                 reraise=True,
-            )
-            def _retry_func():
-                nonlocal attempt
-                attempt += 1
-                if attempt == max_attempts:
-                    return func(*args, **kwargs, client=retry_client)
-                elif attempt > max_attempts:
-                    raise RuntimeError("You shouldn't be seeing this error!")
-                return func(*args, **kwargs, client=default_client)
+            ):
+                with attempt_ctx:
+                    attempt_number = attempt_ctx.retry_state.attempt_number
+                    if attempt_number == max_attempts:
+                        print("Using retry client")
+                        return await func(*args, **kwargs, client=retry_client)
+                    return await func(*args, **kwargs, client=default_client)
 
-            return _retry_func()
-
-        return wrapper
+        return async_wrapper
 
     return decorator

@@ -35,11 +35,10 @@ module "scraper" {
   timeout       = 60 * 15
   memory_size   = 3008
   environment = {
-    OPENSEARCH_ENDPOINT                  = local.opensearch_endpoint
-    OPENSEARCH_CREDENTIALS_SECRET        = module.opensearch_credentials.arn
-    API_BASE                             = "https://${vercel_project_domain.cac_digitalorganising.domain}/api"
-    UNTERMINATED_OUTCOMES_AGE_LIMIT_DAYS = 365 * 2 # 2 years
-    OPENSEARCH_BATCH_SIZE                = local.batch_size
+    OPENSEARCH_ENDPOINT           = local.opensearch_endpoint
+    OPENSEARCH_CREDENTIALS_SECRET = module.opensearch_credentials.arn
+    API_BASE                      = "https://${vercel_project_domain.cac_digitalorganising.domain}/api"
+    OPENSEARCH_BATCH_SIZE         = local.batch_size
   }
 }
 

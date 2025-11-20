@@ -12,7 +12,7 @@ def set_env():
 
 def make_rotating_func(*funcs):
     """
-    Returns a function that calls each of the given functions sequentially
+    Returns an async function that calls each of the given functions sequentially
     on successive invocations. Once all have been called, raises RuntimeError.
     """
 
@@ -25,25 +25,25 @@ def make_rotating_func(*funcs):
 
     iterator = gen()
 
-    def wrapper(*args, **kwargs):
+    async def wrapper(*args, **kwargs):
         func = next(iterator)
-        return func(*args, **kwargs)
+        return await func(*args, **kwargs)
 
     return wrapper
 
 
-def test_retry_client():
+async def test_retry_client():
     from pipeline.services.baml import (
         authenticated_client,
         large_client,
         with_retry_client,
     )
 
-    def first_call(key, *, client):
+    async def first_call(key, *, client):
         assert key == 1
         assert client is authenticated_client, "client was not the default client"
 
-    def second_call(key, *, client):
+    async def second_call(key, *, client):
         assert key == 2
         assert client is authenticated_client, "client was not the default client"
         raise BamlValidationError(
@@ -53,11 +53,11 @@ def test_retry_client():
             prompt="test prompt",
         )
 
-    def third_call(key, *, client):
+    async def third_call(key, *, client):
         assert key == 2
         assert client is large_client, "client was not the retry client"
 
-    def fourth_call(key, *, client):
+    async def fourth_call(key, *, client):
         assert key == 3
         assert client is authenticated_client, "client was not the default client"
 
@@ -65,9 +65,9 @@ def test_retry_client():
         make_rotating_func(first_call, second_call, third_call, fourth_call)
     )
 
-    test_func(key=1)
-    test_func(key=2)
-    test_func(key=3)
+    await test_func(key=1)
+    await test_func(key=2)
+    await test_func(key=3)
     with pytest.raises(RuntimeError) as e:
-        test_func(key=4)
+        await test_func(key=4)
         assert e.value.message == "All provided functions have already been called."
