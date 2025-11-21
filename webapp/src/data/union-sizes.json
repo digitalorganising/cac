@@ -1,0 +1,157 @@
+{
+  "source": "https://www.gov.uk/government/publications/official-list-of-trade-unions/current-trade-unions",
+  "date": "2025-11-21",
+  "description": "These are taken manually from the various annual returns - there is too much variation in how these are filled out to bother scripting it. Only numbers for unions which have currently made applications are used.",
+  "data": [
+    {
+      "name": "Unite the Union",
+      "alternativeNames": ["Unite", "UCATT"],
+      "membership": 1177292
+    },
+    {
+      "name": "GMB",
+      "alternativeNames": ["GMB Scotland"],
+      "membership": 576463
+    },
+    {
+      "name": "RMT",
+      "alternativeNames": [],
+      "membership": 80192
+    },
+    {
+      "name": "NEU",
+      "alternativeNames": ["National Education Union"],
+      "membership": 487420
+    },
+    {
+      "name": "NASUWT",
+      "alternativeNames": [],
+      "membership": 285963
+    },
+    {
+      "name": "Prospect",
+      "alternativeNames": ["BECTU"],
+      "membership": 156904
+    },
+    {
+      "name": "URTU",
+      "alternativeNames": [],
+      "membership": 7577
+    },
+    {
+      "name": "NUJ",
+      "alternativeNames": [],
+      "membership": 19432
+    },
+    {
+      "name": "PCS",
+      "alternativeNames": ["Name of PCS"],
+      "membership": 189399
+    },
+    {
+      "name": "Unison",
+      "alternativeNames": [],
+      "membership": 1403792
+    },
+    {
+      "name": "Community",
+      "alternativeNames": ["Community Union"],
+      "membership": 41754
+    },
+    {
+      "name": "IWGB",
+      "alternativeNames": ["IWGB Union"],
+      "membership": 7380
+    },
+    {
+      "name": "TSSA",
+      "alternativeNames": [],
+      "membership": 17235
+    },
+    {
+      "name": "CWU",
+      "alternativeNames": [],
+      "membership": 170324
+    },
+    {
+      "name": "United Voices of the World",
+      "alternativeNames": ["UVW"],
+      "membership": 3881
+    },
+    {
+      "name": "BFAWU",
+      "alternativeNames": [],
+      "membership": 14645
+    },
+    {
+      "name": "UCU",
+      "alternativeNames": [],
+      "membership": 119785
+    },
+    {
+      "name": "IWW",
+      "alternativeNames": ["Industrial Workers of the World"],
+      "membership": 3486
+    },
+    {
+      "name": "PDAU",
+      "alternativeNames": ["PDA"],
+      "membership": 39141
+    },
+    {
+      "name": "BMA",
+      "alternativeNames": ["BMA (British Medical Association)"],
+      "membership": 191105
+    },
+    {
+      "name": "USDAW",
+      "alternativeNames": [],
+      "membership": 360394
+    },
+    {
+      "name": "AEGIS the Union",
+      "alternativeNames": [],
+      "membership": 4093
+    },
+    {
+      "name": "ASLEF",
+      "alternativeNames": [],
+      "membership": 22314
+    },
+    {
+      "name": "BALPA",
+      "alternativeNames": [],
+      "membership": 12783
+    },
+    {
+      "name": "Equality for Workers Union",
+      "alternativeNames": [],
+      "membership": 3972
+    },
+    {
+      "name": "IPA",
+      "alternativeNames": [],
+      "membership": 1236
+    },
+    {
+      "name": "NAHT",
+      "alternativeNames": [],
+      "membership": 49785
+    },
+    {
+      "name": "Nautilus International",
+      "alternativeNames": [],
+      "membership": 19089
+    },
+    {
+      "name": "The Society of Radiographers",
+      "alternativeNames": [],
+      "membership": 33971
+    },
+    {
+      "name": "Workers of England Trade Union",
+      "alternativeNames": [],
+      "membership": 8672
+    }
+  ]
+}

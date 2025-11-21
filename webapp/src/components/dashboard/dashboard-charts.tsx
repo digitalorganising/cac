@@ -1,5 +1,6 @@
 import { type DashboardData } from "@/lib/queries/dashboard";
 import ApplicationsPerUnionChartClient from "./ApplicationsPerUnionChart";
+import ApplicationsPerUnionPer1000MembersChartClient from "./ApplicationsPerUnionPer1000MembersChart";
 import ApplicationsReceivedPerMonthChartClient from "./ApplicationsReceivedPerMonthChart";
 import AverageDurationCardsClient from "./AverageDurationCards";
 import BargainingUnitSizeChartClient from "./BargainingUnitSizeChart";
@@ -25,6 +26,19 @@ export async function ApplicationsPerUnionChart({
 }) {
   const data = await promise;
   return <ApplicationsPerUnionChartClient data={data.applicationsPerUnion} />;
+}
+
+export async function ApplicationsPerUnionPer1000MembersChart({
+  promise,
+}: {
+  promise: Promise<DashboardData>;
+}) {
+  const data = await promise;
+  return (
+    <ApplicationsPerUnionPer1000MembersChartClient
+      data={data.applicationsPerUnion}
+    />
+  );
 }
 
 export async function BargainingUnitSizeChart({

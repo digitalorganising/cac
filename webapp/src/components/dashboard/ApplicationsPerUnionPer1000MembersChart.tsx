@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
   ChartConfig,
@@ -10,7 +11,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { ApplicationsPerUnionData } from "@/lib/queries/dashboard";
-import { sortAndTruncateApplicationsPerUnion } from "@/lib/transform-union-data";
+import { transformApplicationsPerUnionToPer1000Members } from "@/lib/transform-union-data";
 import { CHART_MARGIN } from "./DashboardCard";
 
 type Props = {
@@ -47,23 +48,30 @@ const fixNames = (
         return "UVW";
       case "Unite the Union":
         return "Unite";
+      case "Equality for Workers Union":
+        return "EFWU";
+      case "AEGIS the Union":
+        return "Aegis";
       default:
         return entry.union;
     }
   })(),
 });
 
-export default function ApplicationsPerUnionChart({ data }: Props) {
-  const sortedAndTruncatedData = sortAndTruncateApplicationsPerUnion(data, 15);
+export default function ApplicationsPerUnionPer1000MembersChart({
+  data,
+}: Props) {
+  const transformedData = useMemo(
+    () => transformApplicationsPerUnionToPer1000Members(data).map(fixNames),
+    [data],
+  );
+
   return (
     <ChartContainer
       config={chartConfig}
       className="h-[400px] w-full text-[0.675rem] xs:text-xs"
     >
-      <BarChart
-        data={sortedAndTruncatedData.map(fixNames)}
-        margin={CHART_MARGIN}
-      >
+      <BarChart data={transformedData} margin={CHART_MARGIN}>
         <XAxis
           dataKey="union"
           tickLine={false}
@@ -74,7 +82,16 @@ export default function ApplicationsPerUnionChart({ data }: Props) {
           height={70}
           interval={0}
         />
-        <YAxis tickLine={false} axisLine={false} tickMargin={8} />
+        <YAxis
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          label={{
+            value: "Applications per 1000 members",
+            angle: -90,
+            position: "insideLeft",
+          }}
+        />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent className="flex-wrap" />} />
         <Bar

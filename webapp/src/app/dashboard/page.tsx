@@ -4,6 +4,7 @@ import CategoryCountCardsClient from "@/components/dashboard/CategoryCountCards"
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import {
   ApplicationsPerUnionChart,
+  ApplicationsPerUnionPer1000MembersChart,
   ApplicationsReceivedPerMonthChart,
   AverageDurationCards,
   BargainingUnitSizeChart,
@@ -35,6 +36,15 @@ export default function Dashboard() {
         description="Breakdown of applications by union, showing successful, unsuccessful, pending, and withdrawn cases"
       >
         <ApplicationsPerUnionChart promise={dashboardDataPromise} />
+      </DashboardCard>
+      <DashboardCard
+        className="col-span-2"
+        title="Applications by total membership"
+        description="Number of applications by each union, normalized by membership size (per 1000 members)."
+      >
+        <ApplicationsPerUnionPer1000MembersChart
+          promise={dashboardDataPromise}
+        />
       </DashboardCard>
       <DashboardCard
         className="col-span-2"

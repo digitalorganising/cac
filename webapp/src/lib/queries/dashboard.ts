@@ -100,7 +100,7 @@ const createApplicationsPerUnionRequest = () => ({
     unions: {
       terms: {
         field: "facet.parties.unions",
-        size: 15,
+        size: 50,
       },
       aggs: {
         states: {
