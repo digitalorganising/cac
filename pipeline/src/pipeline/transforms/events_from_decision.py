@@ -267,7 +267,16 @@ def events_from_decision(
             )
         ]
     else:
-        return []
+        return [
+            Event(
+                type=EventType.BargainingUnitAppropriate,
+                date=date_parse(validity_decision.decision_date),
+                source_document_url=decision.source_url(),
+                description=ensure_period(
+                    f"Bargaining unit still valid: {validity_decision.new_bargaining_unit.description}"
+                ),
+            )
+        ]
 
 
 @dispatch

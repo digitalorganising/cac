@@ -432,7 +432,12 @@ def test_events_from_decision_validity_decision_valid():
     events = events_from_decision(decision)
 
     # Should return 0 events when valid
-    assert len(events) == 0
+    assert len(events) == 1
+    event = events[0]
+    assert event.type == EventType.BargainingUnitAppropriate
+    assert event.date == datetime(2024, 6, 1).date()
+    assert str(event.source_document_url) == source_url
+    assert event.description == "Bargaining unit still valid: All workers at the site."
 
 
 def test_events_from_decision_case_closure():
