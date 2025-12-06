@@ -48,7 +48,7 @@ export interface NavbarProps extends React.HTMLAttributes<HTMLElement> {
 
 function Navbar({ className, navigationLinks }: NavbarProps) {
   return (
-    <nav className="m-0.5 xs:m-1 sm:m-3">
+    <nav className="p-0.5 xs:p-1 sm:p-3">
       <Popover>
         <PopoverTrigger asChild>
           <Button
