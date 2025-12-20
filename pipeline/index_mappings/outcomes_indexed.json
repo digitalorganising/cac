@@ -146,6 +146,39 @@
         },
         "durations.acceptance.relation": {
           "type": "keyword"
+        },
+        "ballot.turnoutPercent": {
+          "type": "float"
+        },
+        "ballot.eligible": {
+          "type": "integer"
+        },
+        "ballot.inFavor.n": {
+          "type": "integer"
+        },
+        "ballot.inFavor.percentVotes": {
+          "type": "float"
+        },
+        "ballot.inFavor.percentBU": {
+          "type": "float"
+        },
+        "ballot.against.n": {
+          "type": "integer"
+        },
+        "ballot.against.percentVotes": {
+          "type": "float"
+        },
+        "ballot.against.percentBU": {
+          "type": "float"
+        },
+        "ballot.spoiled.n": {
+          "type": "integer"
+        },
+        "ballot.spoiled.percentVotes": {
+          "type": "float"
+        },
+        "ballot.spoiled.percentBU": {
+          "type": "float"
         }
       }
     },

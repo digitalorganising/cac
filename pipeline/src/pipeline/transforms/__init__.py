@@ -228,6 +228,47 @@ def transform_for_index(outcome: Outcome):
             "durations.overall.relation": durations["overall"]["relation"],
             "durations.acceptance.value": durations["acceptance"]["value"],
             "durations.acceptance.relation": durations["acceptance"]["relation"],
+            "ballot.turnoutPercent": ballot["turnoutPercent"] if ballot else None,
+            "ballot.eligible": ballot["eligible"] if ballot else None,
+            "ballot.inFavor.n": (
+                ballot["inFavor"]["n"] if ballot and ballot.get("inFavor") else None
+            ),
+            "ballot.inFavor.percentVotes": (
+                ballot["inFavor"]["percentVotes"]
+                if ballot and ballot.get("inFavor")
+                else None
+            ),
+            "ballot.inFavor.percentBU": (
+                ballot["inFavor"]["percentBU"]
+                if ballot and ballot.get("inFavor")
+                else None
+            ),
+            "ballot.against.n": (
+                ballot["against"]["n"] if ballot and ballot.get("against") else None
+            ),
+            "ballot.against.percentVotes": (
+                ballot["against"]["percentVotes"]
+                if ballot and ballot.get("against")
+                else None
+            ),
+            "ballot.against.percentBU": (
+                ballot["against"]["percentBU"]
+                if ballot and ballot.get("against")
+                else None
+            ),
+            "ballot.spoiled.n": (
+                ballot["spoiled"]["n"] if ballot and ballot.get("spoiled") else None
+            ),
+            "ballot.spoiled.percentVotes": (
+                ballot["spoiled"]["percentVotes"]
+                if ballot and ballot.get("spoiled")
+                else None
+            ),
+            "ballot.spoiled.percentBU": (
+                ballot["spoiled"]["percentBU"]
+                if ballot and ballot.get("spoiled")
+                else None
+            ),
         },
         "facet": flatten_facets(
             {
