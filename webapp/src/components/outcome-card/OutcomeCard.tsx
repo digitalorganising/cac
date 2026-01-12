@@ -137,6 +137,26 @@ const OutcomeDetails = ({ outcome, className }: Props) => {
         </>
       ) : null}
 
+      {outcome.bargainingUnit?.locations &&
+      outcome.bargainingUnit.locations.length === 1 ? (
+        <>
+          <dt>Location</dt>
+          <dd>{outcome.bargainingUnit.locations[0]}</dd>
+        </>
+      ) : outcome.bargainingUnit?.locations &&
+        outcome.bargainingUnit.locations.length > 1 ? (
+        <>
+          <dt>Locations</dt>
+          <dd>
+            <ul className="list-disc list-inside">
+              {outcome.bargainingUnit.locations.map((location) => (
+                <li key={location}>{location}</li>
+              ))}
+            </ul>
+          </dd>
+        </>
+      ) : null}
+
       {outcome.bargainingUnit?.petitionSignatures ? (
         <>
           <dt>Supporting petition</dt>

@@ -62,6 +62,7 @@ type OutcomeBargainingUnit = {
   membership?: number;
   description?: string;
   petitionSignatures?: number;
+  locations?: string[];
 };
 
 export type BallotStats = {
