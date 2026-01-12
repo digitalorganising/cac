@@ -48,6 +48,7 @@ def get_bargaining_unit(outcome: Outcome):
             or d.new_bargaining_unit.claimed_membership,
             "description": d.new_bargaining_unit.description,
             "petitionSignatures": ad.petition_signatures,
+            "locations": d.new_bargaining_unit.locations,
         }
 
     return {
@@ -58,6 +59,7 @@ def get_bargaining_unit(outcome: Outcome):
         or ad.bargaining_unit.claimed_membership,
         "description": ad.bargaining_unit.description,
         "petitionSignatures": ad.petition_signatures,
+        "locations": ad.bargaining_unit.locations,
     }
 
     return None

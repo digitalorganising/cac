@@ -20,8 +20,7 @@ async def test_unite_primopost(cac_document_contents):
     assert (
         SM(
             None,
-            """All direct and indirect operations based employees at Primopost, Buxton 
-            in either
+            """All direct and indirect operations based employees in either
 permanent, temporary, trainee or apprentice employment, with the following job titles:
 No.1 Printer
 No.2 Printer (Assistant Printer)
@@ -39,8 +38,9 @@ Management""",
     )
 
     assert vd.new_bargaining_unit.size == 69
-    assert vd.new_bargaining_unit.claimed_membership is 35
+    assert vd.new_bargaining_unit.claimed_membership is None
     assert vd.new_bargaining_unit.membership == 35
+    assert vd.new_bargaining_unit.locations == ["Buxton"]
 
 
 @pytest.mark.parametrize(
@@ -61,6 +61,7 @@ async def test_rmt_cwind(cac_document_contents):
         size_considered=True,
         claimed_membership=7,
         membership=5,
+        locations=["Robin Rigg Workington"],
     )
 
 
@@ -79,10 +80,7 @@ async def test_gmb_noble_collection(cac_document_contents):
     assert (
         SM(
             None,
-            "all retail staff employed by the Noble Collection UK "
-            "Ltd at 26-28 Neal Street, "
-            "London WC2 and Hamleys Toy Store, "
-            "188-196 Regent Street, London W1 excluding the Head of the Retail Team",
+            "all retail staff employed by the Noble Collection UK excluding the Head of the Retail Team",
             vd.new_bargaining_unit.description,
         ).ratio()
         > 0.90
@@ -91,6 +89,10 @@ async def test_gmb_noble_collection(cac_document_contents):
     assert vd.new_bargaining_unit.claimed_membership == 7
     assert vd.new_bargaining_unit.membership == 7
     assert vd.new_bargaining_unit.size_considered
+    assert vd.new_bargaining_unit.locations == [
+        "26-28 Neal Street, London WC2",
+        "Hamleys Toy Store, 188-196 Regent Street, London W1",
+    ]
 
 
 @pytest.mark.parametrize(
@@ -107,8 +109,7 @@ async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
     assert not vd.rejection_reasons
     assert vd.new_bargaining_unit == BargainingUnit(
         description="All staff employed by the Corporation of the Hall of Arts and "
-        "Sciences (commonly known as the Royal Albert Hall) at the "
-        "Royal Albert Hall below Heads of Department and senior executive "
+        "Sciences (commonly known as the Royal Albert Hall) below Heads of Department and senior executive "
         "grades in the following areas: Box Office, Facilities and "
         "Building Services, Front of House, Security, Tours and "
         "Production and Technical",
@@ -116,6 +117,7 @@ async def test_bectu_hall_of_arts_and_sciences(cac_document_contents):
         size_considered=True,
         claimed_membership=58,
         membership=58,
+        locations=["Royal Albert Hall"],
     )
 
 

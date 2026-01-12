@@ -5,8 +5,8 @@ class AcceptanceDecision {
   application_date string
   end_of_acceptance_period string? @description("The date for the end of the acceptance period after any extensions")
   bargaining_unit BargainingUnit
-  bargaining_unit_agreed bool @description("Whether the employer agreed with the bargaining unit - must be a boolean!")
-  petition_signatures int? @description("The number of entries on any union petition/survey/etc regardless of veracity and before any revisions or exclusions or contradicting statements (null if no petition)")
+  bargaining_unit_agreed bool @description("Whether the employer agreed with the bargaining unit - must be a boolean. Consider them to have agreed if they did not dispute it specifically.")
+  petition_signatures int? @description("The number of entries on any union petition/survey that was provided in addition to membership figures, regardless of veracity and before any revisions or exclusions or contradicting statements (null if no petition)")
 
   @@assert(consistent_rejection_reasons, {{ this.success != this.rejection_reasons|length|bool }})
   @@assert(consistent_bu_size, {{ this.bargaining_unit.size_considered == this.bargaining_unit.size|bool }})

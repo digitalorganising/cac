@@ -10,7 +10,7 @@ template_string BargainingUnitThinkingPrompt() #"
    
     - The number of workers in the bargaining unit (verified) [n_workers], if they were stated [n_workers_in_decision]
     - The number of union members in the bargaining unit (verified) [n_verified_union_members]
-    - The initial (based on what we know) number of union members claimed or implied before any verification or revision [n_stated_union_members]
+    - The very first (based on what we know) number of union members claimed or implied before any verification or revision [n_stated_union_members]
 "#
 
 template_string DateFormatPrompt() #"
@@ -18,7 +18,8 @@ template_string DateFormatPrompt() #"
 "#
 
 class BargainingUnit {
-  description string @description("The defined bargaining unit exactly as written but excluding any address")
+  description string @description("The defined bargaining unit exactly as written but excluding any locations")
+  locations string[]? @description("Should never be empty - null if not stated")
   size_considered bool @alias("n_workers_in_decision")
   size int @alias("n_workers") 
   claimed_membership int? @alias("n_stated_union_members")

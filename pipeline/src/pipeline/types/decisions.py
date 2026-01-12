@@ -88,6 +88,7 @@ bargaining_unit_mapping = {
     "size_considered": {"type": "boolean"},
     "claimed_membership": {"type": "integer"},
     "membership": {"type": "integer"},
+    "locations": {"type": "text"},
 }
 
 

@@ -27,6 +27,7 @@ async def test_prospect_british_academy(cac_document_contents):
         size_considered=True,
         claimed_membership=50,
         membership=47,
+        locations=["10-11 Carlton House Terrace, London, SW1Y 5AH"],
     )
 
 
@@ -54,6 +55,7 @@ async def test_gmb_cranswick_country_foods(cac_document_contents):
         size_considered=True,
         claimed_membership=100,
         membership=77,
+        locations=["Cranswick Country Foods, Staithes Road, Preston, Hull"],
     )
 
 
@@ -75,12 +77,12 @@ async def test_rmt_isles_of_scilly_shipping(cac_document_contents):
     assert ad.end_of_acceptance_period == "14 September 2022"
     assert not ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
-        description="Motorman, Bosun, Pursers and Able Seaman employed on "
-        "board the vessel the Scillonian 111",
+        description="Motorman, Bosun, Pursers and Able Seaman",
         size=12,
         size_considered=True,
         claimed_membership=11,
         membership=10,
+        locations=["on board the vessel the Scillonian 111"],
     )
 
 
@@ -107,6 +109,9 @@ async def test_gmb_mitie_services(cac_document_contents):
         size_considered=True,
         claimed_membership=19,
         membership=17,
+        locations=[
+            "Unit 3, Valmar Trading Estate, Valmar Road, Camberwell, London SE5 9NW"
+        ],
     )
 
 
@@ -134,6 +139,7 @@ async def test_community_coilcolor(cac_document_contents):
         size_considered=True,
         claimed_membership=12,
         membership=9,
+        locations=["Whitehead Estate, Docks Way, Newport, Gwent NP20 2NW"],
     )
 
 
@@ -161,6 +167,7 @@ async def test_iwgb_university_of_london(cac_document_contents):
         size_considered=True,
         claimed_membership=61,
         membership=None,
+        locations=["University of London"],
     )
 
 
@@ -229,11 +236,12 @@ async def test_iwgb_ocean_integrated_services(cac_document_contents):
     assert ad.application_date == "20 May 2015"
     assert ad.bargaining_unit_agreed
     assert ad.bargaining_unit == BargainingUnit(
-        description="All employees of Ocean Integrated Services Ltd. at the Royal College of Music site",
+        description="All employees of Ocean Integrated Services Ltd",
         size=0,
         size_considered=False,
         claimed_membership=None,
         membership=None,
+        locations=["the Royal College of Music site"],
     )
 
 
@@ -253,11 +261,12 @@ async def test_unite_rhys_davies_logistics(cac_document_contents):
     assert not ad.bargaining_unit_agreed
     assert ad.petition_signatures == 24
     assert ad.bargaining_unit == BargainingUnit(
-        description="All weekly paid staff including Drivers, Warehouse Staff and Fitters based at Taffs Well",
+        description="All weekly paid staff including Drivers, Warehouse Staff and Fitters",
         size=90,
         size_considered=True,
         claimed_membership=44,
         membership=48,
+        locations=["Taffs Well"],
     )
 
 
@@ -281,5 +290,11 @@ async def test_unite_seal_security_ltd(cac_document_contents):
         size=55,
         size_considered=True,
         claimed_membership=35,
-        membership=28,
+        membership=30,
+        locations=[
+            "Bloomberg LP, City Gate House, 39 – 45 Finsbury Square, London EC2A 1PQ",
+            "Bloomberg LP, Dockland Support Centre, 8 Greenwich View Place, Mill Harbour, London E14 9NN",
+            "Bloomberg LP, Silvertown Warehouse, Unit 7 – 9 Kiebeck Business Complex, London E16 2NG",
+            "Bloomberg LP, Park House, 16 – 18 Finsbury Circus, London EC2M 7EB",
+        ],
     )
