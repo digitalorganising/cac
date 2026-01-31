@@ -1,0 +1,67 @@
+{
+  "dynamic": "strict",
+  "properties": {
+    "disambiguated_company": {
+      "properties": {
+        "type": {
+          "type": "keyword"
+        },
+        "company_name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "company_number": {
+          "type": "keyword"
+        },
+        "industrial_classifications": {
+          "properties": {
+            "sic_code": {
+              "type": "keyword"
+            },
+            "description": {
+              "type": "keyword"
+            },
+            "section": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    },
+    "input": {
+      "properties": {
+        "name": {
+          "type": "text",
+          "fields": {
+            "keyword": {
+              "type": "keyword"
+            }
+          }
+        },
+        "unions": {
+          "type": "keyword"
+        },
+        "application_date": {
+          "type": "keyword"
+        },
+        "bargaining_unit": {
+          "type": "text"
+        },
+        "locations": {
+          "type": "keyword"
+        }
+      }
+    },
+    "debug": {
+      "properties": {
+        "reason": {
+          "type": "text"
+        }
+      }
+    }
+  }
+}

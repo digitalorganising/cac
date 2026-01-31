@@ -16,6 +16,7 @@ lambda_ports = {
     "scraper": 9000,
     "augmenter": 9001,
     "indexer": 9002,
+    "company_disambiguator": 9003,
 }
 
 
@@ -47,6 +48,8 @@ async def load_docs(opensearch_client, index_name, docs=[]):
         mapping = {"dynamic": "strict", "properties": decision_augmented_mapping}
     elif index_name.startswith("outcomes-indexed"):
         mapping = get_mapping_from_path("./index_mappings/outcomes_indexed.json")
+    elif index_name.startswith("disambiguated-companies"):
+        mapping = get_mapping_from_path("./index_mappings/disambiguated_companies.json")
     else:
         raise ValueError(f"Unknown index name: {index_name}")
     await ensure_index_mapping(opensearch_client, index_name, mapping)

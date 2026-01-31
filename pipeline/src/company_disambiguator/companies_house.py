@@ -6,7 +6,7 @@ from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 import httpx
 from async_batcher.batcher import AsyncBatcher
-from .secrets import secrets_store
+from pipeline.services.secrets import secrets_store
 
 
 def _get_api_key() -> Optional[str]:

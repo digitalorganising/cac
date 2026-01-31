@@ -1,6 +1,7 @@
 class IdentifiedCompany {
     type "identified"
     company_number string
+    sic_codes string[]
 }
 
 class UnidentifiedCompany {
