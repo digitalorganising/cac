@@ -10,7 +10,7 @@ services:
     ports:
       - "9000:8080"
     environment:
-      - API_BASE=http://fake_api:3001/api
+      - API_BASE=http://fake_api:3001/cac/api
       - UNTERMINATED_OUTCOMES_AGE_LIMIT_DAYS=365
       - OPENSEARCH_ENDPOINT=http://opensearch:9200
       - AWS_ACCESS_KEY_ID=test
@@ -38,6 +38,16 @@ services:
     command: "lambdas.indexer.handler"
     ports: !override
       - "9002:8080"
+
+  company_disambiguator:
+    extends: scraper
+    command: "lambdas.company_disambiguator.handler"
+    ports: !override
+      - "9003:8080"
+    environment:
+      - CH_API_BASE=http://fake_api:3001/ch
+      - COMPANIES_HOUSE_API_KEY=test
+      - MOCK_LLM=true
 
   fake_api:
     build:
@@ -76,18 +86,18 @@ services:
       - opensearch-net # All of the containers will join the same Docker bridge network
 
   # !!! UNCOMMENT FOR DEV !!!
-  opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:2.15.0
-    container_name: opensearch-dashboards
-    ports:
-      - 5601:5601 # Map host port 5601 to container port 5601
-    expose:
-      - "5601" # Expose port 5601 for web access to OpenSearch Dashboards
-    environment:
-      - 'OPENSEARCH_HOSTS=["http://opensearch:9200"]'
-      - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true" # disables security dashboards plugin in OpenSearch Dashboards
-    networks:
-      - opensearch-net
+  # opensearch-dashboards:
+  #   image: opensearchproject/opensearch-dashboards:2.15.0
+  #   container_name: opensearch-dashboards
+  #   ports:
+  #     - 5601:5601 # Map host port 5601 to container port 5601
+  #   expose:
+  #     - "5601" # Expose port 5601 for web access to OpenSearch Dashboards
+  #   environment:
+  #     - 'OPENSEARCH_HOSTS=["http://opensearch:9200"]'
+  #     - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true" # disables security dashboards plugin in OpenSearch Dashboards
+  #   networks:
+  #     - opensearch-net
 
 volumes:
   opensearch-data:

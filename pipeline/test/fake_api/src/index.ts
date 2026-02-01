@@ -1,21 +1,15 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import outcomes from "./outcomes.js";
+import { chatCompletions } from "./llm.js";
+import { searchCompanies, getCompanyProfile } from "./companies_house.js";
 
 const app = new Hono();
 
-app.get("/api/outcomes", (c) => {
-  return c.json({
-    totalResults: 1,
-    outcomes: [
-      {
-        reference: "TUR1/1441(2024)",
-        cacUrl:
-          "https://www.gov.uk/government/publications/cac-outcome-gmb-the-montefiore-hospital",
-        lastUpdated: "2025-06-25T11:15:36+01:00",
-      },
-    ],
-  });
-});
+app.get("/cac/api/outcomes", outcomes);
+app.post("/llm/chat/completions", chatCompletions);
+app.get("/ch/search/companies", searchCompanies);
+app.get("/ch/company/:company_number", getCompanyProfile);
 
 serve(
   {

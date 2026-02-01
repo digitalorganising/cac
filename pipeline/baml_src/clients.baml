@@ -30,3 +30,11 @@ client<llm> BestClient {
     }
   }
 }
+
+client<llm> FakeApiClient {
+  provider openai-generic
+  options {
+    base_url http://fake_api:3001/llm
+    supports_streaming false
+  }
+}
