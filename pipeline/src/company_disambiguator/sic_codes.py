@@ -13,7 +13,7 @@ from baml_client.types import (
 )
 
 # Load SIC codes mapping at module level
-SIC_CODES_PATH = "./src/company_disambiguator/data/sic_codes.json"
+SIC_CODES_PATH = "./company_disambiguator/data/sic_codes.json"
 SIC_CODES_MAPPING: dict[str, dict[str, str]] = {}
 
 try:

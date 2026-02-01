@@ -1,7 +1,26 @@
-from pipeline.transforms.augmentation import augment_doc
-from pipeline.types.decisions import DecisionRaw, decision_augmented_mapping
+import os
+from pipeline.types.decisions import (
+    DecisionRaw,
+    DecisionAugmented,
+    decision_augmented_mapping,
+    DocumentType,
+)
 
 from . import map_docs, RefsEvent, lambda_friendly_run_async, DocumentRef, client
+
+if os.getenv("MOCK_LLM"):
+    from pipeline.transforms.mock_augmentation import get_extracted_data
+else:
+    from pipeline.transforms.augmentation import get_extracted_data
+
+
+async def augment_doc(doc: DecisionRaw):
+    if doc.document_type == DocumentType.derecognition_decision.value:
+        return doc
+
+    extracted_data = await get_extracted_data(doc.document_type, doc.document_content)
+    model = DecisionAugmented.from_raw(doc, extracted_data)
+    return model.model_dump(by_alias=True)
 
 
 async def decisions_from_refs(client, *, refs):

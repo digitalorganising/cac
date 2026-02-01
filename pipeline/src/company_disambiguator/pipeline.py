@@ -1,28 +1,26 @@
 """Operations for disambiguated companies: storage, retrieval, and indexing."""
 
 import json
+import os
 from typing import Optional
 
 from opensearchpy import AsyncOpenSearch, helpers
 
 from pipeline.services.baml import authenticated_client
 from company_disambiguator.companies_house import CompaniesHouseClient
-from company_disambiguator.hashing import hash_dict
 from company_disambiguator.model import (
     DisambiguateCompanyRequest,
     DisambiguatedCompany,
     StoredResult,
+    request_to_doc_id,
 )
 from company_disambiguator.sic_codes import transform_baml_result
-from baml_client.types import (
-    IdentifiedCompany as BamlIdentifiedCompany,
-    UnidentifiedCompany as BamlUnidentifiedCompany,
-)
+from baml_client.types import UnidentifiedCompany as BamlUnidentifiedCompany
 
 
-def request_to_doc_id(request: DisambiguateCompanyRequest) -> str:
-    """Generate document ID from request."""
-    return hash_dict(request.model_dump())
+baml_options = {}
+if os.getenv("MOCK_LLM"):
+    baml_options["client"] = "FakeApiClient"
 
 
 async def get_stored_companies(
@@ -93,6 +91,7 @@ async def disambiguate_company(
         application_date=request.application_date,
         bargaining_unit=request.bargaining_unit,
         locations=request.locations,
+        baml_options=baml_options,
     )
 
     # Transform result (sic_codes -> industrial_classifications)

@@ -108,6 +108,7 @@ class CompanyProfileBatcher(AsyncBatcher[str, Dict[str, Any]]):
         auth: tuple,
         timeout: float,
         rate_limit: RateLimitState,
+        base_url: str,
     ):
         """Initialize the company profile batcher.
 
@@ -116,6 +117,7 @@ class CompanyProfileBatcher(AsyncBatcher[str, Dict[str, Any]]):
             auth: Authentication tuple (api_key, "")
             timeout: Request timeout
             rate_limit: Shared rate limit state
+            base_url: Base URL for the Companies House API
         """
         # Configure batcher for rate limit: 600 requests per 5 minutes
         # Allow batching up to 50 requests, with 10 concurrent batches
@@ -128,7 +130,7 @@ class CompanyProfileBatcher(AsyncBatcher[str, Dict[str, Any]]):
         self.client = client
         self.auth = auth
         self.timeout = timeout
-        self.base_url = "https://api.company-information.service.gov.uk/company"
+        self.base_url = f"{base_url}/company"
         self.rate_limit = rate_limit
 
     async def process_batch(self, batch: List[str]) -> List[Dict[str, Any]]:
@@ -197,15 +199,20 @@ class CompaniesHouseClient:
     - Company Profile: https://developer-specs.company-information.service.gov.uk/companies-house-public-data-api/reference/company-profile/company-profile
     """
 
-    SEARCH_URL = "https://api.company-information.service.gov.uk/search/companies"
-
-    def __init__(self, api_key: Optional[str] = None, timeout: float = 30.0):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        timeout: float = 30.0,
+        base_url: str = "https://api.company-information.service.gov.uk",
+    ):
         """Initialize the Companies House client.
 
         Args:
             api_key: Optional API key. If not provided, will attempt to get from
                     environment variable or secrets manager.
             timeout: Request timeout in seconds. Defaults to 30.0.
+            base_url: Base URL for the Companies House API. Defaults to the official
+                     API URL. Can be set to point to a fake API for testing.
         """
         self.api_key = api_key or _get_api_key()
         if not self.api_key:
@@ -215,6 +222,7 @@ class CompaniesHouseClient:
                 "COMPANIES_HOUSE_API_KEY_SECRET secret name."
             )
         self.timeout = timeout
+        self.base_url = base_url.rstrip("/")
         # Companies House uses basic auth with the API key as the username
         # and an empty password
         self.auth = (self.api_key, "")
@@ -258,8 +266,9 @@ class CompaniesHouseClient:
             await self.rate_limit.wait_if_needed(1)
 
             # Perform search
+            search_url = f"{self.base_url}/search/companies"
             response = await client.get(
-                self.SEARCH_URL,
+                search_url,
                 auth=self.auth,
                 params=params,
             )
@@ -297,7 +306,7 @@ class CompaniesHouseClient:
 
             # Fetch company profiles in parallel using batcher
             batcher = CompanyProfileBatcher(
-                client, self.auth, self.timeout, self.rate_limit
+                client, self.auth, self.timeout, self.rate_limit, self.base_url
             )
             try:
                 # Process all company numbers through the batcher

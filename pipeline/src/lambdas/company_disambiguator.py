@@ -1,4 +1,5 @@
 import asyncio
+import os
 from typing import List
 
 from pipeline.services.opensearch_utils import (
@@ -11,18 +12,20 @@ from company_disambiguator.model import (
     DisambiguateCompanyEvent,
     DisambiguatedCompany,
     StoredResult,
+    request_to_doc_id,
 )
-from company_disambiguator.operations import (
+from company_disambiguator.pipeline import (
     bulk_index_results,
     disambiguate_company,
     get_stored_companies,
-    request_to_doc_id,
 )
 from . import lambda_friendly_run_async, client
 
 
 # OpenSearch index name
 OPENSEARCH_INDEX = "disambiguated-companies"
+
+companies_house_client = CompaniesHouseClient(base_url=os.getenv("CH_API_BASE"))
 
 
 async def process_batch(requests: List[DisambiguateCompanyRequest]):
@@ -55,7 +58,6 @@ async def process_batch(requests: List[DisambiguateCompanyRequest]):
     # asyncio.gather preserves order, so new_results matches requests_to_process order
     new_results: List[DisambiguatedCompany] = []
     if requests_to_process:
-        companies_house_client = CompaniesHouseClient()
         disambiguation_results = await asyncio.gather(
             *[
                 disambiguate_company(req, companies_house_client)
@@ -81,7 +83,11 @@ async def process_batch(requests: List[DisambiguateCompanyRequest]):
     # Step 5: Combine stored and new results in original order
     new_result_iter = iter(new_results)
     results = [
-        stored if stored is not None else next(new_result_iter)
+        (
+            stored.model_dump(exclude_none=True)
+            if stored is not None
+            else next(new_result_iter).model_dump(exclude_none=True)
+        )
         for stored in stored_by_request
     ]
 

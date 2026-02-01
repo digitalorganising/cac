@@ -1,11 +1,8 @@
-import asyncio
-import os
-
 from ..types.documents import DocumentType
 from ..services.baml import authenticated_client, large_client, with_retry_client
 from .document_classifier import should_get_content, should_skip
 from ..extractors.date_extractor import extract_date
-from ..types.decisions import DecisionAugmented, DecisionRaw, DateOnly
+from ..types.decisions import DateOnly
 
 
 @with_retry_client(authenticated_client, large_client)
@@ -43,16 +40,3 @@ async def get_extracted_data(doc_type_string, content, *, client):
             return DateOnly(decision_date=extract_date(content))
         case DocumentType.nullification_decision:
             return None
-
-
-if os.getenv("MOCK_LLM"):
-    from .mock_augmentation import get_extracted_data
-
-
-async def augment_doc(doc: DecisionRaw):
-    if doc.document_type == DocumentType.derecognition_decision.value:
-        return doc
-
-    extracted_data = await get_extracted_data(doc.document_type, doc.document_content)
-    model = DecisionAugmented.from_raw(doc, extracted_data)
-    return model.model_dump(by_alias=True)

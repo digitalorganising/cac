@@ -1,6 +1,9 @@
 {
   "dynamic": "strict",
   "properties": {
+    "id": {
+      "type": "keyword"
+    },
     "disambiguated_company": {
       "properties": {
         "type": {

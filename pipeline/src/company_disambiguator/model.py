@@ -1,5 +1,5 @@
 from typing import List, Literal, Optional, Union
-from company_disambiguator.operations import request_to_doc_id
+from company_disambiguator.hashing import hash_dict
 from pydantic import BaseModel, Field, RootModel, computed_field
 
 
@@ -51,6 +51,11 @@ class DisambiguatedCompany(RootModel):
     """
 
     root: Union[IdentifiedCompany, UnidentifiedCompany] = Field(discriminator="type")
+
+
+def request_to_doc_id(request: DisambiguateCompanyRequest) -> str:
+    """Generate document ID from request."""
+    return hash_dict(request.model_dump())
 
 
 class StoredResult(BaseModel):
