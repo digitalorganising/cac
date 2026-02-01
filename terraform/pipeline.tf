@@ -70,6 +70,21 @@ module "indexer" {
   }
 }
 
+module "company_disambiguator" {
+  source        = "./modules/lambda"
+  name          = "pipeline-company-disambiguator"
+  image_uri     = "${aws_ecr_repository.pipeline.repository_url}:latest"
+  image_command = ["lambdas.company_disambiguator.handler"]
+  timeout       = 60 * 15
+  memory_size   = 512
+  environment = {
+    CH_API_BASE                   = "https://api.company-information.service.gov.uk"
+    COMPANIES_HOUSE_API_KEY_SECRET = module.companies_house_api_key.arn
+    OPENSEARCH_ENDPOINT           = local.opensearch_endpoint
+    OPENSEARCH_CREDENTIALS_SECRET = module.opensearch_credentials.arn
+  }
+}
+
 module "pipeline_step_function" {
   source  = "terraform-aws-modules/step-functions/aws"
   version = "5.0.1"

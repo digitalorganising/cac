@@ -17,3 +17,10 @@ module "opensearch_credentials" {
     aws_iam_role.github_actions.name
   ]
 }
+
+module "companies_house_api_key" {
+  source         = "./modules/secret"
+  name           = "companies-house-api-key"
+  description    = "Secret for the CAC pipeline companies house api key"
+  accessor_roles = [module.company_disambiguator.role.name]
+}

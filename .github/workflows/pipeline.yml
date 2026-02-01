@@ -94,7 +94,7 @@ jobs:
 
       - name: Update Lambdas
         run: |
-          for lambda in pipeline-scraper pipeline-augmenter pipeline-indexer; do
+          for lambda in pipeline-scraper pipeline-augmenter pipeline-indexer pipeline-company-disambiguator; do
             aws lambda update-function-code \
               --function-name $lambda \
               --image-uri ${{ steps.login-ecr.outputs.registry }}/cac-pipeline:latest

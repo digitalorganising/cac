@@ -47,5 +47,5 @@ async def process_batch(refs):
 
 
 def handler(event, context):
-    indexer_event = RefsEvent.model_validate(event)
+    indexer_event = RefsEvent.model_validate(event, strict=False)
     return lambda_friendly_run_async(process_batch(indexer_event.refs))

@@ -2,7 +2,7 @@ resource "bonsai_cluster" "cac_search" {
   name = "Digitalorganising search"
 
   plan = {
-    slug = "sandbox"
+    slug = "staging-2024"
   }
 
   space = {

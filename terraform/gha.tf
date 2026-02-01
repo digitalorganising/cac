@@ -73,7 +73,8 @@ data "aws_iam_policy_document" "lambda_update" {
     resources = [
       module.scraper.function.arn,
       module.augmenter.function.arn,
-      module.indexer.function.arn
+      module.indexer.function.arn,
+      module.company_disambiguator.function.arn
     ]
   }
 }

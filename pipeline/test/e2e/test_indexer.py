@@ -107,6 +107,17 @@ test_decision_docs = [
 
 async def test_indexer(opensearch_client):
     index_for_test = indexer(opensearch_client)
+    disambiguated_company = {
+        "company_name": "Test Company",
+        "company_number": "12345678",
+        "industrial_classifications": [
+            {
+                "description": "Test Industry",
+                "section": "Test Section",
+                "sic_code": "12345678",
+            },
+        ],
+    }
     async with index_for_test(
         "outcomes-augmented", initial_docs=test_decision_docs
     ) as augmented, index_for_test(
@@ -115,7 +126,11 @@ async def test_indexer(opensearch_client):
         "outcomes-indexed", suffix=augmented.suffix
     ) as indexed:
         refs = [
-            {"_id": d["id"], "_index": augmented.index_name}
+            {
+                "_id": d["id"],
+                "_index": augmented.index_name,
+                "disambiguated_company": disambiguated_company,
+            }
             for d in test_decision_docs[:3]
         ]
         await invoke_lambda("indexer", {"refs": refs})
