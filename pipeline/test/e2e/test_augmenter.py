@@ -53,6 +53,10 @@ async def test_augmenter(opensearch_client):
                 "last_updated": "2024-02-01T10:00:00Z",
                 "extracted_data": {
                     "decision_date": "SECRET CLUE",
+                    "bargaining_unit": {
+                        "description": "Test Bargaining Unit",
+                        "locations": ["Test Location"],
+                    },
                 },
             },
         ],

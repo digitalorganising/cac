@@ -89,6 +89,7 @@ async def map_docs(
     result_transform=None,
 ):
     seen_indices = set()
+    passthroughs = []
     result_map = {}
 
     async def update_actions():
@@ -108,11 +109,7 @@ async def map_docs(
             }
 
             if ref.passthrough:
-                result_map[ref.id] = (
-                    result_transform(doc.model_dump(by_alias=True))
-                    if result_transform
-                    else {}
-                )
+                passthroughs.append(DocumentRef(_id=ref.id, _index=dest_index))
                 yield {
                     **common_action,
                     "doc": {},
@@ -141,8 +138,24 @@ async def map_docs(
             _id=update["_id"],
             _index=update["_index"],
         )
+
         additional_fields = result_map.pop(update["_id"], {})
         results.append({**ref.model_dump(by_alias=True), **additional_fields})
+
+    if result_transform and passthroughs:
+        passthrough_docs = await client.mget(
+            body={
+                "docs": [
+                    ref.model_dump(by_alias=True, exclude={"passthrough"})
+                    for ref in passthroughs
+                ],
+            }
+        )
+        for doc in passthrough_docs["docs"]:
+            result_map[doc["_id"]] = result_transform(doc["_source"])
+        for result in results:
+            if result["_id"] in result_map:
+                result.update(result_map[result["_id"]])
 
     if refresh_on_complete:
         indices = {r["_index"] for r in results}
