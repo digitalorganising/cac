@@ -38,10 +38,10 @@ client<llm> BestClient {
       temperature 0.0
     }
     http {
-      connect_timeout_ms 5000
-      time_to_first_token_timeout_ms 20000
-      idle_timeout_ms 20000
-      request_timeout_ms 60000
+      connect_timeout_ms 10000
+      time_to_first_token_timeout_ms 60000
+      idle_timeout_ms 180000
+      request_timeout_ms 360000
     }
   }
 }
