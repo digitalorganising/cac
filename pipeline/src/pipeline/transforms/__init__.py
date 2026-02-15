@@ -22,11 +22,9 @@ def normalize_reference(raw_reference):
     return reference
 
 
-def get_parties(outcome: Outcome):
-    title = outcome.outcome_title
-    title = re.sub(r"\s+\(\d+\)$", "", title)  # Remove any trailing ordinal
+def get_parties(outcome_title: str):
+    title = re.sub(r"\s+\(\d+\)$", "", outcome_title)  # Remove any trailing ordinal
     union, employer = re.split(r"\s+(?:&|and)\s+", title, maxsplit=1)
-
     return {"unions": union.split(", "), "employer": employer}
 
 
@@ -189,7 +187,7 @@ def flatten_facets(facets):
 
 
 def transform_for_index(outcome: Outcome):
-    parties = get_parties(outcome)
+    parties = get_parties(outcome.outcome_title)
     events = events_from_outcome(outcome)
     key_dates = get_key_dates(events)
     bu = get_bargaining_unit(outcome)

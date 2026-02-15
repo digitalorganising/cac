@@ -1,7 +1,7 @@
 FROM ghcr.io/astral-sh/uv AS uv
 
 # First, bundle the dependencies into the task root.
-FROM public.ecr.aws/lambda/python:3.12 AS builder
+FROM public.ecr.aws/lambda/python:3.13 AS builder
 
 # Enable bytecode compilation, to improve cold-start performance.
 ENV UV_COMPILE_BYTECODE=1
@@ -32,7 +32,7 @@ RUN --mount=from=uv,source=/uv,target=/bin/uv \
     uv run baml-cli generate && \
     mv ./src/baml_client ${LAMBDA_TASK_ROOT}/baml_client
 
-FROM public.ecr.aws/lambda/python:3.12
+FROM public.ecr.aws/lambda/python:3.13
 
 # Copy the runtime dependencies from the builder stage.
 COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}

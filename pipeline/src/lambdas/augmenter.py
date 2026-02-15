@@ -1,4 +1,5 @@
 import os
+from pipeline.transforms import get_parties
 from pipeline.types.decisions import (
     DecisionRaw,
     DecisionAugmented,
@@ -16,7 +17,7 @@ else:
 
 async def augment_doc(doc: DecisionRaw):
     if doc.document_type == DocumentType.derecognition_decision.value:
-        return doc
+        return doc.model_dump(by_alias=True)
 
     extracted_data = await get_extracted_data(doc.document_type, doc.document_content)
     model = DecisionAugmented.from_raw(doc, extracted_data)
@@ -41,6 +42,22 @@ async def decisions_from_refs(client, *, refs):
         yield DecisionRaw.model_validate(doc["_source"]), ref
 
 
+def transform_for_next_step(transformed_doc):
+    if transformed_doc["document_type"] != DocumentType.acceptance_decision.value:
+        return {}
+    extracted_data = transformed_doc.get("extracted_data", None)
+    if not extracted_data:
+        return {}
+    parties = get_parties(transformed_doc["outcome_title"])
+    return {
+        "name": parties["employer"],
+        "unions": parties["unions"],
+        "application_date": extracted_data["decision_date"],
+        "bargaining_unit": extracted_data["bargaining_unit"],
+        "locations": extracted_data.get("locations", None),
+    }
+
+
 async def process_batch(refs):
     decisions = decisions_from_refs(client, refs=refs)
     return await map_docs(
@@ -48,6 +65,7 @@ async def process_batch(refs):
         transform=augment_doc,
         dest_namespace="outcomes-augmented",
         dest_mapping={"dynamic": "strict", "properties": decision_augmented_mapping},
+        result_transform=transform_for_next_step,
     )
 
 

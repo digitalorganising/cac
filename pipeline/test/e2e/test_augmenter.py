@@ -5,7 +5,7 @@ test_docs = [
         "id": "test1",
         "reference": "TUR1/1234/2024",
         "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
-        "outcome_title": "Test Outcome 1",
+        "outcome_title": "Test Union & Test Employer",
         "document_type": "acceptance_decision",
         "document_content": "test",
         "document_url": "https://example.com/document/test1",
@@ -15,7 +15,7 @@ test_docs = [
         "id": "test2",
         "reference": "TUR1/5678/2024",
         "outcome_url": "https://example.com/outcome/TUR1/5678/2024",
-        "outcome_title": "Test Outcome 2",
+        "outcome_title": "Test Union & Test Employer",
         "document_type": "application_withdrawn",
         "document_content": "test",
         "document_url": "https://example.com/document/test2",
@@ -25,7 +25,7 @@ test_docs = [
         "id": "test3",
         "reference": "TUR1/9101/2024",
         "outcome_url": "https://example.com/outcome/TUR1/9101/2024",
-        "outcome_title": "Test Outcome 3",
+        "outcome_title": "Test Union & Test Employer",
         "document_type": "acceptance_decision",
         "document_content": "test",
         "document_url": "https://example.com/document/test3",
@@ -46,7 +46,7 @@ async def test_augmenter(opensearch_client):
                 "id": "test3",
                 "reference": "TUR1/9101/2024",
                 "outcome_url": "https://example.com/outcome/TUR1/9101/2024",
-                "outcome_title": "Test Outcome 3",
+                "outcome_title": "Test Union & Test Employer",
                 "document_type": "acceptance_decision",
                 "document_content": "test",
                 "document_url": "https://example.com/document/test3",
@@ -59,7 +59,20 @@ async def test_augmenter(opensearch_client):
     ) as augmented:
         refs = [{"_id": t["id"], "_index": raw.index_name} for t in test_docs]
         refs[2] = {**refs[2], "passthrough": True}
-        await invoke_lambda("augmenter", {"refs": refs})
+        augmenter_output = await invoke_lambda("augmenter", {"refs": refs})
+
+        assert set(augmenter_output[0].keys()) == set(
+            [
+                "_id",
+                "_index",
+                "passthrough",
+                "name",
+                "unions",
+                "application_date",
+                "bargaining_unit",
+                "locations",
+            ]
+        )
 
         results = await opensearch_client.search(index=augmented.index_name)
         hits = results["hits"]["hits"]

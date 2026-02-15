@@ -1,6 +1,8 @@
 import asyncio
 import concurrent.futures
 import os
+from typing import Generic, TypeVar
+
 from pydantic import BaseModel, Field
 from opensearchpy import helpers
 
@@ -64,8 +66,11 @@ class DocumentRef(BaseModel):
     passthrough: bool = False
 
 
-class RefsEvent(BaseModel):
-    refs: list[DocumentRef]
+RefsEventRefT = TypeVar("RefsEventRefT", bound=DocumentRef, default=DocumentRef)
+
+
+class RefsEvent(BaseModel, Generic[RefsEventRefT]):
+    refs: list[RefsEventRefT]
 
 
 def destination_index(*, source_index, dest_namespace):
@@ -75,9 +80,16 @@ def destination_index(*, source_index, dest_namespace):
 
 
 async def map_docs(
-    docs_source, *, transform, dest_namespace, dest_mapping, refresh_on_complete=True
+    docs_source,
+    *,
+    transform,
+    dest_namespace,
+    dest_mapping,
+    refresh_on_complete=True,
+    result_transform=None,
 ):
     seen_indices = set()
+    result_map = {}
 
     async def update_actions():
         async for doc, ref in docs_source:
@@ -96,6 +108,11 @@ async def map_docs(
             }
 
             if ref.passthrough:
+                result_map[ref.id] = (
+                    result_transform(doc.model_dump(by_alias=True))
+                    if result_transform
+                    else {}
+                )
                 yield {
                     **common_action,
                     "doc": {},
@@ -104,6 +121,9 @@ async def map_docs(
                 transformed_doc = await transform(doc)
                 if not transformed_doc:
                     continue
+                result_map[ref.id] = (
+                    result_transform(transformed_doc) if result_transform else {}
+                )
                 yield {
                     **common_action,
                     "doc": transformed_doc,
@@ -121,7 +141,8 @@ async def map_docs(
             _id=update["_id"],
             _index=update["_index"],
         )
-        results.append(ref.model_dump(by_alias=True))
+        additional_fields = result_map.pop(update["_id"], {})
+        results.append({**ref.model_dump(by_alias=True), **additional_fields})
 
     if refresh_on_complete:
         indices = {r["_index"] for r in results}
