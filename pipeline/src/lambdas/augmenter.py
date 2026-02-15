@@ -49,12 +49,13 @@ def transform_for_next_step(transformed_doc):
     if not extracted_data:
         return {}
     parties = get_parties(transformed_doc["outcome_title"])
+    bargaining_unit = extracted_data["bargaining_unit"]
     return {
         "name": parties["employer"],
         "unions": parties["unions"],
         "application_date": extracted_data["decision_date"],
-        "bargaining_unit": extracted_data["bargaining_unit"],
-        "locations": extracted_data.get("locations", None),
+        "bargaining_unit": bargaining_unit["description"],
+        "locations": bargaining_unit.get("locations", None),
     }
 
 
