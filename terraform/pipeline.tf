@@ -78,10 +78,11 @@ module "company_disambiguator" {
   timeout       = 60 * 15
   memory_size   = 512
   environment = {
-    CH_API_BASE                   = "https://api.company-information.service.gov.uk"
+    CH_API_BASE                    = "https://api.company-information.service.gov.uk"
     COMPANIES_HOUSE_API_KEY_SECRET = module.companies_house_api_key.arn
-    OPENSEARCH_ENDPOINT           = local.opensearch_endpoint
-    OPENSEARCH_CREDENTIALS_SECRET = module.opensearch_credentials.arn
+    OPENSEARCH_ENDPOINT            = local.opensearch_endpoint
+    OPENSEARCH_CREDENTIALS_SECRET  = module.opensearch_credentials.arn
+    GOOGLE_API_KEY_SECRET          = module.google_api_key.arn
   }
 }
 
@@ -93,10 +94,11 @@ module "pipeline_step_function" {
   type = "STANDARD"
 
   definition = templatefile("${path.module}/state-machine/pipeline.asl.json", {
-    batch_size           = local.batch_size
-    scraper_lambda_arn   = module.scraper.function.arn
-    augmenter_lambda_arn = module.augmenter.function.arn
-    indexer_lambda_arn   = module.indexer.function.arn
+    batch_size                       = local.batch_size
+    scraper_lambda_arn               = module.scraper.function.arn
+    augmenter_lambda_arn             = module.augmenter.function.arn
+    indexer_lambda_arn               = module.indexer.function.arn
+    company_disambiguator_lambda_arn = module.company_disambiguator.function.arn
   })
 
   service_integrations = {
@@ -104,7 +106,8 @@ module "pipeline_step_function" {
       lambda = [
         module.scraper.function.arn,
         module.augmenter.function.arn,
-        module.indexer.function.arn
+        module.indexer.function.arn,
+        module.company_disambiguator.function.arn
       ]
     }
   }

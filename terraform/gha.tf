@@ -39,7 +39,8 @@ data "aws_iam_policy_document" "ecr_push" {
       "ecr:InitiateLayerUpload",
       "ecr:BatchCheckLayerAvailability",
       "ecr:PutImage",
-      "ecr:BatchGetImage"
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer"
     ]
     resources = [aws_ecr_repository.pipeline.arn]
   }
