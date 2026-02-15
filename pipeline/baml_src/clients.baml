@@ -20,13 +20,28 @@ client<llm> LargeClient {
   }
 }
 
+retry_policy ConservativeRetryPolicy {
+  max_retries 2
+  strategy {
+    type exponential_backoff
+    delay_ms 1000
+  }
+}
+
 client<llm> BestClient {
   provider google-ai
+  retry_policy ConservativeRetryPolicy
   options {
     model "gemini-3-flash-preview"
     api_key env.GOOGLE_API_KEY
     generationConfig {
       temperature 0.0
+    }
+    http {
+      connect_timeout_ms 5000
+      time_to_first_token_timeout_ms 20000
+      idle_timeout_ms 20000
+      request_timeout_ms 60000
     }
   }
 }

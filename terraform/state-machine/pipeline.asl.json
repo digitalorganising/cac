@@ -120,7 +120,7 @@
                     "Arguments": {
                       "FunctionName": "${company_disambiguator_lambda_arn}",
                       "Payload": {
-                        "requests": "{% $states.input.refs ~> |$|{}, ['_id', '_index', 'passthrough']| %}"
+                        "requests": "{% $states.input.refs[$contains(_id, 'acceptance_decision')] ~> |$|{}, ['_id', '_index', 'passthrough']| %}"
                       }
                     },
                     "End": true
