@@ -84,7 +84,7 @@ async def disambiguate_company(
     candidates_json = json.dumps(candidates)
 
     # Call BAML function with candidates and other parameters
-    baml_result = await authenticated_client.DisambiguateCompany(
+    baml_stream = authenticated_client.stream.DisambiguateCompany(
         candidates=candidates_json,
         name=request.name,
         unions=request.unions,
@@ -93,6 +93,7 @@ async def disambiguate_company(
         locations=request.locations,
         baml_options=baml_options,
     )
+    baml_result = await baml_stream.get_final_response()
 
     # Transform result (sic_codes -> industrial_classifications)
     transformed = transform_baml_result(baml_result, request.name)
