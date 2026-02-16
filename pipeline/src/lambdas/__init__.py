@@ -163,3 +163,13 @@ async def map_docs(
             await client.indices.refresh(index=index)
 
     return results
+
+
+def gather_with_concurrency(coros, *, max_concurrent=10):
+    semaphore = asyncio.Semaphore(max_concurrent)
+
+    async def gather_one(coro):
+        async with semaphore:
+            return await coro
+
+    return asyncio.gather(*[gather_one(coro) for coro in coros])

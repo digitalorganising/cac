@@ -19,7 +19,7 @@ from company_disambiguator.pipeline import (
     disambiguate_company,
     get_stored_companies,
 )
-from . import lambda_friendly_run_async, client
+from . import lambda_friendly_run_async, client, gather_with_concurrency
 
 
 # OpenSearch index name
@@ -58,11 +58,12 @@ async def process_batch(requests: List[DisambiguateCompanyRequest]):
     # asyncio.gather preserves order, so new_results matches requests_to_process order
     new_results: List[DisambiguatedCompany] = []
     if requests_to_process:
-        disambiguation_results = await asyncio.gather(
-            *[
+        disambiguation_results = await gather_with_concurrency(
+            [
                 disambiguate_company(req, companies_house_client)
                 for req in requests_to_process
-            ]
+            ],
+            max_concurrent=3,
         )
         new_results = [result[0] for result in disambiguation_results]
         debug_info = [result[1] for result in disambiguation_results]
