@@ -33,6 +33,7 @@ class IdentifiedCompany(BaseModel):
     type: Literal["identified"] = "identified"
     company_name: str
     company_number: str
+    company_type: str
     industrial_classifications: List[IndustrialClassification]
 
 
@@ -53,9 +54,13 @@ class DisambiguatedCompany(RootModel):
     root: Union[IdentifiedCompany, UnidentifiedCompany] = Field(discriminator="type")
 
 
+# Increment me when you want to invalidate all existing documents
+hash_version = 1
+
+
 def request_to_doc_id(request: DisambiguateCompanyRequest) -> str:
     """Generate document ID from request."""
-    return hash_dict(request.model_dump())
+    return hash_dict({"version": hash_version, **request.model_dump()})
 
 
 class StoredResult(BaseModel):

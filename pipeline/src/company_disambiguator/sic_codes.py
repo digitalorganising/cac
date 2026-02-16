@@ -71,6 +71,7 @@ def transform_baml_result(
             company_name=company_name,
             company_number=result.company_number,
             industrial_classifications=industrial_classifications,
+            company_type=result.company_type,
         )
     else:
         # UnidentifiedCompany doesn't need transformation

@@ -35,6 +35,7 @@ initial_docs = [
             "company_name": "Moreco Group Ltd",
             "type": "identified",
             "company_number": "13537233",
+            "company_type": "ltd",
             "industrial_classifications": [
                 {
                     "sic_code": "47910",
@@ -64,6 +65,7 @@ async def test_company_disambiguator(opensearch_client):
         assert results[0] == {
             "company_name": "Moreco Group Ltd",
             "company_number": "13537233",
+            "company_type": "ltd",
             "industrial_classifications": [
                 {
                     "description": "Retail sale of food in non-specialised retail shops",
@@ -76,6 +78,7 @@ async def test_company_disambiguator(opensearch_client):
         assert results[1] == {
             "company_name": "Wincanton Ltd",
             "company_number": "04178808",
+            "company_type": "ltd",
             "industrial_classifications": [
                 {
                     "description": "Freight transport by road",

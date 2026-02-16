@@ -11,9 +11,12 @@ type ChatCompletionRequest = {
 };
 
 function getContent(messages: Message[]): string {
-  const allMessages = messages.map((m) => m.content).join("\n").toLowerCase();
+  const allMessages = messages
+    .map((m) => m.content)
+    .join("\n")
+    .toLowerCase();
   if (allMessages.includes("moreco")) {
-    return "You should not be asking me about this company - you already know it!"
+    return "You should not be asking me about this company - you already know it!";
   }
   if (allMessages.includes("wincanton")) {
     return `
@@ -22,6 +25,7 @@ function getContent(messages: Message[]): string {
       "type": "identified",
       "company_name": "Wincanton Ltd",
       "company_number": "04178808",
+      "company_type": "ltd",
       "sic_codes": [
         "49410",
         "52103",
@@ -29,7 +33,7 @@ function getContent(messages: Message[]): string {
         "52243"
       ]
     }
-    `
+    `;
   }
   if (allMessages.includes("british academy")) {
     return `
@@ -38,7 +42,7 @@ function getContent(messages: Message[]): string {
       "type": "unidentified",
       "reason": "This is a charity, not a company"
     }
-    `
+    `;
   }
   return `Sorry, I wasn't expecting to be asked about this.`;
 }
@@ -54,7 +58,7 @@ export function chatCompletions(context: Context) {
     // Count tokens (rough estimate: 1 token ≈ 4 characters)
     const promptTokens = messages.reduce(
       (sum, msg) => sum + Math.ceil((msg.content?.length || 0) / 4),
-      0
+      0,
     );
     const completionTokens = Math.ceil(content.length / 4);
 
