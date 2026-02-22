@@ -27,6 +27,7 @@ document_titles = {
     "Whether to Ballot decision": DocumentType.whether_to_ballot_decision,
     "Access Decision": DocumentType.access_decision_or_dispute,
     "Ballot Decision": DocumentType.whether_to_ballot_decision,
+    "Access Complaint Decision": DocumentType.access_decision_or_dispute,
 }
 
 
