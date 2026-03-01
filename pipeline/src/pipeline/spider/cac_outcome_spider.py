@@ -61,7 +61,7 @@ class CacOutcomeSpider(scrapy.Spider, ABC):
         )
         outcome_title = response.css("main#content h1::text").get().strip()
         outcome_title = re.sub(
-            r"^CAC Outcome:\s*", "", outcome_title, flags=re.RegexFlag.IGNORECASE
+            r"^CAC Outcomes?:\s*", "", outcome_title, flags=re.RegexFlag.IGNORECASE
         )
         reference = response.css("section#documents p::text").re_first(
             r"^Ref:\s*(TUR\d+/\s?\d+[\/\(]\d+\)?).*"
