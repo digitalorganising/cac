@@ -5,7 +5,7 @@ authors = [{ name = "Jamie Parkinson" }]
 requires-python = "~=3.13.0"
 license = "MIT"
 dependencies = [
-    "scrapy>=2.13.2,<3",
+    "scrapy>=2.14.1,<3",
     "markdownify>=1.1.0,<2",
     "pymupdf4llm>=0.0.25,<0.0.26",
     "baml-py==0.219.0",

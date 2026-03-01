@@ -78,36 +78,30 @@ class OpensearchPipeline(ABC):
             batch_size=settings.get("BATCH_SIZE"),
         )
 
-    def open_spider(self, spider):
-        async def _open_spider():
-            self.client = create_client(
-                cluster_host=self.cluster_host,
-                auth=self.auth,
-                async_client=True,
-            )
-            await self.client.ping()
-            await ensure_index_mapping(
-                client=self.client,
-                index=self.index,
-                mapping=self.mapping,
-            )
+    async def open_spider_async(self):
+        self.client = create_client(
+            cluster_host=self.cluster_host,
+            auth=self.auth,
+            async_client=True,
+        )
+        await self.client.ping()
+        await ensure_index_mapping(
+            client=self.client,
+            index=self.index,
+            mapping=self.mapping,
+        )
 
-            self.batcher = OpensearchAsyncBatcher(
-                client=self.client,
-                max_batch_size=self.batch_size,
-                max_queue_size=2 * self.batch_size,
-                max_queue_time=1,
-                concurrency=1,
-            )
+        self.batcher = OpensearchAsyncBatcher(
+            client=self.client,
+            max_batch_size=self.batch_size,
+            max_queue_size=2 * self.batch_size,
+            max_queue_time=1,
+            concurrency=1,
+        )
 
-        return deferred(_open_spider())
-
-    def close_spider(self, spider):
-        async def _close_spider():
-            await self.batcher.stop(force=False)
-            await self.client.close()
-
-        return deferred(_close_spider())
+    async def close_spider_async(self):
+        await self.batcher.stop(force=False)
+        await self.client.close()
 
     def action(self, item):
         return {
@@ -119,7 +113,7 @@ class OpensearchPipeline(ABC):
             "retry_on_conflict": 3,
         }
 
-    async def process_item(self, item, spider):
+    async def process_item_async(self, item):
         if await self.skip_item(item):
             raise scrapy.exceptions.DropItem("skip")
 

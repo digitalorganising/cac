@@ -6,11 +6,12 @@ from typing import Optional
 import crochet
 from pydantic import BaseModel
 from opensearchpy import helpers
-from scrapy.crawler import CrawlerRunner
+from scrapy.crawler import CrawlerRunner, Crawler
 from scrapy.utils.reactor import install_reactor
 from scrapy.utils.log import configure_logging
+from scrapy import signals
 
-from pipeline.spider import QuietDroppedLogFormatter, ReferencePipeline
+from pipeline.spider import QuietDroppedLogFormatter
 from pipeline.spider.updated_outcomes import UpdatedOutcomesSpider
 from pipeline.spider.cac_outcome_spider import CacOutcomeOpensearchPipeline
 from pipeline.types.decisions import decision_raw_mapping
@@ -82,8 +83,14 @@ def handler(event, context):
 
     references = []
 
-    def add_ref(ref):
-        references.append(ref)
+    def add_ref(item):
+        id = CacOutcomeOpensearchPipeline.id(None, item)
+        references.append(
+            {
+                "_id": id,
+                "_index": index,
+            }
+        )
 
     @crochet.wait_for(timeout=60 * 60)  # More than the maximum possible lambda timeout
     def run_spider():
@@ -91,10 +98,8 @@ def handler(event, context):
         settings = {
             "ITEM_PIPELINES": {
                 CacOutcomeOpensearchPipeline: 100,
-                ReferencePipeline: 200,
             },
             "OUTCOMES": {
-                "ADD_REFERENCE": add_ref,
                 "API_BASE": os.getenv("API_BASE"),
                 "START_DATE": "2014-01-01",
                 "UNTERMINATED_OUTCOMES_AGE_LIMIT": (
@@ -115,8 +120,10 @@ def handler(event, context):
             "CLOSESPIDER_ERRORCOUNT": 5,
             **log_settings,
         }
+        crawler = Crawler(UpdatedOutcomesSpider, settings)
+        crawler.signals.connect(add_ref, signal=signals.item_scraped)
         runner = CrawlerRunner(settings)
-        return runner.crawl(UpdatedOutcomesSpider)
+        return runner.crawl(crawler)
 
     run_spider()
     logging.info(f"Scraped {len(references)} decisions")
