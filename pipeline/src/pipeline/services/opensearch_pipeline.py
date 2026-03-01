@@ -1,7 +1,7 @@
 import asyncio
 from abc import ABC, abstractmethod
 import os
-
+import logging
 import scrapy
 from twisted.internet.defer import Deferred
 from async_batcher.batcher import AsyncBatcher
@@ -78,7 +78,7 @@ class OpensearchPipeline(ABC):
             batch_size=settings.get("BATCH_SIZE"),
         )
 
-    async def open_spider_async(self):
+    async def open_spider(self):
         self.client = create_client(
             cluster_host=self.cluster_host,
             auth=self.auth,
@@ -99,7 +99,7 @@ class OpensearchPipeline(ABC):
             concurrency=1,
         )
 
-    async def close_spider_async(self):
+    async def close_spider(self):
         await self.batcher.stop(force=False)
         await self.client.close()
 
@@ -113,7 +113,7 @@ class OpensearchPipeline(ABC):
             "retry_on_conflict": 3,
         }
 
-    async def process_item_async(self, item):
+    async def process_item(self, item):
         if await self.skip_item(item):
             raise scrapy.exceptions.DropItem("skip")
 

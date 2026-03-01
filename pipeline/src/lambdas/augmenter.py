@@ -1,3 +1,4 @@
+import logging
 import os
 from pipeline.transforms import get_parties
 from pipeline.types.decisions import (
@@ -34,6 +35,9 @@ async def decisions_from_refs(client, *, refs):
         }
     )
     for doc in res["docs"]:
+        if not doc["found"]:
+            logging.error(f"Decision not found: {doc['_id']}")
+
         ref = DocumentRef(
             _id=doc["_id"],
             _index=doc["_index"],
