@@ -4,7 +4,7 @@ from datetime import datetime
 from scrapy import Request
 
 from .. import london_date
-from ..transforms.events_machine import unterminated_states
+from ..transforms.events_machine import unterminated_states, terminal_states
 from .cac_outcome_spider import CacOutcomeSpider
 
 
@@ -38,7 +38,8 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
             return self.force_last_updated
         async with httpx.AsyncClient(timeout=10) as client:
             try:
-                response = await client.get(f"{self.api_base}/outcomes")
+                params = {"state": ",".join([t.value for t in terminal_states])}
+                response = await client.get(f"{self.api_base}/outcomes", params=params)
                 response.raise_for_status()
                 data = response.json()
                 return london_date(data["outcomes"][0]["lastUpdated"])
