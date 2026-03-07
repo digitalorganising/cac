@@ -6,7 +6,7 @@ import asyncio
 import json
 import sys
 
-from pipeline.services.companies_house import CompaniesHouseClient
+from company_disambiguator.companies_house import CompaniesHouseClient
 
 parser = argparse.ArgumentParser(
     description="Search Companies House and enrich results with SIC codes"

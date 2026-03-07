@@ -5,17 +5,35 @@ class IdentifiedCompany {
     sic_codes string[]
 }
 
-class UnidentifiedCompany {
-    type "unidentified"
-    reason string @description("The reason why the company could not be identified alongside considerations of what the company might have been")
+enum OtherEntityType {
+    LocalAuthority
+    GovernmentDepartment
+    ArmsLengthBody
+    University
+    IndependentSchool
+    Charity
+    Other
 }
 
-function DisambiguateCompany(candidates: string, name: string, unions: string[], application_date: string, bargaining_unit: string, locations: string[]?) -> IdentifiedCompany | UnidentifiedCompany {
+class UnidentifiedCompany {
+    type "unidentified"
+    subtype OtherEntityType
+    sic_codes string[] @description("Should be empty if you have no information about the entity")
+}
+
+class RequiresNewSearch {
+    type "requires-new-search"
+    suggested_name string
+    reason string @description("The brief reason why a new search is required")
+}
+
+function DisambiguateCompany(candidates: string, name: string, unions: string[], application_date: string, bargaining_unit: string, locations: string[]?) -> IdentifiedCompany  | UnidentifiedCompany | RequiresNewSearch {
     client BestClient
     prompt #"
-        You are a UK labour researcher working on identifying companies involved in union recognition decisions. 
+        You are a UK labour researcher working on identifying organisations involved in union recognition decisions. 
 
-        Your job is to disambiguate a company by its name in a recognition decision from a list of candidates provided by Companies House.
+        Your job is to disambiguate a company by its name in a recognition decision from a list of candidates provided by Companies House based on its name.
+        Alternatively, you may be able to establish that it is some entity that is not a registered company. In this case, you will use your knowledge to provide a suitable SIC code.
         
         To make a decision, you should consider the following as well as a name match or approximate match:
         - The relevance of the specific unions involved (ie whether the industries inferred from the SIC codes match)
@@ -25,7 +43,8 @@ function DisambiguateCompany(candidates: string, name: string, unions: string[],
           address and could even be the location of a different company, for example when the bargaining unit is formed of contractors working onsite.
         - Any other knowledge that you already hold about the company.
 
-        You may not be able to identify a company because of ambiguity, or perhaps the company is actually a charity, or some other reason.
+        If you know that the company is primarily not UK-based, it is still appropriate to use a UK subsidiary if this has relevant classifications etc.
+        Do not use or consider company or charity numbers in any of your reasoning - you cannot reliably remember these.
 
         Name: {{ name }}
         Unions: {{ unions }}
@@ -37,7 +56,8 @@ function DisambiguateCompany(candidates: string, name: string, unions: string[],
         {{ candidates }}
         </candidates>
 
-        You must NOT answer with a company that is not in the list of candidates.
+        You must NOT give an identified answer with a company that is not in the list of candidates.
+        However, if you believe that a new search of Companies House would be deliver the correct company, you should suggest this.
 
         {{ ctx.output_format }}
     "#
@@ -283,4 +303,309 @@ test OverseasCompanyTest {
         bargaining_unit "All Aircraft Maintenance Technicians"
         locations  ["Heathrow Airport", "London Heathrow Airport"]
     }
+
+    @@assert({{ this.company_number == "FC011471" }})
+}
+
+test NewSearchTest {
+    functions [DisambiguateCompany]
+    args {
+        candidates #"
+        [
+            {
+                "date_of_creation": "1991-08-28",
+                "company_type": "ltd",
+                "company_number": "02640971",
+                "title": "XPO LOGISTICS LIMITED",
+                "address_snippet": "Distribution House Eldon Way, Crick, Northampton, Northamptonshire, England, NN6 7SL",
+                "description": "02640971 - Incorporated on 28 August 1991",
+                "sic_codes": [
+                "99999"
+                ],
+                "date_of_cessation": null,
+                "previous_company_names": [
+                {
+                    "ceased_on": "2024-06-22",
+                    "effective_from": "2015-12-01",
+                    "name": "LAMBDA 6 LIMITED"
+                },
+                {
+                    "ceased_on": "2015-12-01",
+                    "effective_from": "2013-12-30",
+                    "name": "NORBERT DENTRESSANGLE SERVICES LIMITED"
+                },
+                {
+                    "ceased_on": "2013-12-30",
+                    "effective_from": "1999-12-30",
+                    "name": "NORBERT DENTRESSANGLE U.K. LIMITED"
+                },
+                {
+                    "ceased_on": "1999-12-30",
+                    "effective_from": "1991-11-15",
+                    "name": "ASTON CLINTON HAULAGE COMPANY LIMITED"
+                },
+                {
+                    "ceased_on": "1991-11-15",
+                    "effective_from": "1991-08-28",
+                    "name": "INCOMEISSUE LIMITED"
+                }
+                ]
+            },
+            {
+                "date_of_creation": "2024-04-13",
+                "company_type": "ltd",
+                "company_number": "15642078",
+                "title": "VRN LOGISTICS LIMITED",
+                "address_snippet": "16 Scrutton Close, London, England, SW12 0AW",
+                "description": "15642078 - Dissolved on 16 September 2025",
+                "sic_codes": [
+                "49410"
+                ],
+                "date_of_cessation": "2025-09-16",
+                "previous_company_names": [
+                {
+                    "ceased_on": "2024-06-06",
+                    "effective_from": "2024-04-13",
+                    "name": "XPO LOGISTICS LIMITED"
+                }
+                ]
+            },
+            {
+                "date_of_creation": "2018-03-26",
+                "company_type": "ltd",
+                "company_number": "11274161",
+                "title": "XP LOGISTICS LTD",
+                "address_snippet": "23 Roker Park Avenue, Ickenham, Uxbridge, England, UB10 8ED",
+                "description": "11274161 - Incorporated on 26 March 2018",
+                "sic_codes": [
+                "49410"
+                ],
+                "date_of_cessation": null,
+                "previous_company_names": [
+                {
+                    "ceased_on": "2023-09-12",
+                    "effective_from": "2023-09-07",
+                    "name": "XPO LOGISTICS LTD"
+                },
+                {
+                    "ceased_on": "2023-09-07",
+                    "effective_from": "2018-03-26",
+                    "name": "AMALIA & DARIUS TRANS LTD"
+                }
+                ]
+            },
+            {
+                "date_of_creation": "2022-07-11",
+                "company_type": "ltd",
+                "company_number": "14225814",
+                "title": "14225814 LTD",
+                "address_snippet": "Flat 2, 340-346 Radford Road, Nottingham, Nottinghamshire, United Kingdom, NG7 5GQ",
+                "description": "14225814 - Dissolved on 24 December 2024",
+                "sic_codes": [
+                "74909"
+                ],
+                "date_of_cessation": "2024-12-24",
+                "previous_company_names": [
+                {
+                    "ceased_on": "2023-03-14",
+                    "effective_from": "2022-07-11",
+                    "name": "XPO LOGISTICS LIMITED"
+                }
+                ]
+            },
+            {
+                "date_of_creation": "2013-05-15",
+                "company_type": "ltd",
+                "company_number": "08530618",
+                "title": "XPO LOGISTICS TRUSTEES LIMITED",
+                "address_snippet": "Distribution House Eldon Way, Crick, Northampton, Northamptonshire, England, NN6 7SL",
+                "description": "08530618 - Incorporated on 15 May 2013",
+                "sic_codes": [
+                "82990"
+                ],
+                "date_of_cessation": null,
+                "previous_company_names": [
+                {
+                    "ceased_on": "2022-02-24",
+                    "effective_from": "2018-04-05",
+                    "name": "XPO LOGISTICS LIMITED"
+                },
+                {
+                    "ceased_on": "2018-04-05",
+                    "effective_from": "2017-03-21",
+                    "name": "LAMBDA 7 LIMITED"
+                },
+                {
+                    "ceased_on": "2017-03-21",
+                    "effective_from": "2015-12-01",
+                    "name": "XPO (CIF TRUSTEE) UK LIMITED"
+                },
+                {
+                    "ceased_on": "2015-12-01",
+                    "effective_from": "2013-05-15",
+                    "name": "NORBERT DENTRESSANGLE CIF TRUSTEE LIMITED"
+                }
+                ]
+            }
+        ]
+        "#
+        name "XPO Logistics"
+        unions ["Unite the Union"]
+        application_date "18 April 2017"
+        bargaining_unit "Drivers"
+        locations ["Needham Road, Stowmarket, Suffolk"]
+    }
+
+    @@assert({{ this.type == "requires-new-search" }})
+    @@assert({{ this.suggested_name == "XPO Transport Solutions UK Limited" }})
+}
+
+test LocalAuthorityTest {
+    functions [DisambiguateCompany]
+    args {
+        candidates #"
+        [
+            {
+                "date_of_creation": "1994-04-11",
+                "company_type": "private-limited-guarant-nsc-limited-exemption",
+                "company_number": "02917631",
+                "title": "THE WEST SUSSEX COUNTY FEDERATION OF WOMEN'S INSTITUTES",
+                "address_snippet": "60 Queen Street, Horsham, England, RH13 5AD",
+                "description": "02917631 - Incorporated on 11 April 1994",
+                "sic_codes": [
+                "94990"
+                ],
+                "date_of_cessation": null,
+                "previous_company_names": null
+            },
+            {
+                "company_type": "industrial-and-provident-society",
+                "company_number": "IP13577R",
+                "title": "WEST SUSSEX COUNTY FEDERATION OF WOMEN'S INSTITUTES HOUSE LIMITED",
+                "description": "IP13577R - Converted/Closed",
+                "sic_codes": null,
+                "date_of_cessation": null,
+                "date_of_creation": null,
+                "previous_company_names": null
+            },
+            {
+                "date_of_creation": "2010-09-09",
+                "company_type": "private-limited-guarant-nsc-limited-exemption",
+                "company_number": "07371252",
+                "title": "WEST SUSSEX COUNCIL FOR VOLUNTARY YOUTH SERVICES",
+                "address_snippet": "Comewell House, North Street, Horsham, West Sussex, England, RH12 1RD",
+                "description": "07371252 - Dissolved on 24 February 2015",
+                "sic_codes": [
+                "94990"
+                ],
+                "date_of_cessation": "2015-02-24",
+                "previous_company_names": null
+            },
+            {
+                "date_of_creation": "1994-02-25",
+                "company_type": "private-limited-guarant-nsc-limited-exemption",
+                "company_number": "02902472",
+                "title": "COUNCIL FOR VOLUNTARY SERVICE NORTHAMPTON AND COUNTY",
+                "address_snippet": "Alma Park Woodway Lane, Claybrooke Parva, Lutterworth, Leicestershire, LE17 5FB",
+                "description": "02902472 - Incorporated on 25 February 1994 - Liquidation",
+                "sic_codes": [
+                "94990"
+                ],
+                "date_of_cessation": null,
+                "previous_company_names": null
+            },
+            {
+                "company_type": "industrial-and-provident-society",
+                "company_number": "IP12589R",
+                "title": "GLAMORGAN COUNTY ALLOTMENTS COUNCIL LIMITED",
+                "description": "IP12589R - Converted/Closed",
+                "sic_codes": null,
+                "date_of_cessation": null,
+                "date_of_creation": null,
+                "previous_company_names": null
+            }
+        ]
+        "#
+        name "West Sussex County Council"
+        unions ["UNISON"]
+        application_date "30 September 2020"
+        bargaining_unit "the following pay groups within West Sussex County Council: HAY; SMG4; and Public Health/Agenda for Change (AfC)"
+        locations ["Chichester", "Horsham", "Worthing", "Bognor", "Crawley"]
+    }
+
+    @@assert({{ this.type == "unidentified" }})
+    @@assert({{ this.subtype == "LocalAuthority" }})
+    @@assert({{ this.sic_codes == ["84110"] }})
+}
+
+test CharityTest {
+    functions [DisambiguateCompany]
+    args {
+        candidates #"
+        [
+            {
+                "company_type": "charitable-incorporated-organisation",
+                "company_number": "CE042886",
+                "title": "ROYAL SOCIETY FOR THE PREVENTION OF CRUELTY TO ANIMALS BATH AND NORTH SOMERSET BRANCH CIO",
+                "address_snippet": "",
+                "description": "CE042886 - Registered externally as 1217092",
+                "sic_codes": null,
+                "date_of_cessation": null,
+                "date_of_creation": null,
+                "previous_company_names": null
+            },
+            {
+                "company_type": "charitable-incorporated-organisation",
+                "company_number": "CE042100",
+                "title": "ROYAL SOCIETY FOR THE PREVENTION OF CRUELTY TO ANIMALS BEDFORDSHIRE SOUTH  AND MID HERTFORDSHIRE BRANCH CIO",
+                "address_snippet": "",
+                "description": "CE042100 - Registered externally as 1216043",
+                "sic_codes": null,
+                "date_of_cessation": null,
+                "date_of_creation": null,
+                "previous_company_names": null
+            },
+            {
+                "company_type": "charitable-incorporated-organisation",
+                "company_number": "CE042874",
+                "title": "ROYAL SOCIETY FOR THE PREVENTION OF CRUELTY TO ANIMALS BLACKPOOL AND NORTH LANCASHIRE BRANCH CIO",
+                "address_snippet": "",
+                "description": "CE042874 - Registered externally as 1217076",
+                "sic_codes": null,
+                "date_of_cessation": null,
+                "date_of_creation": null,
+                "previous_company_names": null
+            },
+            {
+                "company_type": "charitable-incorporated-organisation",
+                "company_number": "CE037014",
+                "title": "ROYAL SOCIETY FOR THE PREVENTION OF CRUELTY TO ANIMALS - BOLTON AND DISTRICT BRANCH CIO",
+                "description": "CE037014 - Registered externally as 1209361",
+                "sic_codes": null,
+                "date_of_cessation": null,
+                "date_of_creation": null,
+                "previous_company_names": null
+            },
+            {
+                "company_type": "charitable-incorporated-organisation",
+                "company_number": "CE040771",
+                "title": "ROYAL SOCIETY FOR THE PREVENTION OF CRUELTY TO ANIMALS BOURNEMOUTH, NEW FOREST AND DISTRICT BRANCH CIO",
+                "description": "CE040771 - Registered externally as 1214300",
+                "sic_codes": null,
+                "date_of_cessation": null,
+                "date_of_creation": null,
+                "previous_company_names": null
+            }
+        ]
+        "#
+        name "RSA (The Royal Society for the Encouragement of the Arts, Manufactures and Commerce)"
+        unions ["IWGB"]
+        application_date "30 June 2022"
+        bargaining_unit "all staff members of the RSA (including permanent, temporary and fixed-term staff and paid interns), apart from the Senior Management Team (consisting at time of writing of the Chief Executive, Chief Operating Officer, incoming Chief Impact Officer and the eight directors)"
+        locations ["The Royal Society for the Encouragement of the Arts, Manufacturers and Commerce, 8 John Adam Street London, WC2N 6EZ"]
+    }
+
+    @@assert({{ this.type == "unidentified" }})
+    @@assert({{ this.subtype == "Charity" }})
+    @@assert({{ this.sic_codes == ["94120", "72200", "94990"] }})
 }
