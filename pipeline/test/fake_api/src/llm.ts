@@ -40,7 +40,12 @@ function getContent(messages: Message[]): string {
     Beep boop, I am a computer. I didn't do a very good job, sorry:
     {
       "type": "unidentified",
-      "reason": "This is a charity, not a company"
+      "subtype": "Charity"
+      "sic_codes": [
+        "94120",
+        "72200",
+        "94990"
+      ]
     }
     `;
   }

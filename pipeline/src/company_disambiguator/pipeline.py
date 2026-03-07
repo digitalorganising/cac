@@ -1,6 +1,7 @@
 """Operations for disambiguated companies: storage, retrieval, and indexing."""
 
 import json
+import logging
 import os
 from typing import Optional
 
@@ -11,10 +12,12 @@ from company_disambiguator.companies_house import CompaniesHouseClient
 from company_disambiguator.model import (
     DisambiguateCompanyRequest,
     DisambiguatedCompany,
+    IdentifiedCompany,
+    UnidentifiedCompany,
     StoredResult,
     request_to_doc_id,
 )
-from company_disambiguator.sic_codes import transform_baml_result
+from company_disambiguator.sic_codes import transform_sic_codes
 from baml_client.types import UnidentifiedCompany as BamlUnidentifiedCompany
 
 
@@ -74,34 +77,65 @@ async def disambiguate_company(
     Returns:
         Tuple of (transformed result, optional debug info)
     """
-    # Search for candidate companies using the name
-    candidates = await companies_house_client.search(
-        q=request.name,
-        items_per_page=5,
-    )
 
-    # Convert candidates list to JSON string
-    candidates_json = json.dumps(candidates)
+    async def disambiguate_for_name(company_name: str):
+        # Search for candidate companies using the name
+        candidates = await companies_house_client.search(
+            q=request.name,
+            items_per_page=5,
+        )
 
-    # Call BAML function with candidates and other parameters
-    baml_result = await authenticated_client.DisambiguateCompany(
-        candidates=candidates_json,
-        name=request.name,
-        unions=request.unions,
-        application_date=request.application_date,
-        bargaining_unit=request.bargaining_unit,
-        locations=request.locations,
-        baml_options=baml_options,
-    )
+        # Convert candidates list to JSON string
+        candidates_json = json.dumps(candidates)
 
-    # Transform result (sic_codes -> industrial_classifications)
-    transformed = transform_baml_result(baml_result, request.name)
+        # Call BAML function with candidates and other parameters
+        return await authenticated_client.DisambiguateCompany(
+            candidates=candidates_json,
+            name=request.name,
+            unions=request.unions,
+            application_date=request.application_date,
+            bargaining_unit=request.bargaining_unit,
+            locations=request.locations,
+            baml_options=baml_options,
+        )
 
     debug = None
-    if baml_result and isinstance(baml_result, BamlUnidentifiedCompany):
-        debug = {"reason": baml_result.reason}
+    baml_result = await disambiguate_for_name(request.name)
+    if baml_result.type == "requires-new-search":
+        logging.info(f"New search required for {request.name}: {baml_result.reason}")
+        debug = {"reason": "New search started: " + baml_result.reason}
+        baml_result = await disambiguate_for_name(baml_result.suggested_name)
 
-    return transformed, debug
+    if baml_result.type == "requires-new-search":
+        debug = {
+            "reason": "New search failed, second reason was: " + baml_result.reason
+        }
+        baml_result = BamlUnidentifiedCompany(
+            type="unidentified",
+            subtype="Unknown",
+            sic_codes=[],
+        )
+
+    industrial_classifications = transform_sic_codes(baml_result.sic_codes)
+    if baml_result.type == "identified":
+        result = IdentifiedCompany(
+            type="identified",
+            company_name=request.name,
+            company_number=baml_result.company_number,
+            company_type=baml_result.company_type,
+            industrial_classifications=industrial_classifications,
+        )
+    elif baml_result.type == "unidentified":
+        result = UnidentifiedCompany(
+            type="unidentified",
+            subtype=baml_result.subtype,
+            company_name=request.name,
+            industrial_classifications=industrial_classifications,
+        )
+    else:
+        raise RuntimeError(f"You should never see this error! ({request.name})")
+
+    return result, debug
 
 
 async def bulk_index_results(

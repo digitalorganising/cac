@@ -13,6 +13,7 @@ enum OtherEntityType {
     IndependentSchool
     Charity
     Other
+    Unknown
 }
 
 class UnidentifiedCompany {

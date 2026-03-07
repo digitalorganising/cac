@@ -106,4 +106,6 @@ async def test_company_disambiguator(opensearch_client):
         assert results[2] == {
             "company_name": "The British Academy for the Promotion of Historical Philosophical and Philological Studies (The British Academy)",
             "type": "unidentified",
+            "subtype": "Charity",
+            "industrial_classifications": [],
         }

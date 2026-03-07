@@ -1,5 +1,6 @@
 from typing import List, Literal, Optional, Union
 from company_disambiguator.hashing import hash_dict
+from baml_client.types import OtherEntityType
 from pydantic import BaseModel, Field, RootModel, computed_field
 
 
@@ -41,7 +42,9 @@ class UnidentifiedCompany(BaseModel):
     """Unidentified company result."""
 
     type: Literal["unidentified"] = "unidentified"
+    subtype: OtherEntityType
     company_name: str
+    industrial_classifications: List[IndustrialClassification] = []
 
 
 class DisambiguatedCompany(RootModel):

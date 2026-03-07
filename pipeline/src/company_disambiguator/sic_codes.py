@@ -1,16 +1,7 @@
 import json
 import logging
-from typing import List, Union
-from company_disambiguator.model import (
-    IndustrialClassification,
-    IdentifiedCompany,
-    UnidentifiedCompany,
-    DisambiguatedCompany,
-)
-from baml_client.types import (
-    IdentifiedCompany as BamlIdentifiedCompany,
-    UnidentifiedCompany as BamlUnidentifiedCompany,
-)
+from typing import List
+from company_disambiguator.model import IndustrialClassification
 
 # Load SIC codes mapping at module level
 SIC_CODES_PATH = "./company_disambiguator/data/sic_codes.json"
@@ -48,31 +39,3 @@ def transform_sic_codes(sic_codes: List[str]) -> List[IndustrialClassification]:
             logging.warning(f"SIC code {sic_code} not found in mapping, dropping")
 
     return industrial_classifications
-
-
-def transform_baml_result(
-    result: Union[BamlIdentifiedCompany, BamlUnidentifiedCompany],
-    company_name: str,
-) -> DisambiguatedCompany:
-    """Transform BAML result to use industrial_classifications instead of sic_codes.
-
-    Args:
-        result: BAML result (IdentifiedCompany or UnidentifiedCompany)
-        company_name: The company name from the request
-
-    Returns:
-        Transformed result with industrial_classifications for identified companies
-    """
-    if isinstance(result, BamlIdentifiedCompany):
-        # Transform sic_codes to industrial_classifications
-        industrial_classifications = transform_sic_codes(result.sic_codes)
-
-        return IdentifiedCompany(
-            company_name=company_name,
-            company_number=result.company_number,
-            industrial_classifications=industrial_classifications,
-            company_type=result.company_type,
-        )
-    else:
-        # UnidentifiedCompany doesn't need transformation
-        return UnidentifiedCompany(company_name=company_name)

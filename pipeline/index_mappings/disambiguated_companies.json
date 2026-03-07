@@ -9,6 +9,9 @@
         "type": {
           "type": "keyword"
         },
+        "subtype": {
+          "type": "keyword"
+        },
         "company_name": {
           "type": "text",
           "fields": {
