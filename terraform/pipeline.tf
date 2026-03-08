@@ -27,6 +27,12 @@ locals {
   batch_size          = 20
 }
 
+resource "aws_ssm_parameter" "opensearch_endpoint" {
+  name  = "opensearch-endpoint"
+  type  = "String"
+  value = local.opensearch_endpoint
+}
+
 module "scraper" {
   source        = "./modules/lambda"
   name          = "pipeline-scraper"
