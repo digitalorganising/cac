@@ -18,6 +18,7 @@ class DisambiguateCompanyEvent(BaseModel):
     """Batch event containing multiple disambiguation requests."""
 
     requests: List[DisambiguateCompanyRequest]
+    force: bool = False
 
 
 class IndustrialClassification(BaseModel):

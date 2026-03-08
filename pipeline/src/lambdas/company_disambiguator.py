@@ -27,11 +27,11 @@ OPENSEARCH_INDEX = "disambiguated-companies"
 companies_house_client = CompaniesHouseClient(base_url=os.getenv("CH_API_BASE"))
 
 
-async def process_batch(requests: List[DisambiguateCompanyRequest]):
+async def process_batch(disambiguate_company_event: DisambiguateCompanyEvent):
     """Process a batch of disambiguation requests.
 
     Args:
-        requests: List of disambiguation requests
+        disambiguate_company_event: DisambiguateCompanyEvent
 
     Returns:
         List of disambiguation results with industrial_classifications instead of sic_codes
@@ -41,9 +41,13 @@ async def process_batch(requests: List[DisambiguateCompanyRequest]):
         "./index_mappings/disambiguated_companies.json"
     )
     await ensure_index_mapping(client, OPENSEARCH_INDEX, index_mapping)
+    requests = disambiguate_company_event.requests
 
     # Step 1: Get all stored companies in one mget call
-    stored_results = await get_stored_companies(client, OPENSEARCH_INDEX, requests)
+    if not disambiguate_company_event.force:
+        stored_results = await get_stored_companies(client, OPENSEARCH_INDEX, requests)
+    else:
+        stored_results = {}
 
     # Step 2: Identify which requests need processing
     doc_ids = [request_to_doc_id(req) for req in requests]
@@ -97,4 +101,4 @@ async def process_batch(requests: List[DisambiguateCompanyRequest]):
 def handler(event, context):
     """Lambda handler for company disambiguation."""
     disambiguator_event = DisambiguateCompanyEvent.model_validate(event)
-    return lambda_friendly_run_async(process_batch(disambiguator_event.requests))
+    return lambda_friendly_run_async(process_batch(disambiguator_event))
