@@ -9,6 +9,7 @@ Lambda to re-run disambiguation and update the index.
 Usage:
   reindex_companies.py '<query>'              # query_string query
   reindex_companies.py '{"match":{"input.name":"Acme"}}'  # raw query JSON
+  reindex_companies.py --unidentified         # built-in unidentified query
 
 """
 
@@ -67,6 +68,11 @@ def get_opensearch_config(session):
     auth = (creds["username"], creds["password"])
 
     return endpoint, auth
+
+
+def unidentified_query() -> dict:
+    """Query for companies already marked as unidentified."""
+    return {"query": {"term": {"disambiguated_company.type": "unidentified"}}}
 
 
 def parse_query(query_str: str) -> dict:
@@ -130,9 +136,17 @@ async def main():
     )
     parser.add_argument(
         "query",
+        nargs="?",
         help='ES query: either a query_string (plain text) or JSON, e.g. {"match":{"input.name":"Acme"}}',
     )
+    parser.add_argument(
+        "--unidentified",
+        action="store_true",
+        help="Use a built-in query for disambiguated_company.type=unidentified",
+    )
     args = parser.parse_args()
+    if not args.unidentified and not args.query:
+        parser.error("query is required unless --unidentified is provided")
 
     session = get_boto_session()
     endpoint, auth = get_opensearch_config(session)
@@ -143,7 +157,7 @@ async def main():
     )
 
     try:
-        body = parse_query(args.query)
+        body = unidentified_query() if args.unidentified else parse_query(args.query)
         print(f"Query: {json.dumps(body, indent=2)}", file=sys.stderr)
         sources = []
         async for doc in helpers.async_scan(client, index=INDEX, query=body, size=500):

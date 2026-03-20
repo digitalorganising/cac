@@ -126,7 +126,7 @@ async def disambiguate_company(
             **debug,
             "reason_2": baml_result.reason,
             "new_search_2": baml_result.suggested_name,
-            "new_search_candidates": [c["company_name"] for c in candidates],
+            "new_search_candidates": [c["title"] for c in candidates],
         }
         baml_result = BamlUnidentifiedCompany(
             type="unidentified",
