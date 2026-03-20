@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Union
+from typing import Any, List, Literal, Optional, Union
 from company_disambiguator.hashing import hash_dict
 from baml_client.types import OtherEntityType
 from pydantic import BaseModel, Field, RootModel, computed_field
@@ -74,7 +74,7 @@ class StoredResult(BaseModel):
 
     disambiguated_company: DisambiguatedCompany
     input: DisambiguateCompanyRequest
-    debug: Optional[dict[str, str]] = None
+    debug: Optional[dict[str, Any]] = None
 
     @computed_field
     @property
