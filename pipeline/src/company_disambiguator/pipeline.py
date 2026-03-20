@@ -78,37 +78,55 @@ async def disambiguate_company(
         Tuple of (transformed result, optional debug info)
     """
 
-    async def disambiguate_for_name(company_name: str):
+    async def disambiguate_for_name(company_name: str, verbose: bool = False):
         # Search for candidate companies using the name
         candidates = await companies_house_client.search(
             q=request.name,
             items_per_page=5,
         )
+        filtered_candidates = [c for c in candidates if c["sic_codes"]]
 
         # Convert candidates list to JSON string
-        candidates_json = json.dumps(candidates)
+        candidates_json = json.dumps(filtered_candidates)
+
+        if verbose:
+            logging.info(f"Candidates:")
+            logging.info(candidates)
 
         # Call BAML function with candidates and other parameters
-        return await authenticated_client.DisambiguateCompany(
-            candidates=candidates_json,
-            name=request.name,
-            unions=request.unions,
-            application_date=request.application_date,
-            bargaining_unit=request.bargaining_unit,
-            locations=request.locations,
-            baml_options=baml_options,
+        return (
+            await authenticated_client.DisambiguateCompany(
+                candidates=candidates_json,
+                name=request.name,
+                unions=request.unions,
+                application_date=request.application_date,
+                bargaining_unit=request.bargaining_unit,
+                locations=request.locations,
+                baml_options=baml_options,
+            ),
+            filtered_candidates,
         )
 
     debug = None
-    baml_result = await disambiguate_for_name(request.name)
+    suggested_name = None
+    baml_result, candidates = await disambiguate_for_name(request.name)
     if baml_result.type == "requires-new-search":
         logging.info(f"New search required for {request.name}: {baml_result.reason}")
-        debug = {"reason": "New search started: " + baml_result.reason}
-        baml_result = await disambiguate_for_name(baml_result.suggested_name)
+        debug = {
+            "reason": baml_result.reason,
+            "new_search": baml_result.suggested_name,
+        }
+        suggested_name = baml_result.suggested_name
+        baml_result, candidates = await disambiguate_for_name(
+            suggested_name, verbose=True
+        )
 
     if baml_result.type == "requires-new-search":
         debug = {
-            "reason": "New search failed, second reason was: " + baml_result.reason
+            **debug,
+            "reason_2": baml_result.reason,
+            "new_search_2": baml_result.suggested_name,
+            "new_search_candidates": [c["company_name"] for c in candidates],
         }
         baml_result = BamlUnidentifiedCompany(
             type="unidentified",
@@ -116,13 +134,21 @@ async def disambiguate_company(
             sic_codes=[],
         )
 
-    industrial_classifications = transform_sic_codes(baml_result.sic_codes)
+    sic_codes = []
+    if hasattr(baml_result, "sic_codes"):
+        sic_codes = baml_result.sic_codes
+    else:
+        for candidate in candidates:
+            if candidate["company_number"] == baml_result.company_number:
+                sic_codes = candidate["sic_codes"]
+                break
+
+    industrial_classifications = transform_sic_codes(sic_codes)
     if baml_result.type == "identified":
         result = IdentifiedCompany(
             type="identified",
             company_name=request.name,
             company_number=baml_result.company_number,
-            company_type=baml_result.company_type,
             industrial_classifications=industrial_classifications,
         )
     elif baml_result.type == "unidentified":

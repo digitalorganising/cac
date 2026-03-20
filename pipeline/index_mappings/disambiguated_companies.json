@@ -23,9 +23,6 @@
         "company_number": {
           "type": "keyword"
         },
-        "company_type": {
-          "type": "keyword"
-        },
         "industrial_classifications": {
           "properties": {
             "sic_code": {
@@ -66,6 +63,7 @@
       }
     },
     "debug": {
+      "dynamic": false,
       "properties": {
         "reason": {
           "type": "text"

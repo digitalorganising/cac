@@ -35,7 +35,6 @@ class IdentifiedCompany(BaseModel):
     type: Literal["identified"] = "identified"
     company_name: str
     company_number: str
-    company_type: str
     industrial_classifications: List[IndustrialClassification]
 
 

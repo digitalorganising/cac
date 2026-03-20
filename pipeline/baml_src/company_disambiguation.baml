@@ -1,8 +1,6 @@
 class IdentifiedCompany {
     type "identified"
     company_number string
-    company_type string
-    sic_codes string[]
 }
 
 enum OtherEntityType {
