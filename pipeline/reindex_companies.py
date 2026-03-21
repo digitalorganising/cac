@@ -10,6 +10,7 @@ Usage:
   reindex_companies.py '<query>'              # query_string query
   reindex_companies.py '{"match":{"input.name":"Acme"}}'  # raw query JSON
   reindex_companies.py --unidentified         # built-in unidentified query
+  reindex_companies.py --unidentified --clear-existing-disambiguation
 
 """
 
@@ -25,8 +26,8 @@ from opensearchpy import helpers
 
 BOTO_TIMEOUT = 900  # seconds
 
-from company_disambiguator.model import DisambiguateCompanyRequest
-from pipeline.services.opensearch_utils import create_client, get_auth
+from company_disambiguator.model import DisambiguateCompanyRequest, request_to_doc_id
+from pipeline.services.opensearch_utils import create_client
 
 AWS_ASSUME_ROLE_ARN = "arn:aws:iam::510900713680:role/digitalorganising-cac-admin"
 OPENSEARCH_CREDENTIALS_SECRET = "opensearch-credentials"
@@ -113,6 +114,33 @@ def extract_requests(sources):
     return requests
 
 
+async def clear_existing_disambiguation(client, requests):
+    """Delete stored disambiguation fields for the selected request IDs."""
+
+    async def clear_actions():
+        for req in requests:
+            yield {
+                "_op_type": "update",
+                "_index": INDEX,
+                "_id": request_to_doc_id(req),
+                "script": {
+                    "lang": "painless",
+                    "source": """
+if (ctx._source.containsKey('disambiguated_company')) {
+  ctx._source.remove('disambiguated_company');
+}
+""",
+                },
+            }
+
+    async for ok, result in helpers.async_streaming_bulk(
+        client, clear_actions(), index=INDEX, raise_on_error=False
+    ):
+        if not ok:
+            print(f"Warning: failed to clear doc: {result}", file=sys.stderr)
+    await client.indices.refresh(index=INDEX)
+
+
 def invoke_lambda_sync(session, function_name: str, event: dict) -> dict:
     """Synchronously invoke the company-disambiguator Lambda."""
     config = Config(connect_timeout=BOTO_TIMEOUT, read_timeout=BOTO_TIMEOUT)
@@ -144,6 +172,11 @@ async def main():
         action="store_true",
         help="Use a built-in query for disambiguated_company.type=unidentified",
     )
+    parser.add_argument(
+        "--clear-existing-disambiguation",
+        action="store_true",
+        help="Before reindexing, remove existing disambiguation fields from matched docs",
+    )
     args = parser.parse_args()
     if not args.unidentified and not args.query:
         parser.error("query is required unless --unidentified is provided")
@@ -166,6 +199,12 @@ async def main():
         print(f"Found {len(requests)} companies to reindex", file=sys.stderr)
         if not requests:
             return
+        if args.clear_existing_disambiguation:
+            print(
+                "Clearing existing disambiguation fields before reindex...",
+                file=sys.stderr,
+            )
+            await clear_existing_disambiguation(client, requests)
 
         for i in range(0, len(requests), BATCH_SIZE):
             batch = requests[i : i + BATCH_SIZE]

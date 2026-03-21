@@ -123,10 +123,13 @@ async def disambiguate_company(
             "new_search_2": baml_result.suggested_name,
             "new_search_candidates": [c["title"] for c in candidates],
         }
-        baml_result = BamlUnidentifiedCompany(
-            type="unidentified",
-            subtype="Unknown",
-            sic_codes=[],
+
+        baml_result = await authenticated_client.GuessSicCodes(
+            name=request.name,
+            unions=request.unions,
+            bargaining_unit=request.bargaining_unit,
+            locations=request.locations,
+            baml_options=baml_options,
         )
 
     sic_codes = []

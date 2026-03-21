@@ -20,9 +20,16 @@ class UnidentifiedCompany {
     sic_codes string[] @description("Should be empty if you have no information about the entity")
 }
 
+class GuessedSicCodes {
+    type "unidentified"
+    subtype "Unknown"
+    sic_codes string[]
+    reason string @description("The brief reason why you have guessed the SIC codes")
+}
+
 class RequiresNewSearch {
     type "requires-new-search"
-    suggested_name string
+    suggested_name string @description("Must be different to the original name; use your knowledge of what the company might be registered as")
     reason string @description("The brief reason why a new search is required")
 }
 
@@ -56,11 +63,31 @@ function DisambiguateCompany(candidates: string, name: string, unions: string[],
         </candidates>
 
         You must NOT give an identified answer with a company that is not in the list of candidates.
-        However, if you believe that a new search of Companies House would be deliver the correct company, you should suggest this.
+        However, if you believe that a new search of Companies House with a different search term would show the correct company, you should suggest this.
+        
 
         {{ ctx.output_format }}
     "#
 }
+
+function GuessSicCodes(name: string, unions: string[], bargaining_unit: string, locations: string[]?) -> GuessedSicCodes {
+    client BestClient
+
+    prompt #"
+        You are a UK labour researcher and you have encountered a company in a statutory recognition decision which you cannot
+        find in the Companies House database, and nor can you identify it as some other entity type like a charity or a government body.
+
+        Use your knowledge to suggest the SIC codes which might apply to this company. If you have no idea what it is, return an empty array.
+
+        Name: {{ name }}
+        Unions: {{ unions }}
+        Bargaining Unit: {{ bargaining_unit }}
+        Locations: {{ locations }}
+
+        {{ ctx.output_format }}
+    "#
+}
+
 
 test SimpleDisambiguationTest {
     functions [DisambiguateCompany]
@@ -607,4 +634,16 @@ test CharityTest {
     @@assert({{ this.type == "unidentified" }})
     @@assert({{ this.subtype == "Charity" }})
     @@assert({{ this.sic_codes == ["94120", "72200", "94990"] }})
+}
+
+test GuessSicCodesTest {
+    functions [GuessSicCodes]
+    args {
+        name "Emirates"
+        unions ["Unite the Union"]
+        bargaining_unit "Operational services staff employed at Gatwick Airport specifically including Duty Officers, Supervisors, Ticket Desk Agents, Senior Airport Agents, Airport Agents and specifically excluding Airport Services Manager"
+        locations ["Gatwick Airport, Horley, Gatwick RH6 0NP"]
+    }
+
+    @@assert({{ this.sic_codes == ["51101", "52230"] }})
 }
