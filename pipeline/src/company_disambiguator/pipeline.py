@@ -78,10 +78,10 @@ async def disambiguate_company(
         Tuple of (transformed result, optional debug info)
     """
 
-    async def disambiguate_for_name(company_name: str, verbose: bool = False):
+    async def disambiguate_for_name(company_name: str):
         # Search for candidate companies using the name
         candidates = await companies_house_client.search(
-            q=request.name,
+            q=company_name,
             items_per_page=5,
         )
         filtered_candidates = [c for c in candidates if c["sic_codes"]]
@@ -89,15 +89,11 @@ async def disambiguate_company(
         # Convert candidates list to JSON string
         candidates_json = json.dumps(filtered_candidates)
 
-        if verbose:
-            logging.info(f"Candidates:")
-            logging.info(candidates)
-
         # Call BAML function with candidates and other parameters
         return (
             await authenticated_client.DisambiguateCompany(
                 candidates=candidates_json,
-                name=request.name,
+                name=company_name,
                 unions=request.unions,
                 application_date=request.application_date,
                 bargaining_unit=request.bargaining_unit,
@@ -115,11 +111,10 @@ async def disambiguate_company(
         debug = {
             "reason": baml_result.reason,
             "new_search": baml_result.suggested_name,
+            "original_candidates": [c["title"] for c in candidates],
         }
         suggested_name = baml_result.suggested_name
-        baml_result, candidates = await disambiguate_for_name(
-            suggested_name, verbose=True
-        )
+        baml_result, candidates = await disambiguate_for_name(suggested_name)
 
     if baml_result.type == "requires-new-search":
         debug = {
