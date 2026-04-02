@@ -63,20 +63,22 @@ async def test_augmenter(opensearch_client):
     ) as augmented:
         refs = [{"_id": t["id"], "_index": raw.index_name} for t in test_docs]
         refs[2] = {**refs[2], "passthrough": True}
-        augmenter_output = await invoke_lambda("augmenter", {"refs": refs})
-
-        assert set(augmenter_output[0].keys()) == set(
-            [
-                "_id",
-                "_index",
-                "passthrough",
-                "name",
-                "unions",
-                "application_date",
-                "bargaining_unit",
-                "locations",
-            ]
-        )
+        augmenter_output = None
+        for ref in refs:
+            out = await invoke_lambda("augmenter", {"ref": ref})
+            if ref["_id"] == test_docs[0]["id"]:
+                augmenter_output = out
+        assert augmenter_output is not None
+        assert set(augmenter_output.keys()) == {
+            "_id",
+            "_index",
+            "passthrough",
+            "name",
+            "unions",
+            "application_date",
+            "bargaining_unit",
+            "locations",
+        }
 
         results = await opensearch_client.search(index=augmented.index_name)
         hits = results["hits"]["hits"]

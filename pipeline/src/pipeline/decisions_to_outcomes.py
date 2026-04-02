@@ -54,31 +54,16 @@ def merge_decisions(accumulator, decision):
     }
 
 
-def create_merger(non_pipeline_indices):
-    accumulator = {}
-    index = None
-
-    def _merge(decision, this_index):
-        nonlocal accumulator
-        nonlocal index
-        index = this_index if this_index not in non_pipeline_indices else index
-        accumulator = merge_decisions(accumulator, decision)
-        return accumulator, index
-
-    return _merge
-
-
-async def merge_decisions_to_outcomes(
-    client, *, indices, non_pipeline_indices, references
-):
+async def merge_decisions_to_outcome(client, *, index, non_pipeline_indices, reference):
     # It makes sense to do this all in one function because it relies on the sort
     # order to merge in a simple way.
+    index_names = sorted({index} | set(non_pipeline_indices))
     res = await client.search(
-        index=",".join(indices | non_pipeline_indices),
+        index=",".join(index_names),
         body={
-            "size": len(references) * len(DocumentType),  # Max possible
+            "size": len(DocumentType),  # Max possible
             "query": {
-                "terms": {"reference": references},
+                "term": {"reference": reference},
             },
             "sort": [
                 {"reference": {"order": "asc"}},
@@ -89,37 +74,21 @@ async def merge_decisions_to_outcomes(
     )
 
     hits = res["hits"]["hits"]
-    last_reference = hits[0]["_source"]["reference"] if hits else None
-    do_merge = create_merger(non_pipeline_indices)
-
-    def flush(maybe_outcome):
-        try:
-            validated_outcome = Outcome.model_validate(maybe_outcome)
-            return validated_outcome
-        except ValidationError as e:
-            if should_allow_validation_error(e):
-                print(
-                    "Incomplete outcome missing last_updated",
-                    this_outcome.get("id", "unknown"),
-                )
-            else:
-                raise e
+    maybe_outcome = {}
 
     for hit in hits:
         index = hit["_index"]
         decision = hit["_source"]
+        maybe_outcome = merge_decisions(maybe_outcome, decision)
 
-        if decision["reference"] != last_reference:
-            last_reference = decision["reference"]
-            do_merge = create_merger(non_pipeline_indices)
-
-            outcome = flush(this_outcome)
-            if outcome:
-                yield outcome, canonical_index
-
-        this_outcome, canonical_index = do_merge(decision, index)
-
-    if hits:
-        outcome = flush(this_outcome)
-        if outcome:
-            yield outcome, canonical_index
+    try:
+        validated_outcome = Outcome.model_validate(maybe_outcome)
+        return validated_outcome
+    except ValidationError as e:
+        if should_allow_validation_error(e):
+            print(
+                "Incomplete outcome missing last_updated",
+                maybe_outcome.get("id", "unknown"),
+            )
+            return None
+        raise

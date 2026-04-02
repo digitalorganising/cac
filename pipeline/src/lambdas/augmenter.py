@@ -1,4 +1,3 @@
-import logging
 import os
 from pipeline.transforms import get_parties
 from pipeline.types.decisions import (
@@ -8,7 +7,13 @@ from pipeline.types.decisions import (
     DocumentType,
 )
 
-from . import map_docs, RefsEvent, lambda_friendly_run_async, DocumentRef, client
+from . import (
+    RefEvent,
+    client,
+    DocumentRef,
+    lambda_friendly_run_async,
+    map_doc,
+)
 
 if os.getenv("MOCK_LLM"):
     from pipeline.transforms.mock_augmentation import get_extracted_data
@@ -23,27 +28,6 @@ async def augment_doc(doc: DecisionRaw):
     extracted_data = await get_extracted_data(doc.document_type, doc.document_content)
     model = DecisionAugmented.from_raw(doc, extracted_data)
     return model.model_dump(by_alias=True)
-
-
-async def decisions_from_refs(client, *, refs):
-    passthroughs = {ref.id for ref in refs if ref.passthrough}
-    res = await client.mget(
-        body={
-            "docs": [
-                ref.model_dump(by_alias=True, exclude={"passthrough"}) for ref in refs
-            ]
-        }
-    )
-    for doc in res["docs"]:
-        if not doc["found"]:
-            logging.error(f"Decision not found: {doc['_id']}")
-
-        ref = DocumentRef(
-            _id=doc["_id"],
-            _index=doc["_index"],
-            passthrough=doc["_id"] in passthroughs,
-        )
-        yield DecisionRaw.model_validate(doc["_source"]), ref
 
 
 def transform_for_next_step(transformed_doc):
@@ -63,10 +47,12 @@ def transform_for_next_step(transformed_doc):
     }
 
 
-async def process_batch(refs):
-    decisions = decisions_from_refs(client, refs=refs)
-    return await map_docs(
-        decisions,
+async def process_ref(ref: DocumentRef):
+    src = await client.get(index=ref.index, id=ref.id)
+    decision = DecisionRaw.model_validate(src["_source"])
+    return await map_doc(
+        decision,
+        ref,
         transform=augment_doc,
         dest_namespace="outcomes-augmented",
         dest_mapping={"dynamic": "strict", "properties": decision_augmented_mapping},
@@ -75,5 +61,5 @@ async def process_batch(refs):
 
 
 def handler(event, context):
-    augmenter_event = RefsEvent.model_validate(event)
-    return lambda_friendly_run_async(process_batch(augmenter_event.refs))
+    augmenter_event = RefEvent.model_validate(event)
+    return lambda_friendly_run_async(process_ref(augmenter_event.ref))

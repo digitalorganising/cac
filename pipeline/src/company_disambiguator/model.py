@@ -14,11 +14,15 @@ class DisambiguateCompanyRequest(BaseModel):
     locations: Optional[List[str]] = None
 
 
-class DisambiguateCompanyEvent(BaseModel):
-    """Batch event containing multiple disambiguation requests."""
+class DisambiguateCompanyLambdaEvent(DisambiguateCompanyRequest):
+    """Lambda payload: same fields as DisambiguateCompanyRequest plus ``force`` at the top level."""
 
-    requests: List[DisambiguateCompanyRequest]
     force: bool = False
+
+    def without_force(self) -> DisambiguateCompanyRequest:
+        return DisambiguateCompanyRequest.model_validate(
+            self.model_dump(exclude={"force"})
+        )
 
 
 class IndustrialClassification(BaseModel):

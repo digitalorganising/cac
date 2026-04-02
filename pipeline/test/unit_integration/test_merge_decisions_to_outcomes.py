@@ -1,9 +1,14 @@
+import copy
+
 import pytest
+from pydantic import ValidationError
+
 from pipeline.decisions_to_outcomes import (
-    merge_decisions_to_outcomes,
     merge_decisions,
+    merge_decisions_to_outcome,
     merge_without_none,
 )
+from pipeline.types.documents import DocumentType
 
 
 class MockOpenSearchClient:
@@ -11,13 +16,21 @@ class MockOpenSearchClient:
         self.search_results = search_results
         self.search_called = False
         self.search_args = None
+        self.search_calls = []
 
     async def search(self, index, body):
         self.search_called = True
         self.search_args = {"index": index, "body": body}
+        self.search_calls.append({"index": index, "body": body})
 
-        # Apply sorting if specified in the search body
-        results = self.search_results.copy()
+        results = list(self.search_results)
+        query = body.get("query") or {}
+        term = query.get("term") or {}
+        if "reference" in term:
+            ref_val = term["reference"]
+            results = [r for r in results if r.get("reference") == ref_val]
+
+        results = copy.deepcopy(results)
         if "sort" in body:
             results = self._apply_sort(results, body["sort"])
 
@@ -27,7 +40,7 @@ class MockOpenSearchClient:
                     {
                         "_source": result,
                         "_index": "test-index",
-                        "_id": result["reference"],
+                        "_id": result.get("reference", "unknown"),
                     }
                     for result in results
                 ]
@@ -201,73 +214,58 @@ async def test_merge_decisions_to_outcomes_basic(mock_client_with_data):
     references = ["TUR1/1234/2024", "TUR1/5678/2024"]
 
     outcomes = []
-    async for outcome, index in merge_decisions_to_outcomes(
-        mock_client_with_data,
-        indices={"test-index"},
-        non_pipeline_indices=set(),
-        references=references,
-    ):
-        outcomes.append((outcome, index))
+    for ref in references:
+        outcome = await merge_decisions_to_outcome(
+            mock_client_with_data,
+            index="test-index",
+            non_pipeline_indices=set(),
+            reference=ref,
+        )
+        assert outcome is not None
+        outcomes.append(outcome)
 
-    # Should yield 2 outcomes: one for each reference
     assert len(outcomes) == 2
-    assert outcomes[0][0].id == "TUR1/1234/2024"  # First reference
-    assert outcomes[1][0].id == "TUR1/5678/2024"  # Second reference
-    assert outcomes[0][1] == "test-index"  # Index should be passed through
-    assert outcomes[1][1] == "test-index"
+    assert outcomes[0].id == "TUR1/1234/2024"
+    assert outcomes[1].id == "TUR1/5678/2024"
 
-    # Check that search was called with correct parameters
     assert mock_client_with_data.search_called
-    assert mock_client_with_data.search_args["index"] == "test-index"
+    assert len(mock_client_with_data.search_calls) == 2
+    assert mock_client_with_data.search_calls[0]["body"]["size"] == len(DocumentType)
     assert (
-        mock_client_with_data.search_args["body"]["size"] == 2 * 15
-    )  # len(references) * len(DocumentType)
+        mock_client_with_data.search_calls[0]["body"]["query"]["term"]["reference"]
+        == "TUR1/1234/2024"
+    )
 
 
 async def test_merge_decisions_to_outcomes_single_reference(mock_client_with_data):
-    """Test merging when there's only one reference"""
-    references = ["TUR1/1234/2024"]
-
-    outcomes = []
-    async for outcome, index in merge_decisions_to_outcomes(
+    """Test merging when there's only one reference (two decisions in the index)"""
+    outcome = await merge_decisions_to_outcome(
         mock_client_with_data,
-        indices={"test-index"},
+        index="test-index",
         non_pipeline_indices=set(),
-        references=references,
-    ):
-        outcomes.append((outcome, index))
-
-    # Should yield 2 outcomes: one for each reference in the sample data
-    assert len(outcomes) == 2
-    outcome, index = outcomes[0]  # First reference outcome
+        reference="TUR1/1234/2024",
+    )
+    assert outcome is not None
     assert outcome.id == "TUR1/1234/2024"
-    # Both decisions should be present in documents now that the bug is fixed
     assert "application_received" in outcome.documents
     assert "recognition_decision" in outcome.documents
     assert "application_received" in outcome.document_urls
     assert "recognition_decision" in outcome.document_urls
     assert "application_received" in outcome.extracted_data
     assert "recognition_decision" in outcome.extracted_data
-    assert index == "test-index"
 
 
 async def test_merge_decisions_to_outcomes_empty_results():
     """Test behavior when no decisions are found"""
     mock_client = MockOpenSearchClient([])
 
-    references = ["TUR1/9999/2024"]
-
-    outcomes = []
-    async for outcome, index in merge_decisions_to_outcomes(
+    outcome = await merge_decisions_to_outcome(
         mock_client,
-        indices={"test-index"},
+        index="test-index",
         non_pipeline_indices=set(),
-        references=references,
-    ):
-        outcomes.append((outcome, index))
-
-    # Should yield no outcomes when no data found
-    assert len(outcomes) == 0
+        reference="TUR1/9999/2024",
+    )
+    assert outcome is None
 
 
 async def test_merge_decisions_to_outcomes_multiple_decisions_per_reference():
@@ -307,20 +305,13 @@ async def test_merge_decisions_to_outcomes_multiple_decisions_per_reference():
         ]
     )
 
-    references = ["TUR1/1234/2024"]
-
-    outcomes = []
-    async for outcome, index in merge_decisions_to_outcomes(
+    outcome = await merge_decisions_to_outcome(
         mock_client,
-        indices={"test-index"},
+        index="test-index",
         non_pipeline_indices=set(),
-        references=references,
-    ):
-        outcomes.append((outcome, index))
-
-    # Should yield 1 outcome with all 3 decisions merged in both documents and extracted_data
-    assert len(outcomes) == 1
-    outcome, index = outcomes[0]
+        reference="TUR1/1234/2024",
+    )
+    assert outcome is not None
 
     assert outcome.id == "TUR1/1234/2024"
     # All decisions should be in documents now that the bug is fixed
@@ -336,7 +327,6 @@ async def test_merge_decisions_to_outcomes_multiple_decisions_per_reference():
     assert "application_received" in outcome.extracted_data
     assert "recognition_decision" in outcome.extracted_data
     assert "bargaining_decision" in outcome.extracted_data
-    assert index == "test-index"
 
 
 async def test_merge_decisions_to_outcomes_sort_order():
@@ -366,49 +356,42 @@ async def test_merge_decisions_to_outcomes_sort_order():
         ]
     )
 
-    references = ["TUR1/1234/2024"]
-
-    outcomes = []
-    async for outcome, index in merge_decisions_to_outcomes(
+    outcome = await merge_decisions_to_outcome(
         mock_client,
-        indices={"test-index"},
+        index="test-index",
         non_pipeline_indices=set(),
-        references=references,
-    ):
-        outcomes.append((outcome, index))
+        reference="TUR1/1234/2024",
+    )
+    assert outcome is not None
 
-    # Should yield 1 outcome with both decisions merged in both documents and extracted_data
-    assert len(outcomes) == 1
-    outcome, index = outcomes[0]
-
-    # Both decisions should be present in documents now that the bug is fixed
     assert "application_received" in outcome.documents
     assert "recognition_decision" in outcome.documents
     assert "application_received" in outcome.document_urls
     assert "recognition_decision" in outcome.document_urls
-    # Both decisions should be in extracted_data
     assert "application_received" in outcome.extracted_data
     assert "recognition_decision" in outcome.extracted_data
-    assert index == "test-index"
 
 
 async def test_merge_decisions_to_outcomes_search_parameters(mock_client_with_data):
     """Test that search is called with correct parameters"""
     references = ["TUR1/1234/2024", "TUR1/5678/2024"]
 
-    async for _ in merge_decisions_to_outcomes(
-        mock_client_with_data,
-        indices={"test-index"},
-        non_pipeline_indices=set(),
-        references=references,
-    ):
-        pass
+    for ref in references:
+        await merge_decisions_to_outcome(
+            mock_client_with_data,
+            index="test-index",
+            non_pipeline_indices=set(),
+            reference=ref,
+        )
 
-    # Verify search parameters
-    search_args = mock_client_with_data.search_args
-    assert search_args["index"] == "test-index"
-    assert search_args["body"]["size"] == 2 * 15  # len(references) * len(DocumentType)
-    assert search_args["body"]["query"]["terms"]["reference"] == references
+    assert len(mock_client_with_data.search_calls) == 2
+    queried = {
+        c["body"]["query"]["term"]["reference"] for c in mock_client_with_data.search_calls
+    }
+    assert queried == set(references)
+    for call in mock_client_with_data.search_calls:
+        assert call["index"] == "test-index"
+        assert call["body"]["size"] == len(DocumentType)
 
 
 async def test_merge_decisions_to_outcomes_two_application_withdrawn():
@@ -446,29 +429,19 @@ async def test_merge_decisions_to_outcomes_two_application_withdrawn():
         ]
     )
 
-    references = ["TUR1/1081(2018)"]
-
-    outcomes = []
-    async for outcome, index in merge_decisions_to_outcomes(
+    outcome = await merge_decisions_to_outcome(
         mock_client,
-        indices={"test-index"},
+        index="test-index",
         non_pipeline_indices=set(),
-        references=references,
-    ):
-        outcomes.append((outcome, index))
-
-    # Should yield 1 outcome with both application_withdrawn documents merged
-    assert len(outcomes) == 1
-    outcome, index = outcomes[0]
+        reference="TUR1/1081(2018)",
+    )
+    assert outcome is not None
 
     assert outcome.id == "TUR1/1081(2018)"
 
-    # The extracted_data should contain the last one processed (the one with the actual extracted_data)
     application_withdrawn_data = outcome.extracted_data["application_withdrawn"]
     assert application_withdrawn_data is not None
     assert application_withdrawn_data.decision_date == "2018-12-20"
-
-    assert index == "test-index"
 
 
 async def test_merge_decisions_to_outcomes_para_35_decision():
@@ -492,20 +465,13 @@ async def test_merge_decisions_to_outcomes_para_35_decision():
         ]
     )
 
-    references = ["TUR1/1234/2024"]
-
-    outcomes = []
-    async for outcome, index in merge_decisions_to_outcomes(
+    outcome = await merge_decisions_to_outcome(
         mock_client,
-        indices={"test-index"},
+        index="test-index",
         non_pipeline_indices=set(),
-        references=references,
-    ):
-        outcomes.append((outcome, index))
-
-    # Should yield 1 outcome with para_35_decision merged
-    assert len(outcomes) == 1
-    outcome, index = outcomes[0]
+        reference="TUR1/1234/2024",
+    )
+    assert outcome is not None
 
     assert outcome.id == "TUR1/1234/2024"
     assert "para_35_decision" in outcome.documents
@@ -522,7 +488,6 @@ async def test_merge_decisions_to_outcomes_para_35_decision():
     assert outcome.extracted_data["para_35_decision"].decision_date == "2024-02-15"
     assert outcome.extracted_data["para_35_decision"].application_date == "2023-12-01"
     assert outcome.extracted_data["para_35_decision"].application_can_proceed is True
-    assert index == "test-index"
 
 
 async def test_merge_decisions_to_outcomes_para_35_decision_invalid():
@@ -546,20 +511,13 @@ async def test_merge_decisions_to_outcomes_para_35_decision_invalid():
         ]
     )
 
-    references = ["TUR1/5678/2024"]
-
-    outcomes = []
-    async for outcome, index in merge_decisions_to_outcomes(
+    outcome = await merge_decisions_to_outcome(
         mock_client,
-        indices={"test-index"},
+        index="test-index",
         non_pipeline_indices=set(),
-        references=references,
-    ):
-        outcomes.append((outcome, index))
-
-    # Should yield 1 outcome with para_35_decision merged
-    assert len(outcomes) == 1
-    outcome, index = outcomes[0]
+        reference="TUR1/5678/2024",
+    )
+    assert outcome is not None
 
     assert outcome.id == "TUR1/5678/2024"
     assert "para_35_decision" in outcome.documents
@@ -576,7 +534,6 @@ async def test_merge_decisions_to_outcomes_para_35_decision_invalid():
     assert outcome.extracted_data["para_35_decision"].decision_date == "2024-02-15"
     assert outcome.extracted_data["para_35_decision"].application_date == "2023-12-01"
     assert outcome.extracted_data["para_35_decision"].application_can_proceed is False
-    assert index == "test-index"
 
 
 async def test_merge_decisions_to_outcomes_para_35_with_other_decisions():
@@ -625,20 +582,13 @@ async def test_merge_decisions_to_outcomes_para_35_with_other_decisions():
         ]
     )
 
-    references = ["TUR1/9999/2024"]
-
-    outcomes = []
-    async for outcome, index in merge_decisions_to_outcomes(
+    outcome = await merge_decisions_to_outcome(
         mock_client,
-        indices={"test-index"},
+        index="test-index",
         non_pipeline_indices=set(),
-        references=references,
-    ):
-        outcomes.append((outcome, index))
-
-    # Should yield 1 outcome with both decisions merged
-    assert len(outcomes) == 1
-    outcome, index = outcomes[0]
+        reference="TUR1/9999/2024",
+    )
+    assert outcome is not None
 
     assert outcome.id == "TUR1/9999/2024"
 
@@ -663,8 +613,6 @@ async def test_merge_decisions_to_outcomes_para_35_with_other_decisions():
     # Verify acceptance_decision data
     assert outcome.extracted_data["acceptance_decision"].success is True
 
-    assert index == "test-index"
-
 
 async def test_merge_decisions_to_outcomes_validation_error_last_updated():
     """Test that ValidationError with last_updated field does not yield anything"""
@@ -687,19 +635,13 @@ async def test_merge_decisions_to_outcomes_validation_error_last_updated():
         ]
     )
 
-    references = ["TUR1/1234/2024"]
-
-    outcomes = []
-    async for outcome, index in merge_decisions_to_outcomes(
+    outcome = await merge_decisions_to_outcome(
         mock_client,
-        indices={"test-index"},
+        index="test-index",
         non_pipeline_indices=set(),
-        references=references,
-    ):
-        outcomes.append((outcome, index))
-
-    # Should yield no outcomes when ValidationError is due to missing last_updated
-    assert len(outcomes) == 0
+        reference="TUR1/1234/2024",
+    )
+    assert outcome is None
 
 
 async def test_merge_decisions_to_outcomes_validation_error_other_field():
@@ -723,17 +665,13 @@ async def test_merge_decisions_to_outcomes_validation_error_other_field():
         ]
     )
 
-    references = ["TUR1/1234/2024"]
-
-    outcomes = []
-    with pytest.raises(Exception):  # Should raise ValidationError
-        async for outcome, index in merge_decisions_to_outcomes(
+    with pytest.raises(ValidationError):
+        await merge_decisions_to_outcome(
             mock_client,
-            indices={"test-index"},
+            index="test-index",
             non_pipeline_indices=set(),
-            references=references,
-        ):
-            outcomes.append((outcome, index))
+            reference="TUR1/1234/2024",
+        )
 
 
 def test_merge_without_none():

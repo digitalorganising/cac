@@ -1,14 +1,14 @@
+from pipeline.decisions_to_outcomes import merge_decisions_to_outcome
+from pipeline.services.opensearch_utils import get_mapping_from_path
 from pipeline.transforms import transform_for_index
 from pipeline.transforms.events import InvalidEventError
-from pipeline.decisions_to_outcomes import merge_decisions_to_outcomes
-from pipeline.services.opensearch_utils import get_mapping_from_path
-from . import map_docs, RefsEvent, lambda_friendly_run_async, client, DocumentRef
+
+from . import RefEvent, client, DocumentRef, lambda_friendly_run_async, map_doc
 
 
-async def transform_if_possible(doc):
+def transform_if_possible(outcome):
     try:
-        transformed = transform_for_index(doc)
-        return transformed
+        return transform_for_index(outcome)
     except InvalidEventError as e:
         print(f"Invalid event error: {e}")
         return None
@@ -18,28 +18,27 @@ def reference_from_id(id):
     return id.split(":")[0]
 
 
-async def outcomes_from_refs(client, *, refs, additional_indices={}):
-    references = set(reference_from_id(ref.id) for ref in refs)
-    indices = set(ref.index for ref in refs) | additional_indices
-    async for outcome, index in merge_decisions_to_outcomes(
+async def process_ref(ref: DocumentRef):
+    outcome_reference = reference_from_id(ref.id)
+    outcome = await merge_decisions_to_outcome(
         client,
-        indices=indices,
-        non_pipeline_indices=additional_indices,
-        references=list(references),
-    ):
-        ref = DocumentRef(
-            _id=outcome.id,
-            _index=index,
-        )
-        yield outcome, ref
-
-
-async def process_batch(refs):
-    outcomes = outcomes_from_refs(
-        client, refs=refs, additional_indices={"application-withdrawals"}
+        index=ref.index,
+        non_pipeline_indices={"application-withdrawals"},
+        reference=outcome_reference,
     )
-    return await map_docs(
-        outcomes,
+    if outcome is None:
+        raise ValueError(
+            f"No merged outcome for reference {outcome_reference!r} (ref {ref.id!r})"
+        )
+
+    write_ref = DocumentRef(
+        _id=outcome.id,
+        _index=ref.index,
+        passthrough=False,
+    )
+    return await map_doc(
+        outcome,
+        write_ref,
         transform=transform_if_possible,
         dest_namespace="outcomes-indexed",
         dest_mapping=get_mapping_from_path("./index_mappings/outcomes_indexed.json"),
@@ -47,5 +46,5 @@ async def process_batch(refs):
 
 
 def handler(event, context):
-    indexer_event = RefsEvent.model_validate(event, strict=False)
-    return lambda_friendly_run_async(process_batch(indexer_event.refs))
+    indexer_event = RefEvent.model_validate(event)
+    return lambda_friendly_run_async(process_ref(indexer_event.ref))

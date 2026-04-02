@@ -23,8 +23,8 @@ resource "aws_ecr_lifecycle_policy" "pipeline" {
 }
 
 locals {
-  opensearch_endpoint = "${bonsai_cluster.cac_search.access.scheme}://${bonsai_cluster.cac_search.access.host}:${bonsai_cluster.cac_search.access.port}"
-  batch_size          = 20
+  opensearch_endpoint          = "${bonsai_cluster.cac_search.access.scheme}://${bonsai_cluster.cac_search.access.host}:${bonsai_cluster.cac_search.access.port}"
+  opensearch_ingest_batch_size = 20
 }
 
 resource "aws_ssm_parameter" "opensearch_endpoint" {
@@ -44,7 +44,7 @@ module "scraper" {
     OPENSEARCH_ENDPOINT           = local.opensearch_endpoint
     OPENSEARCH_CREDENTIALS_SECRET = module.opensearch_credentials.arn
     API_BASE                      = "https://${vercel_project_domain.cac_digitalorganising.domain}/api"
-    OPENSEARCH_BATCH_SIZE         = local.batch_size
+    OPENSEARCH_BATCH_SIZE         = local.opensearch_ingest_batch_size
   }
 }
 
@@ -100,7 +100,6 @@ module "pipeline_step_function" {
   type = "STANDARD"
 
   definition = templatefile("${path.module}/state-machine/pipeline.asl.json", {
-    batch_size                       = local.batch_size
     scraper_lambda_arn               = module.scraper.function.arn
     augmenter_lambda_arn             = module.augmenter.function.arn
     indexer_lambda_arn               = module.indexer.function.arn

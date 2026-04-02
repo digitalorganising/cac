@@ -2,7 +2,7 @@ resource "bonsai_cluster" "cac_search" {
   name = "Digitalorganising search"
 
   plan = {
-    slug = "staging-2024"
+    slug = "staging"
   }
 
   space = {
@@ -10,6 +10,6 @@ resource "bonsai_cluster" "cac_search" {
   }
 
   release = {
-    slug = "opensearch-2.6.0-mt"
+    slug = "opensearch-2.19.4"
   }
 }

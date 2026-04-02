@@ -1,5 +1,5 @@
 {
-  "Comment": "Pipeline for batching, augmenting and indexing outcomes",
+  "Comment": "Pipeline: scrape, then per-ref augment, index, and optional company disambiguation",
   "StartAt": "Scraper",
   "States": {
     "Scraper": {
@@ -25,7 +25,7 @@
         "FunctionName": "${scraper_lambda_arn}",
         "Payload": "{% $states.input %}"
       },
-      "Output": "{% [$partition($states.result.Payload[], ${batch_size})] %}"
+      "Output": "{% $states.result.Payload %}"
     },
     "Map": {
       "Type": "Map",
@@ -56,11 +56,11 @@
             "Arguments": {
               "FunctionName": "${augmenter_lambda_arn}",
               "Payload": {
-                "refs": "{% $states.input[] %}"
+                "ref": "{% $states.input %}"
               }
             },
             "Output": {
-              "refs": "{% $states.result.Payload[] %}"
+              "ref": "{% $states.result.Payload %}"
             },
             "Next": "Parallel"
           },
@@ -97,8 +97,24 @@
                 }
               },
               {
-                "StartAt": "Company Disambiguator",
+                "StartAt": "DisambiguationChoice",
                 "States": {
+                  "DisambiguationChoice": {
+                    "Type": "Choice",
+                    "QueryLanguage": "JSONata",
+                    "Choices": [
+                      {
+                        "Next": "Company Disambiguator",
+                        "Condition": "{% $contains($states.input.ref._id, 'acceptance_decision') %}"
+                      }
+                    ],
+                    "Default": "SkipCompanyDisambiguation"
+                  },
+                  "SkipCompanyDisambiguation": {
+                    "Type": "Pass",
+                    "Result": {},
+                    "End": true
+                  },
                   "Company Disambiguator": {
                     "Type": "Task",
                     "Resource": "arn:aws:states:::lambda:invoke",
@@ -119,9 +135,7 @@
                     "QueryLanguage": "JSONata",
                     "Arguments": {
                       "FunctionName": "${company_disambiguator_lambda_arn}",
-                      "Payload": {
-                        "requests": "{% [$states.input.refs[$contains(_id, 'acceptance_decision')][] ~> |$|{}, ['_id', '_index', 'passthrough']|] %}"
-                      }
+                      "Payload": "{% { 'name': $states.input.ref.name, 'unions': $states.input.ref.unions, 'application_date': $states.input.ref.application_date, 'bargaining_unit': $states.input.ref.bargaining_unit, 'locations': $states.input.ref.locations, 'force': false } %}"
                     },
                     "End": true
                   }

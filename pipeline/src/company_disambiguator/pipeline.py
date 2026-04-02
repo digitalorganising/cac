@@ -5,7 +5,8 @@ import logging
 import os
 from typing import Optional
 
-from opensearchpy import AsyncOpenSearch, helpers
+from opensearchpy import AsyncOpenSearch
+from opensearchpy.exceptions import NotFoundError
 
 from pipeline.services.baml import authenticated_client
 from company_disambiguator.companies_house import CompaniesHouseClient
@@ -26,42 +27,18 @@ if os.getenv("MOCK_LLM"):
     baml_options["client"] = "FakeApiClient"
 
 
-async def get_stored_companies(
+async def get_stored_company(
     client: AsyncOpenSearch,
     index: str,
-    requests: list[DisambiguateCompanyRequest],
-) -> dict[str, DisambiguatedCompany]:
-    """Fetch stored companies for multiple requests using mget.
-
-    Args:
-        client: OpenSearch client
-        index: Index name
-        requests: List of requests to check
-
-    Returns:
-        Dictionary mapping doc_id to stored result (only for found documents)
-    """
-    if not requests:
-        return {}
-
-    # Generate doc IDs for all requests
-    doc_ids = [request_to_doc_id(req) for req in requests]
-
-    # Use mget to fetch all documents at once
-    # mget preserves order, so results are in the same order as doc_ids
-    mget_response = await client.mget(
-        body={"docs": [{"_index": index, "_id": doc_id} for doc_id in doc_ids]}
-    )
-
-    # Convert found documents to results using Pydantic validation
-    # Build dict in order to preserve doc_id -> result mapping
-    stored_results: dict[str, DisambiguatedCompany] = {}
-    for doc in mget_response["docs"]:
-        if doc.get("found"):
-            stored = StoredResult.model_validate(doc["_source"])
-            stored_results[doc["_id"]] = stored.disambiguated_company
-
-    return stored_results
+    request: DisambiguateCompanyRequest,
+) -> DisambiguatedCompany | None:
+    doc_id = request_to_doc_id(request)
+    try:
+        res = await client.get(index=index, id=doc_id)
+    except NotFoundError:
+        return None
+    stored = StoredResult.model_validate(res["_source"])
+    return stored.disambiguated_company
 
 
 async def disambiguate_company(
@@ -162,36 +139,18 @@ async def disambiguate_company(
     return result, debug
 
 
-async def bulk_index_results(
-    client: AsyncOpenSearch, index: str, docs: list[StoredResult]
+async def upsert_stored_result(
+    client: AsyncOpenSearch,
+    index: str,
+    stored: StoredResult,
 ) -> None:
-    """Bulk index disambiguation results.
-
-    Args:
-        client: OpenSearch client
-        index: Index name
-        docs: List of StoredResult objects to index
-    """
-
-    # Generate index actions
-    async def index_actions():
-        for doc in docs:
-            doc_id = doc.id
-            stored_result = doc
-            yield {
-                "_op_type": "update",
-                "_index": index,
-                "_id": doc_id,
-                "doc": stored_result.model_dump(exclude_none=True),
-                "doc_as_upsert": True,
-            }
-
-    # Bulk index all documents
-    async for ok, result in helpers.async_streaming_bulk(
-        client, index_actions(), index=index
-    ):
-        if not ok:
-            raise Exception("Failed to index item", result)
-
-    # Refresh index after bulk operation
+    await client.update(
+        index=index,
+        id=stored.id,
+        body={
+            "doc": stored.model_dump(exclude_none=True),
+            "doc_as_upsert": True,
+        },
+        params={"retry_on_conflict": 3},
+    )
     await client.indices.refresh(index=index)

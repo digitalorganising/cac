@@ -23,6 +23,7 @@ import sys
 import boto3
 from botocore.config import Config
 from opensearchpy import helpers
+from tqdm import tqdm
 
 BOTO_TIMEOUT = 900  # seconds
 
@@ -35,7 +36,6 @@ OPENSEARCH_ENDPOINT_PARAMETER_NAME = "opensearch-endpoint"
 
 INDEX = "disambiguated-companies"
 DEFAULT_LAMBDA_NAME = "pipeline-company-disambiguator"
-BATCH_SIZE = 10
 
 
 def get_boto_session():
@@ -206,18 +206,15 @@ async def main():
             )
             await clear_existing_disambiguation(client, requests)
 
-        for i in range(0, len(requests), BATCH_SIZE):
-            batch = requests[i : i + BATCH_SIZE]
-            event = {
-                "requests": [r.model_dump(mode="json") for r in batch],
-                "force": True,
-            }
-            print(
-                f"Invoking Lambda for batch {i // BATCH_SIZE + 1} ({len(batch)} requests)...",
-                file=sys.stderr,
-            )
+        for req in tqdm(
+            requests,
+            desc="Reindexing",
+            unit="company",
+            file=sys.stderr,
+        ):
+            event = {**req.model_dump(mode="json"), "force": True}
             result = invoke_lambda_sync(session, DEFAULT_LAMBDA_NAME, event)
-            print(json.dumps(result, indent=2), file=sys.stderr)
+            tqdm.write(json.dumps(result, indent=2), file=sys.stderr)
         print("Done.", file=sys.stderr)
     finally:
         await client.close()

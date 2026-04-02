@@ -133,7 +133,8 @@ async def test_indexer(opensearch_client):
             }
             for d in test_decision_docs[:3]
         ]
-        await invoke_lambda("indexer", {"refs": refs})
+        for ref in refs:
+            await invoke_lambda("indexer", {"ref": ref})
 
         results = await opensearch_client.search(index=indexed.index_name)
         hits = results["hits"]["hits"]

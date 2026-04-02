@@ -1,10 +1,8 @@
 import asyncio
 import concurrent.futures
 import os
-from typing import Generic, TypeVar
 
-from pydantic import BaseModel, Field
-from opensearchpy import helpers
+from pydantic import BaseModel, ConfigDict, Field
 
 from pipeline.services.opensearch_utils import (
     create_client,
@@ -61,16 +59,17 @@ def get_index_suffix(index_name):
 
 
 class DocumentRef(BaseModel):
+    """OpenSearch document pointer; extra keys (e.g. disambiguated_company) allowed for indexer."""
+
+    model_config = ConfigDict(extra="allow")
+
     id: str = Field(alias="_id")
     index: str = Field(alias="_index")
     passthrough: bool = False
 
 
-RefsEventRefT = TypeVar("RefsEventRefT", bound=DocumentRef, default=DocumentRef)
-
-
-class RefsEvent(BaseModel, Generic[RefsEventRefT]):
-    refs: list[RefsEventRefT]
+class RefEvent(BaseModel):
+    ref: DocumentRef
 
 
 def destination_index(*, source_index, dest_namespace):
@@ -79,97 +78,58 @@ def destination_index(*, source_index, dest_namespace):
     return dest_index
 
 
-async def map_docs(
-    docs_source,
+async def map_doc(
+    doc,
+    ref: DocumentRef,
     *,
     transform,
-    dest_namespace,
+    dest_namespace: str,
     dest_mapping,
-    refresh_on_complete=True,
+    dest_id: str | None = None,
+    refresh_on_complete: bool = True,
     result_transform=None,
 ):
-    seen_indices = set()
-    passthroughs = []
-    result_map = {}
+    """Transform one source document and upsert it into the destination index."""
+    dest_index = destination_index(
+        source_index=ref.index, dest_namespace=dest_namespace
+    )
+    await ensure_index_mapping(client, dest_index, dest_mapping)
 
-    async def update_actions():
-        async for doc, ref in docs_source:
-            dest_index = destination_index(
-                source_index=ref.index, dest_namespace=dest_namespace
-            )
-            if dest_index not in seen_indices:
-                await ensure_index_mapping(client, dest_index, dest_mapping)
-                seen_indices.add(dest_index)
+    doc_id = dest_id if dest_id is not None else ref.id
 
-            common_action = {
-                "_op_type": "update",
-                "_index": dest_index,
-                "_id": ref.id,
-                "retry_on_conflict": 3,
-            }
-
-            if ref.passthrough:
-                passthroughs.append(DocumentRef(_id=ref.id, _index=dest_index))
-                yield {
-                    **common_action,
-                    "doc": {},
-                }
-            else:
-                transformed_doc = await transform(doc)
-                if not transformed_doc:
-                    continue
-                result_map[ref.id] = (
-                    result_transform(transformed_doc) if result_transform else {}
-                )
-                yield {
-                    **common_action,
-                    "doc": transformed_doc,
-                    "doc_as_upsert": True,
-                }
-
-    results = []
-    async for ok, result in helpers.async_streaming_bulk(
-        client, update_actions(), index=dest_namespace
-    ):
-        if not ok:
-            raise Exception("Failed to index item", result)
-        update = result["update"]
-        ref = DocumentRef(
-            _id=update["_id"],
-            _index=update["_index"],
+    if ref.passthrough:
+        await client.update(
+            index=dest_index,
+            id=doc_id,
+            body={"doc": {}},
+            params={"retry_on_conflict": 3},
         )
-
-        additional_fields = result_map.pop(update["_id"], {})
-        results.append({**ref.model_dump(by_alias=True), **additional_fields})
-
-    if result_transform and passthroughs:
-        passthrough_docs = await client.mget(
-            body={
-                "docs": [
-                    ref.model_dump(by_alias=True, exclude={"passthrough"})
-                    for ref in passthroughs
-                ],
-            }
+        if refresh_on_complete:
+            await client.indices.refresh(index=dest_index)
+        augmented = await client.get(index=dest_index, id=doc_id)
+        if not augmented.get("found"):
+            raise ValueError(f"Document missing after passthrough update: {doc_id}")
+        extra = result_transform(augmented["_source"]) if result_transform else {}
+    else:
+        if asyncio.iscoroutinefunction(transform):
+            transformed = await transform(doc)
+        else:
+            transformed = transform(doc)
+        if not transformed:
+            raise ValueError(f"Transform produced no document for ref {doc_id!r}")
+        await client.update(
+            index=dest_index,
+            id=doc_id,
+            body={"doc": transformed, "doc_as_upsert": True},
+            params={"retry_on_conflict": 3},
         )
-        for doc in passthrough_docs["docs"]:
-            result_map[doc["_id"]] = result_transform(doc["_source"])
-        for result in results:
-            if result["_id"] in result_map:
-                result.update(result_map[result["_id"]])
+        if refresh_on_complete:
+            await client.indices.refresh(index=dest_index)
+        extra = result_transform(transformed) if result_transform else {}
 
-    if refresh_on_complete:
-        indices = {r["_index"] for r in results}
-        for index in indices:
-            await client.indices.refresh(index=index)
-
-    return results
-
-
-def gather_with_concurrency(coros, *, max_concurrent=10):
-    semaphore = asyncio.Semaphore(max_concurrent)
-
-    async def gather_one(coro):
-        async with semaphore:
-            return await coro
-
-    return asyncio.gather(*[gather_one(coro) for coro in coros])
+    return {
+        **DocumentRef(
+            _id=doc_id, _index=dest_index, passthrough=ref.passthrough
+        ).model_dump(by_alias=True),
+        **extra,
+    }

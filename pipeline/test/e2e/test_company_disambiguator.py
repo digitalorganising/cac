@@ -51,17 +51,12 @@ async def test_company_disambiguator(opensearch_client):
     index_for_test = indexer(opensearch_client)
     async with index_for_test(
         "disambiguated-companies", no_suffix=True, initial_docs=initial_docs
-    ) as disambiguated_index:
-        # Test plan:
-        # 1. Test with something that is already in the index (and not in the APIs)
-        # 2. Test with something that is in the APIs but not in the index
-        # 3. Test with something that is ambiguous
-
-        event = {"requests": [moreco, wincanton, british_academy]}
-
-        results = await invoke_lambda("company_disambiguator", event)
-        assert len(results) == 3
-        assert results[0] == {
+    ):
+        r0 = await invoke_lambda(
+            "company_disambiguator", {**moreco, "force": False}
+        )
+        assert isinstance(r0, dict)
+        assert r0 == {
             "company_name": "Moreco Group Ltd",
             "company_number": "13537233",
             "industrial_classifications": [
@@ -73,7 +68,11 @@ async def test_company_disambiguator(opensearch_client):
             ],
             "type": "identified",
         }
-        assert results[1] == {
+
+        r1 = await invoke_lambda(
+            "company_disambiguator", {**wincanton, "force": False}
+        )
+        assert r1 == {
             "company_name": "Wincanton Ltd",
             "company_number": "04178808",
             "industrial_classifications": [
@@ -100,7 +99,11 @@ async def test_company_disambiguator(opensearch_client):
             ],
             "type": "identified",
         }
-        assert results[2] == {
+
+        r2 = await invoke_lambda(
+            "company_disambiguator", {**british_academy, "force": False}
+        )
+        assert r2 == {
             "company_name": "The British Academy for the Promotion of Historical Philosophical and Philological Studies (The British Academy)",
             "type": "unidentified",
             "subtype": "Charity",
