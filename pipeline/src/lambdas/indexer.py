@@ -15,7 +15,8 @@ def transform_if_possible(outcome):
 
 
 def reference_from_id(id):
-    return id.split(":")[0]
+    # rpartition rather than split in case the ID is a URI with a scheme...
+    return id.rpartition(":")[0]
 
 
 async def process_ref(ref: DocumentRef):
