@@ -10,7 +10,45 @@ from opensearchpy import (
     exceptions,
     AsyncHttpConnection,
     RequestsHttpConnection,
+    Transport,
+    AsyncTransport,
 )
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_random_exponential,
+    retry_if_exception,
+    retry_if_exception_type,
+    retry_all,
+)
+
+backoff_tenacity_kwargs = {
+    "stop": stop_after_attempt(5),
+    "wait": wait_random_exponential(multiplier=0.05),
+    "retry": retry_all(
+        retry_if_exception_type(exceptions.TransportError),
+        retry_if_exception(lambda e: e.status_code == 429),
+    ),
+    "reraise": True,
+}
+
+
+class ExponentialBackoffTransport(Transport):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @retry(**backoff_tenacity_kwargs)
+    def perform_request(self, *args, **kwargs):
+        return super().perform_request(*args, **kwargs)
+
+
+class ExponentialBackoffAsyncTransport(AsyncTransport):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    @retry(**backoff_tenacity_kwargs)
+    async def perform_request(self, *args, **kwargs):
+        return await super().perform_request(*args, **kwargs)
 
 
 def get_auth(
@@ -84,7 +122,11 @@ def create_client(
         connection_class=(
             AsyncHttpConnection if async_client else RequestsHttpConnection
         ),
-        max_retries=5,
+        transport_class=(
+            ExponentialBackoffAsyncTransport
+            if async_client
+            else ExponentialBackoffTransport
+        ),
         **kwargs,
     )
 
