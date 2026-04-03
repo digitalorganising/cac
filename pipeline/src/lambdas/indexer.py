@@ -28,9 +28,8 @@ async def process_ref(ref: DocumentRef):
         reference=outcome_reference,
     )
     if outcome is None:
-        raise ValueError(
-            f"No merged outcome for reference {outcome_reference!r} (ref {ref.id!r})"
-        )
+        print(f"No merged outcome for reference {outcome_reference!r} (ref {ref.id!r})")
+        return None
 
     write_ref = DocumentRef(
         _id=outcome.id,
