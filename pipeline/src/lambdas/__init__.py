@@ -116,7 +116,7 @@ async def map_doc(
         else:
             transformed = transform(doc)
         if not transformed:
-            raise ValueError(f"Transform produced no document for ref {doc_id!r}")
+            return None
         await client.update(
             index=dest_index,
             id=doc_id,

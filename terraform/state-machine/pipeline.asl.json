@@ -148,7 +148,7 @@
       },
       "Next": "Success",
       "QueryLanguage": "JSONata",
-      "MaxConcurrency": 1
+      "MaxConcurrency": 3
     },
     "Success": {
       "Type": "Succeed"

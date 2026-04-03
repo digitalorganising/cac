@@ -84,6 +84,7 @@ def create_client(
         connection_class=(
             AsyncHttpConnection if async_client else RequestsHttpConnection
         ),
+        max_retries=5,
         **kwargs,
     )
 
