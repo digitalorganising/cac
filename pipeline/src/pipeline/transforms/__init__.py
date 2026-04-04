@@ -34,33 +34,50 @@ def get_bargaining_unit(outcome: Outcome):
         return None
 
     ad = data[DocumentType.acceptance_decision]
-    if DocumentType.validity_decision in data:
-        d = data[DocumentType.validity_decision]
-        return {
-            "size": (
-                d.new_bargaining_unit.size
-                if d.new_bargaining_unit.size_considered
-                else None
-            ),
-            "membership": d.new_bargaining_unit.membership
-            or d.new_bargaining_unit.claimed_membership,
-            "description": d.new_bargaining_unit.description,
-            "petitionSignatures": ad.petition_signatures,
-            "locations": d.new_bargaining_unit.locations,
-        }
+    abu = ad.bargaining_unit
 
-    return {
-        "size": (
-            ad.bargaining_unit.size if ad.bargaining_unit.size_considered else None
+    result = {
+        "size": abu.size if abu.size_considered else None,
+        "membership": (
+            abu.membership
+            if abu.membership is not None
+            else abu.claimed_membership
+            if abu.claimed_membership is not None
+            else None
         ),
-        "membership": ad.bargaining_unit.membership
-        or ad.bargaining_unit.claimed_membership,
-        "description": ad.bargaining_unit.description,
+        "description": abu.description,
         "petitionSignatures": ad.petition_signatures,
-        "locations": ad.bargaining_unit.locations,
+        "locations": abu.locations,
     }
 
-    return None
+    vd = data.get(DocumentType.validity_decision)
+    if vd is None:
+        return result
+
+    nbu = getattr(vd, "new_bargaining_unit", None)
+    if nbu is None:
+        return result
+
+    desc = nbu.description
+    if desc is not None and str(desc).strip() != "":
+        result["description"] = desc.strip()
+
+    if nbu.size_considered and nbu.size is not None:
+        result["size"] = nbu.size
+
+    if nbu.membership is not None or nbu.claimed_membership is not None:
+        result["membership"] = (
+            nbu.membership
+            if nbu.membership is not None
+            else nbu.claimed_membership
+            if nbu.claimed_membership is not None
+            else None
+        )
+
+    if nbu.locations is not None:
+        result["locations"] = nbu.locations
+
+    return result
 
 
 def get_key_dates(events: EventsBuilder):
