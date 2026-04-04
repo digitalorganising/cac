@@ -29,9 +29,11 @@
     },
     "Map": {
       "Type": "Map",
+      "Label": "${map_run_label}",
       "ItemProcessor": {
         "ProcessorConfig": {
-          "Mode": "INLINE"
+          "ExecutionType": "STANDARD",
+          "Mode": "DISTRIBUTED"
         },
         "StartAt": "Augmenter",
         "States": {

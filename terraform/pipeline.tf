@@ -92,6 +92,10 @@ module "company_disambiguator" {
   }
 }
 
+locals {
+  map_run_label = "MapDecisions"
+}
+
 module "pipeline_step_function" {
   source  = "terraform-aws-modules/step-functions/aws"
   version = "5.0.1"
@@ -104,6 +108,7 @@ module "pipeline_step_function" {
     augmenter_lambda_arn             = module.augmenter.function.arn
     indexer_lambda_arn               = module.indexer.function.arn
     company_disambiguator_lambda_arn = module.company_disambiguator.function.arn
+    map_run_label                    = local.map_run_label
   })
 
   service_integrations = {
@@ -122,4 +127,38 @@ module "pipeline_step_function" {
     include_execution_data = true
     level                  = "ALL"
   }
+}
+
+locals {
+  machine_execution_arn = "arn:aws:states:${local.region}:${data.aws_caller_identity.current.account_id}:execution:${module.pipeline_step_function.state_machine_name}"
+}
+
+data "aws_iam_policy_document" "step_function_self_execution" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "states:StartExecution"
+    ]
+    resources = [module.pipeline_step_function.state_machine_arn]
+  }
+  statement {
+    effect = "Allow"
+    actions = [
+      "states:DescribeExecution"
+    ]
+    resources = ["${local.machine_execution_arn}:*"]
+  }
+  statement {
+    effect = "Allow"
+    actions = [
+      "states:RedriveExecution"
+    ]
+    resources = ["${local.machine_execution_arn}/${local.map_run_label}:*"]
+  }
+}
+
+resource "aws_iam_role_policy" "step_function_self_execution" {
+  name   = "step-function-self-execution"
+  role   = module.pipeline_step_function.role_name
+  policy = data.aws_iam_policy_document.step_function_self_execution.json
 }
