@@ -6,7 +6,6 @@ import os
 from typing import Optional
 
 from opensearchpy import AsyncOpenSearch
-from opensearchpy.exceptions import NotFoundError
 
 from pipeline.services.baml import authenticated_client
 from company_disambiguator.companies_house import CompaniesHouseClient
@@ -16,29 +15,13 @@ from company_disambiguator.model import (
     IdentifiedCompany,
     UnidentifiedCompany,
     StoredResult,
-    request_to_doc_id,
 )
 from company_disambiguator.sic_codes import transform_sic_codes
-from baml_client.types import UnidentifiedCompany as BamlUnidentifiedCompany
 
 
 baml_options = {}
 if os.getenv("MOCK_LLM"):
     baml_options["client"] = "FakeApiClient"
-
-
-async def get_stored_company(
-    client: AsyncOpenSearch,
-    index: str,
-    request: DisambiguateCompanyRequest,
-) -> DisambiguatedCompany | None:
-    doc_id = request_to_doc_id(request)
-    try:
-        res = await client.get(index=index, id=doc_id)
-    except NotFoundError:
-        return None
-    stored = StoredResult.model_validate(res["_source"])
-    return stored.disambiguated_company
 
 
 async def disambiguate_company(
@@ -143,7 +126,7 @@ async def upsert_stored_result(
     client: AsyncOpenSearch,
     index: str,
     stored: StoredResult,
-) -> None:
+) -> StoredResult:
     await client.update(
         index=index,
         id=stored.id,
@@ -154,3 +137,4 @@ async def upsert_stored_result(
         params={"retry_on_conflict": 3},
     )
     await client.indices.refresh(index=index)
+    return stored

@@ -76,11 +76,7 @@ class StoredResult(BaseModel):
     Contains both the disambiguation result and the original input request.
     """
 
+    id: str
     disambiguated_company: DisambiguatedCompany
     input: DisambiguateCompanyRequest
     debug: Optional[dict[str, Any]] = None
-
-    @computed_field
-    @property
-    def id(self) -> str:
-        return request_to_doc_id(self.input)

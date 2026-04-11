@@ -52,11 +52,26 @@ async def test_company_disambiguator(opensearch_client):
     async with index_for_test(
         "disambiguated-companies", no_suffix=True, initial_docs=initial_docs
     ):
-        r0 = await invoke_lambda(
-            "company_disambiguator", {**moreco, "force": False}
+        r0 = await invoke_lambda("company_disambiguator", {**moreco, "force": False})
+        r1 = await invoke_lambda("company_disambiguator", {**wincanton, "force": False})
+        r2 = await invoke_lambda(
+            "company_disambiguator", {**british_academy, "force": False}
         )
-        assert isinstance(r0, dict)
-        assert r0 == {
+
+        results = await opensearch_client.search(index="disambiguated-companies")
+        hits = results["hits"]["hits"]
+        assert len(hits) == 3
+
+        doc0 = next(h for h in hits if h["_id"] == r0["_id"])["_source"][
+            "disambiguated_company"
+        ]
+        doc1 = next(h for h in hits if h["_id"] == r1["_id"])["_source"][
+            "disambiguated_company"
+        ]
+        doc2 = next(h for h in hits if h["_id"] == r2["_id"])["_source"][
+            "disambiguated_company"
+        ]
+        assert doc0 == {
             "company_name": "Moreco Group Ltd",
             "company_number": "13537233",
             "industrial_classifications": [
@@ -69,10 +84,7 @@ async def test_company_disambiguator(opensearch_client):
             "type": "identified",
         }
 
-        r1 = await invoke_lambda(
-            "company_disambiguator", {**wincanton, "force": False}
-        )
-        assert r1 == {
+        assert doc1 == {
             "company_name": "Wincanton Ltd",
             "company_number": "04178808",
             "industrial_classifications": [
@@ -100,10 +112,7 @@ async def test_company_disambiguator(opensearch_client):
             "type": "identified",
         }
 
-        r2 = await invoke_lambda(
-            "company_disambiguator", {**british_academy, "force": False}
-        )
-        assert r2 == {
+        assert doc2 == {
             "company_name": "The British Academy for the Promotion of Historical Philosophical and Philological Studies (The British Academy)",
             "type": "unidentified",
             "subtype": "Charity",
