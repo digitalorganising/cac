@@ -11,6 +11,7 @@ def test_outcome_model_validation():
         "outcome_title": "Test union & test employer",
         "documents": {},
         "document_urls": {},
+        "entities": {},
         "extracted_data": {},
     }
     invalid_outcome = {

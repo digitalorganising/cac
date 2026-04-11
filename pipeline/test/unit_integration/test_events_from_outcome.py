@@ -4,7 +4,7 @@ from datetime import datetime
 from pipeline.transforms.events import events_from_outcome
 from pipeline.transforms.model import EventType
 from pipeline.transforms.document_classifier import DocumentType
-from pipeline.types.outcome import Outcome
+from pipeline.types.outcome import Outcome, OutcomeEntities
 from baml_client import types as baml_types
 
 
@@ -35,6 +35,7 @@ def create_outcome(
         outcome_title=outcome_title,
         documents=documents,
         document_urls=document_urls,
+        entities=OutcomeEntities(),
         extracted_data=extracted_data,
     )
 
@@ -750,6 +751,7 @@ def test_events_from_outcome_none_extracted_data():
         outcome_title="Test Outcome TUR1/3333(2024)",
         documents={},
         document_urls={},
+        entities=OutcomeEntities(),
         extracted_data={},  # Empty extracted data
     )
 

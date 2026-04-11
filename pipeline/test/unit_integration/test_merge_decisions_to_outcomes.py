@@ -1,4 +1,5 @@
 import copy
+from types import SimpleNamespace
 
 import pytest
 from pydantic import ValidationError
@@ -12,11 +13,13 @@ from pipeline.types.documents import DocumentType
 
 
 class MockOpenSearchClient:
-    def __init__(self, search_results):
+    def __init__(self, search_results, get_documents=None):
         self.search_results = search_results
+        self.get_documents = dict(get_documents) if get_documents else {}
         self.search_called = False
         self.search_args = None
         self.search_calls = []
+        self.get_calls = []
 
     async def search(self, index, body):
         self.search_called = True
@@ -46,6 +49,19 @@ class MockOpenSearchClient:
                 ]
             }
         }
+
+    async def get(self, index, id):
+        """Mirrors OpenSearch ``get``; used when ``merge_decisions_to_outcome`` is given ``company_ref``."""
+        self.get_calls.append({"index": index, "id": id})
+        key = (index, id)
+        try:
+            doc = self.get_documents[key]
+        except KeyError as e:
+            raise KeyError(
+                f"No get() fixture for index={index!r} id={id!r}; "
+                f"have keys={list(self.get_documents)}"
+            ) from e
+        return copy.deepcopy(doc)
 
     def _apply_sort(self, results, sort_specs):
         """Apply sorting to results based on sort specifications"""
@@ -219,6 +235,7 @@ async def test_merge_decisions_to_outcomes_basic(mock_client_with_data):
             mock_client_with_data,
             index="test-index",
             non_pipeline_indices=set(),
+            company_ref=None,
             reference=ref,
         )
         assert outcome is not None
@@ -235,6 +252,9 @@ async def test_merge_decisions_to_outcomes_basic(mock_client_with_data):
         mock_client_with_data.search_calls[0]["body"]["query"]["term"]["reference"]
         == "TUR1/1234/2024"
     )
+    for o in outcomes:
+        assert o.entities.company is None
+    assert mock_client_with_data.get_calls == []
 
 
 async def test_merge_decisions_to_outcomes_single_reference(mock_client_with_data):
@@ -243,6 +263,7 @@ async def test_merge_decisions_to_outcomes_single_reference(mock_client_with_dat
         mock_client_with_data,
         index="test-index",
         non_pipeline_indices=set(),
+        company_ref=None,
         reference="TUR1/1234/2024",
     )
     assert outcome is not None
@@ -253,6 +274,59 @@ async def test_merge_decisions_to_outcomes_single_reference(mock_client_with_dat
     assert "recognition_decision" in outcome.document_urls
     assert "application_received" in outcome.extracted_data
     assert "recognition_decision" in outcome.extracted_data
+    assert outcome.entities.company is None
+    assert mock_client_with_data.get_calls == []
+
+
+async def test_merge_decisions_to_outcome_company_ref_triggers_get_and_populates_entities():
+    """With a truthy company_ref, OpenSearch get(index, id) runs and entities.company is filled."""
+    company_index = "disambiguated-companies-test"
+    company_id = "stable-hash-id"
+    disambiguated = {
+        "type": "identified",
+        "company_name": "Acme Ltd",
+        "company_number": "01234567",
+        "industrial_classifications": [
+            {
+                "sic_code": "62020",
+                "description": "Computer consultancy activities",
+                "section": "J",
+            }
+        ],
+    }
+    get_documents = {
+        (company_index, company_id): {
+            "_source": {"disambiguated_company": disambiguated},
+        }
+    }
+    decisions = [
+        {
+            "reference": "TUR1/1234/2024",
+            "document_type": "application_received",
+            "document_content": "Application received",
+            "document_url": "https://example.com/application_received",
+            "extracted_data": {"decision_date": "2024-01-15"},
+            "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+            "outcome_title": "Test Outcome 1",
+            "last_updated": "2024-02-01T10:00:00Z",
+        },
+    ]
+    mock_client = MockOpenSearchClient(decisions, get_documents=get_documents)
+    company_ref = SimpleNamespace(index=company_index, id=company_id)
+
+    outcome = await merge_decisions_to_outcome(
+        mock_client,
+        index="test-index",
+        non_pipeline_indices=set(),
+        company_ref=company_ref,
+        reference="TUR1/1234/2024",
+    )
+
+    assert outcome is not None
+    assert mock_client.get_calls == [{"index": company_index, "id": company_id}]
+    assert outcome.entities.company is not None
+    assert outcome.entities.company.root.type == "identified"
+    assert outcome.entities.company.root.company_name == "Acme Ltd"
 
 
 async def test_merge_decisions_to_outcomes_empty_results():
@@ -263,6 +337,7 @@ async def test_merge_decisions_to_outcomes_empty_results():
         mock_client,
         index="test-index",
         non_pipeline_indices=set(),
+        company_ref=None,
         reference="TUR1/9999/2024",
     )
     assert outcome is None
@@ -309,6 +384,7 @@ async def test_merge_decisions_to_outcomes_multiple_decisions_per_reference():
         mock_client,
         index="test-index",
         non_pipeline_indices=set(),
+        company_ref=None,
         reference="TUR1/1234/2024",
     )
     assert outcome is not None
@@ -360,6 +436,7 @@ async def test_merge_decisions_to_outcomes_sort_order():
         mock_client,
         index="test-index",
         non_pipeline_indices=set(),
+        company_ref=None,
         reference="TUR1/1234/2024",
     )
     assert outcome is not None
@@ -381,6 +458,7 @@ async def test_merge_decisions_to_outcomes_search_parameters(mock_client_with_da
             mock_client_with_data,
             index="test-index",
             non_pipeline_indices=set(),
+            company_ref=None,
             reference=ref,
         )
 
@@ -433,6 +511,7 @@ async def test_merge_decisions_to_outcomes_two_application_withdrawn():
         mock_client,
         index="test-index",
         non_pipeline_indices=set(),
+        company_ref=None,
         reference="TUR1/1081(2018)",
     )
     assert outcome is not None
@@ -469,6 +548,7 @@ async def test_merge_decisions_to_outcomes_para_35_decision():
         mock_client,
         index="test-index",
         non_pipeline_indices=set(),
+        company_ref=None,
         reference="TUR1/1234/2024",
     )
     assert outcome is not None
@@ -515,6 +595,7 @@ async def test_merge_decisions_to_outcomes_para_35_decision_invalid():
         mock_client,
         index="test-index",
         non_pipeline_indices=set(),
+        company_ref=None,
         reference="TUR1/5678/2024",
     )
     assert outcome is not None
@@ -586,6 +667,7 @@ async def test_merge_decisions_to_outcomes_para_35_with_other_decisions():
         mock_client,
         index="test-index",
         non_pipeline_indices=set(),
+        company_ref=None,
         reference="TUR1/9999/2024",
     )
     assert outcome is not None
@@ -639,6 +721,7 @@ async def test_merge_decisions_to_outcomes_validation_error_last_updated():
         mock_client,
         index="test-index",
         non_pipeline_indices=set(),
+        company_ref=None,
         reference="TUR1/1234/2024",
     )
     assert outcome is None
@@ -670,6 +753,7 @@ async def test_merge_decisions_to_outcomes_validation_error_other_field():
             mock_client,
             index="test-index",
             non_pipeline_indices=set(),
+            company_ref=None,
             reference="TUR1/1234/2024",
         )
 
