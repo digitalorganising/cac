@@ -64,86 +64,93 @@
             "Output": {
               "ref": "{% $states.result.Payload %}"
             },
-            "Next": "Parallel"
+            "Next": "DisambiguationChoice"
           },
-          "Parallel": {
-            "Type": "Parallel",
-            "Branches": [
+          "DisambiguationChoice": {
+            "Type": "Choice",
+            "QueryLanguage": "JSONata",
+            "Choices": [
               {
-                "StartAt": "Indexer",
-                "States": {
-                  "Indexer": {
-                    "Type": "Task",
-                    "Resource": "arn:aws:states:::lambda:invoke",
-                    "Retry": [
-                      {
-                        "ErrorEquals": [
-                          "Lambda.ServiceException",
-                          "Lambda.AWSLambdaException",
-                          "Lambda.SdkClientException",
-                          "Lambda.TooManyRequestsException"
-                        ],
-                        "IntervalSeconds": 1,
-                        "MaxAttempts": 3,
-                        "BackoffRate": 2,
-                        "JitterStrategy": "FULL"
-                      }
-                    ],
-                    "QueryLanguage": "JSONata",
-                    "Arguments": {
-                      "Payload": "{% $states.input %}",
-                      "FunctionName": "${indexer_lambda_arn}"
-                    },
-                    "End": true
-                  }
-                }
-              },
-              {
-                "StartAt": "DisambiguationChoice",
-                "States": {
-                  "DisambiguationChoice": {
-                    "Type": "Choice",
-                    "QueryLanguage": "JSONata",
-                    "Choices": [
-                      {
-                        "Next": "Company Disambiguator",
-                        "Condition": "{% $contains($states.input.ref._id, 'acceptance_decision') %}"
-                      }
-                    ],
-                    "Default": "SkipCompanyDisambiguation"
-                  },
-                  "SkipCompanyDisambiguation": {
-                    "Type": "Pass",
-                    "Result": {},
-                    "End": true
-                  },
-                  "Company Disambiguator": {
-                    "Type": "Task",
-                    "Resource": "arn:aws:states:::lambda:invoke",
-                    "Retry": [
-                      {
-                        "ErrorEquals": [
-                          "Lambda.ServiceException",
-                          "Lambda.AWSLambdaException",
-                          "Lambda.SdkClientException",
-                          "Lambda.TooManyRequestsException"
-                        ],
-                        "IntervalSeconds": 1,
-                        "MaxAttempts": 3,
-                        "BackoffRate": 2,
-                        "JitterStrategy": "FULL"
-                      }
-                    ],
-                    "QueryLanguage": "JSONata",
-                    "Arguments": {
-                      "FunctionName": "${company_disambiguator_lambda_arn}",
-                      "Payload": "{% { 'name': $states.input.ref.name, 'unions': $states.input.ref.unions, 'application_date': $states.input.ref.application_date, 'bargaining_unit': $states.input.ref.bargaining_unit, 'locations': $states.input.ref.locations, 'force': false } %}"
-                    },
-                    "End": true
-                  }
-                }
+                "Condition": "{% $contains($states.input.ref._id, 'acceptance_decision') %}",
+                "Next": "Company Disambiguator"
               }
             ],
+            "Default": "Indexer"
+          },
+          "Company Disambiguator": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "QueryLanguage": "JSONata",
+            "Arguments": {
+              "FunctionName": "${company_disambiguator_lambda_arn}",
+              "Payload": "{% { 'name': $states.input.ref.name, 'unions': $states.input.ref.unions, 'application_date': $states.input.ref.application_date, 'bargaining_unit': $states.input.ref.bargaining_unit, 'locations': $states.input.ref.locations, 'force': false } %}"
+            },
+            "Output": {
+              "ref": "{% $states.input.ref %}",
+              "company_ref": "{% $states.result.Payload %}"
+            },
+            "Next": "Disambiguation Indexer"
+          },
+          "Disambiguation Indexer": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "QueryLanguage": "JSONata",
+            "Arguments": {
+              "Payload": "{% $states.input %}",
+              "FunctionName": "${indexer_lambda_arn}"
+            },
+            "End": true
+          },
+          "Indexer": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "QueryLanguage": "JSONata",
+            "Arguments": {
+              "Payload": "{% $states.input %}",
+              "FunctionName": "${indexer_lambda_arn}"
+            },
             "End": true
           }
         }
