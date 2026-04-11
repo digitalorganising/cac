@@ -9,6 +9,7 @@ from typing import get_args, Optional, Union, Self
 
 from .documents import DocumentType
 from .decisions import DecisionAugmented
+from company_disambiguator.model import DisambiguatedCompany
 
 ExtractedData = Union[
     tuple(
@@ -18,6 +19,10 @@ ExtractedData = Union[
 ]
 
 
+class OutcomeEntities(BaseModel):
+    company: Optional[DisambiguatedCompany] = None
+
+
 class Outcome(BaseModel):
     id: str
     last_updated: datetime
@@ -25,6 +30,7 @@ class Outcome(BaseModel):
     outcome_title: str
     documents: dict[DocumentType, Optional[str]]
     document_urls: dict[DocumentType, Optional[str]]
+    entities: OutcomeEntities
     extracted_data: dict[
         DocumentType, ExtractedData
     ]  # Not fully typesafe but doesn't really matter

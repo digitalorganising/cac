@@ -1,5 +1,6 @@
 import json
 import re
+from company_disambiguator.model import DisambiguatedCompany
 
 from .events import EventsBuilder, events_from_outcome
 from .model import EventType, OutcomeState
@@ -41,9 +42,7 @@ def get_bargaining_unit(outcome: Outcome):
         "membership": (
             abu.membership
             if abu.membership is not None
-            else abu.claimed_membership
-            if abu.claimed_membership is not None
-            else None
+            else abu.claimed_membership if abu.claimed_membership is not None else None
         ),
         "description": abu.description,
         "petitionSignatures": ad.petition_signatures,
@@ -69,9 +68,7 @@ def get_bargaining_unit(outcome: Outcome):
         result["membership"] = (
             nbu.membership
             if nbu.membership is not None
-            else nbu.claimed_membership
-            if nbu.claimed_membership is not None
-            else None
+            else nbu.claimed_membership if nbu.claimed_membership is not None else None
         )
 
     if nbu.locations is not None:
@@ -187,6 +184,36 @@ def get_durations(key_dates, outcome: Outcome):
     }
 
 
+def get_company(company: DisambiguatedCompany):
+    company = company.root
+
+    common = {
+        "type": company.type,
+        "name": company.company_name,
+        "sics": [
+            {
+                "code": sic.sic_code,
+                "description": sic.description,
+                "section": sic.section,
+            }
+            for sic in company.industrial_classifications
+        ],
+    }
+
+    if company.type == "identified":
+        return {
+            **common,
+            "number": company.company_number,
+        }
+    elif company.type == "unidentified":
+        return {
+            **common,
+            "subtype": company.subtype,
+        }
+    else:
+        raise ValueError(f"Unknown company type: {company.type}")
+
+
 def flatten_facets(facets):
     def flatten(obj):
         if obj is None:
@@ -213,6 +240,9 @@ def transform_for_index(outcome: Outcome):
     events_json = events.dump_events()
     durations = get_durations(key_dates, outcome)
     json_state = {"value": state.value, "label": state.label}
+    company = (
+        get_company(outcome.entities.company) if outcome.entities.company else None
+    )
 
     return {
         "id": outcome.id,
@@ -224,6 +254,7 @@ def transform_for_index(outcome: Outcome):
             "lastUpdated": outcome.last_updated,
             "state": json_state,
             "parties": parties,
+            "company": company,
             "bargainingUnit": bu,
             "ballot": ballot,
             "events": events_json,
@@ -286,12 +317,19 @@ def transform_for_index(outcome: Outcome):
                 if ballot and ballot.get("spoiled")
                 else None
             ),
+            "company.number": company["number"] if company else None,
+            "company.sics.code": (
+                [sic["code"] for sic in company["sics"]] if company else []
+            ),
         },
         "facet": flatten_facets(
             {
                 "state": json_state,
                 "parties.unions": parties["unions"],
                 "events.type": [e["type"] for e in events_json],
+                "company.sics.code": (
+                    [sic["code"] for sic in company["sics"]] if company else []
+                ),
             }
         )
         | {"bargainingUnit.size": bu["size"] if bu else None},

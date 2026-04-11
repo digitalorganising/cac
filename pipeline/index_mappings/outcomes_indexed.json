@@ -179,6 +179,12 @@
         },
         "ballot.spoiled.percentBU": {
           "type": "float"
+        },
+        "company.number": {
+          "type": "keyword"
+        },
+        "company.sics.code": {
+          "type": "keyword"
         }
       }
     },
@@ -195,6 +201,9 @@
         },
         "bargainingUnit.size": {
           "type": "integer"
+        },
+        "company.sics.code": {
+          "type": "keyword"
         }
       }
     }

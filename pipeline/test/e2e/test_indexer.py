@@ -104,6 +104,31 @@ test_decision_docs = [
     },
 ]
 
+test_disambiguated_company_docs = [
+    {
+        "input": {
+            "name": "Abbey Healthcare",
+            "unions": ["UNISON"],
+            "application_date": "17 July 2018",
+            "bargaining_unit": "All Abbey Healthcare employees , including home manager, working in the residential care home",
+            "locations": ["Farnworth Care Home, Church St, Bolton BL4 8AG"],
+        },
+        "id": "5d2db102d1",
+        "disambiguated_company": {
+            "company_number": "05156742",
+            "company_name": "Abbey Healthcare",
+            "industrial_classifications": [
+                {
+                    "sic_code": "87100",
+                    "description": "Residential nursing care facilities",
+                    "section": "Human health and social work activities",
+                }
+            ],
+            "type": "identified",
+        },
+    }
+]
+
 
 async def test_indexer(opensearch_client):
     index_for_test = indexer(opensearch_client)
@@ -124,17 +149,37 @@ async def test_indexer(opensearch_client):
         "application-withdrawals", initial_docs=test_withdrawal_docs, no_suffix=True
     ) as withdrawals, index_for_test(
         "outcomes-indexed", suffix=augmented.suffix
-    ) as indexed:
-        refs = [
+    ) as indexed, index_for_test(
+        "disambiguated-companies",
+        initial_docs=test_disambiguated_company_docs,
+        no_suffix=True,
+    ) as disambiguated_companies:
+        events = [
             {
-                "_id": d["id"],
-                "_index": augmented.index_name,
-                "disambiguated_company": disambiguated_company,
-            }
-            for d in test_decision_docs[:3]
+                "ref": {
+                    "_id": test_decision_docs[0]["id"],
+                    "_index": augmented.index_name,
+                },
+            },
+            {
+                "ref": {
+                    "_id": test_decision_docs[1]["id"],
+                    "_index": augmented.index_name,
+                },
+            },
+            {
+                "ref": {
+                    "_id": test_decision_docs[2]["id"],
+                    "_index": augmented.index_name,
+                },
+                "company_ref": {
+                    "_id": test_disambiguated_company_docs[0]["id"],
+                    "_index": disambiguated_companies.index_name,
+                },
+            },
         ]
-        for ref in refs:
-            await invoke_lambda("indexer", {"ref": ref})
+        for event in events:
+            await invoke_lambda("indexer", event)
 
         results = await opensearch_client.search(index=indexed.index_name)
         hits = results["hits"]["hits"]
@@ -145,6 +190,8 @@ async def test_indexer(opensearch_client):
 
         assert "display" in merged_outcome["_source"]
         assert "display" in withdrawn_outcome["_source"]
+
+        assert "company" in merged_outcome["_source"]["display"]
 
         withdrawn_date = next(
             e

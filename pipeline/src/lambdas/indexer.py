@@ -1,9 +1,14 @@
+from typing import Optional
 from pipeline.decisions_to_outcomes import merge_decisions_to_outcome
 from pipeline.services.opensearch_utils import get_mapping_from_path
 from pipeline.transforms import transform_for_index
 from pipeline.transforms.events import InvalidEventError
 
 from . import RefEvent, client, DocumentRef, lambda_friendly_run_async, map_doc
+
+
+class CompanyRefEvent(RefEvent):
+    company_ref: Optional[DocumentRef] = None
 
 
 def transform_if_possible(outcome):
@@ -19,21 +24,25 @@ def reference_from_id(id):
     return id.rpartition(":")[0]
 
 
-async def process_ref(ref: DocumentRef):
-    outcome_reference = reference_from_id(ref.id)
+async def process_event(event: CompanyRefEvent):
+    decision_ref = event.ref
+    outcome_reference = reference_from_id(decision_ref.id)
     outcome = await merge_decisions_to_outcome(
         client,
-        index=ref.index,
+        index=decision_ref.index,
         non_pipeline_indices={"application-withdrawals"},
         reference=outcome_reference,
+        company_ref=event.company_ref,
     )
     if outcome is None:
-        print(f"No merged outcome for reference {outcome_reference!r} (ref {ref.id!r})")
+        print(
+            f"No merged outcome for reference {outcome_reference!r} (ref {decision_ref.id!r})"
+        )
         return None
 
     write_ref = DocumentRef(
         _id=outcome.id,
-        _index=ref.index,
+        _index=decision_ref.index,
         passthrough=False,
     )
     return await map_doc(
@@ -46,5 +55,5 @@ async def process_ref(ref: DocumentRef):
 
 
 def handler(event, context):
-    indexer_event = RefEvent.model_validate(event)
-    return lambda_friendly_run_async(process_ref(indexer_event.ref))
+    indexer_event = CompanyRefEvent.model_validate(event)
+    return lambda_friendly_run_async(process_event(indexer_event))

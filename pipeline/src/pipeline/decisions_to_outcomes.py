@@ -1,3 +1,4 @@
+from company_disambiguator.model import DisambiguatedCompany
 from pipeline.types.outcome import Outcome
 from .types.documents import DocumentType
 from pydantic import ValidationError
@@ -54,7 +55,9 @@ def merge_decisions(accumulator, decision):
     }
 
 
-async def merge_decisions_to_outcome(client, *, index, non_pipeline_indices, reference):
+async def merge_decisions_to_outcome(
+    client, *, index, non_pipeline_indices, reference, company_ref
+):
     # It makes sense to do this all in one function because it relies on the sort
     # order to merge in a simple way.
     index_names = sorted({index} | set(non_pipeline_indices))
@@ -73,8 +76,15 @@ async def merge_decisions_to_outcome(client, *, index, non_pipeline_indices, ref
         },
     )
 
+    company = None
+    if company_ref:
+        company = await client.get(index=company_ref.index, id=company_ref.id)
+        company = DisambiguatedCompany.model_validate(
+            company["_source"]["disambiguated_company"]
+        )
+
     hits = res["hits"]["hits"]
-    maybe_outcome = {}
+    maybe_outcome = {"entities": {"company": company}}
 
     for hit in hits:
         index = hit["_index"]
