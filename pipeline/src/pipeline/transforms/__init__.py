@@ -317,7 +317,9 @@ def transform_for_index(outcome: Outcome):
                 if ballot and ballot.get("spoiled")
                 else None
             ),
-            "company.number": company["number"] if company else None,
+            "company.number": (
+                company["number"] if company and company.get("number") else None
+            ),
             "company.sics.code": (
                 [sic["code"] for sic in company["sics"]] if company else []
             ),

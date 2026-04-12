@@ -128,7 +128,7 @@ async def map_doc(
         extra = result_transform(transformed) if result_transform else {}
 
     return {
-        **DocumentRef(
+        "ref": DocumentRef(
             _id=doc_id, _index=dest_index, passthrough=ref.passthrough
         ).model_dump(by_alias=True),
         **extra,

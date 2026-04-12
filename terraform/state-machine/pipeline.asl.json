@@ -61,9 +61,7 @@
                 "ref": "{% $states.input %}"
               }
             },
-            "Output": {
-              "ref": "{% $states.result.Payload %}"
-            },
+            "Output": "{% $states.result.Payload %}",
             "Next": "DisambiguationChoice"
           },
           "DisambiguationChoice": {
@@ -97,7 +95,7 @@
             "QueryLanguage": "JSONata",
             "Arguments": {
               "FunctionName": "${company_disambiguator_lambda_arn}",
-              "Payload": "{% { 'name': $states.input.ref.name, 'unions': $states.input.ref.unions, 'application_date': $states.input.ref.application_date, 'bargaining_unit': $states.input.ref.bargaining_unit, 'locations': $states.input.ref.locations, 'force': false } %}"
+              "Payload": "{% { 'name': $states.input.name, 'unions': $states.input.unions, 'application_date': $states.input.application_date, 'bargaining_unit': $states.input.bargaining_unit, 'locations': $states.input.locations, 'force': false } %}"
             },
             "Output": {
               "ref": "{% $states.input.ref %}",
