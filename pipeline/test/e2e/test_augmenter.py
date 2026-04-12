@@ -70,9 +70,7 @@ async def test_augmenter(opensearch_client):
                 augmenter_output = out
         assert augmenter_output is not None
         assert set(augmenter_output.keys()) == {
-            "_id",
-            "_index",
-            "passthrough",
+            "ref",
             "name",
             "unions",
             "application_date",
