@@ -98,8 +98,7 @@
               "Payload": "{% { 'name': $states.input.name, 'unions': $states.input.unions, 'application_date': $states.input.application_date, 'bargaining_unit': $states.input.bargaining_unit, 'locations': $states.input.locations, 'force': false } %}"
             },
             "Output": {
-              "ref": "{% $states.input.ref %}",
-              "company_ref": "{% $states.result.Payload %}"
+              "ref": "{% $states.input.ref %}"
             },
             "Next": "Disambiguation Indexer"
           },

@@ -90,6 +90,18 @@ export type OutcomeDuration = {
   relation: "eq" | "gte";
 };
 
+export type OutcomeCompany = {
+  type: "identified" | "unidentified";
+  name: string;
+  number?: string;
+  subtype?: string;
+  sics: {
+    code: string;
+    description: string;
+    section: string;
+  }[];
+};
+
 export type Outcome = {
   title: string;
   reference: string;
@@ -105,4 +117,5 @@ export type Outcome = {
     overall: OutcomeDuration;
     acceptance: OutcomeDuration;
   };
+  company?: OutcomeCompany;
 };

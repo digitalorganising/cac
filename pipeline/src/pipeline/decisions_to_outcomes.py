@@ -1,4 +1,8 @@
-from company_disambiguator.model import DisambiguatedCompany
+from company_disambiguator.model import (
+    DisambiguatedCompany,
+    DisambiguateCompanyRequest,
+    request_to_doc_id,
+)
 from pipeline.types.outcome import Outcome
 from .types.documents import DocumentType
 from pydantic import ValidationError
@@ -55,9 +59,7 @@ def merge_decisions(accumulator, decision):
     }
 
 
-async def merge_decisions_to_outcome(
-    client, *, index, non_pipeline_indices, reference, company_ref
-):
+async def merge_decisions_to_outcome(client, *, index, non_pipeline_indices, reference):
     # It makes sense to do this all in one function because it relies on the sort
     # order to merge in a simple way.
     index_names = sorted({index} | set(non_pipeline_indices))
@@ -76,20 +78,29 @@ async def merge_decisions_to_outcome(
         },
     )
 
-    company = None
-    if company_ref:
-        company = await client.get(index=company_ref.index, id=company_ref.id)
-        company = DisambiguatedCompany.model_validate(
-            company["_source"]["disambiguated_company"]
-        )
-
     hits = res["hits"]["hits"]
-    maybe_outcome = {"entities": {"company": company}}
+    maybe_outcome = {"entities": {"company": None}}
 
     for hit in hits:
         index = hit["_index"]
         decision = hit["_source"]
         maybe_outcome = merge_decisions(maybe_outcome, decision)
+
+        if decision.get("document_type") == DocumentType.acceptance_decision.value:
+            company_id = request_to_doc_id(
+                DisambiguateCompanyRequest(
+                    name=decision.get("name"),
+                    unions=decision.get("unions"),
+                    application_date=decision.get("application_date"),
+                    bargaining_unit=decision.get("bargaining_unit"),
+                    locations=decision.get("locations"),
+                )
+            )
+            company = await client.get(index="disambiguated-companies", id=company_id)
+            company = DisambiguatedCompany.model_validate(
+                company["_source"]["disambiguated_company"]
+            )
+            maybe_outcome["entities"]["company"] = company
 
     try:
         validated_outcome = Outcome.model_validate(maybe_outcome)
