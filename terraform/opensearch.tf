@@ -10,6 +10,6 @@ resource "bonsai_cluster" "cac_search" {
   }
 
   release = {
-    slug = "opensearch-2.19.4"
+    slug = "opensearch-2.19.5"
   }
 }

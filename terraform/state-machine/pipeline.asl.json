@@ -52,6 +52,14 @@
                 "MaxAttempts": 3,
                 "BackoffRate": 2,
                 "JitterStrategy": "FULL"
+              },
+              {
+                "ErrorEquals": ["BamlClientHttpError"],
+                "BackoffRate": 2,
+                "IntervalSeconds": 120,
+                "MaxAttempts": 3,
+                "Comment": "For errors from the LLM API, typically 503s",
+                "JitterStrategy": "FULL"
               }
             ],
             "QueryLanguage": "JSONata",
