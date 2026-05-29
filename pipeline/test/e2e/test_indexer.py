@@ -66,9 +66,10 @@ test_decision_docs = [
             "bargaining_unit": {
                 "claimed_membership": 46,
                 "size": 115,
-                "description": "All Abbey Healthcare employees, including home manager, working in the residential care home of Farnworth Care Home",
+                "description": "All Abbey Healthcare employees , including home manager, working in the residential care home",
                 "size_considered": True,
                 "membership": 42,
+                "locations": ["Farnworth Care Home, Church St, Bolton BL4 8AG"],
             },
             "success": True,
             "rejection_reasons": [],
@@ -177,6 +178,11 @@ async def test_indexer(opensearch_client):
         assert "display" in withdrawn_outcome["_source"]
 
         assert "company" in merged_outcome["_source"]["display"]
+        company = merged_outcome["_source"]["display"]["company"]
+        assert company is not None
+        assert company["number"] == "05156742"
+        assert len(company["sics"]) == 1
+        assert company["sics"][0]["code"] == "87100"
 
         withdrawn_date = next(
             e

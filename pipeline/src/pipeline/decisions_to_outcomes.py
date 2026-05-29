@@ -3,6 +3,7 @@ from company_disambiguator.model import (
     DisambiguateCompanyRequest,
     request_to_doc_id,
 )
+from pipeline.transforms import get_parties
 from pipeline.types.outcome import Outcome
 from .types.documents import DocumentType
 from pydantic import ValidationError
@@ -84,23 +85,26 @@ async def merge_decisions_to_outcome(client, *, index, non_pipeline_indices, ref
     for hit in hits:
         index = hit["_index"]
         decision = hit["_source"]
-        maybe_outcome = merge_decisions(maybe_outcome, decision)
 
         if decision.get("document_type") == DocumentType.acceptance_decision.value:
-            company_id = request_to_doc_id(
-                DisambiguateCompanyRequest(
-                    name=decision.get("name"),
-                    unions=decision.get("unions"),
-                    application_date=decision.get("application_date"),
-                    bargaining_unit=decision.get("bargaining_unit"),
-                    locations=decision.get("locations"),
-                )
+            parties = get_parties(decision.get("outcome_title"))
+            extracted_data = decision.get("extracted_data", {})
+            bargaining_unit = extracted_data.get("bargaining_unit", {})
+            disambiguate_company_request = DisambiguateCompanyRequest(
+                name=parties.get("employer"),
+                unions=parties.get("unions"),
+                application_date=extracted_data.get("decision_date"),
+                bargaining_unit=bargaining_unit.get("description"),
+                locations=bargaining_unit.get("locations", None),
             )
+            company_id = request_to_doc_id(disambiguate_company_request)
             company = await client.get(index="disambiguated-companies", id=company_id)
             company = DisambiguatedCompany.model_validate(
                 company["_source"]["disambiguated_company"]
             )
             maybe_outcome["entities"]["company"] = company
+
+        maybe_outcome = merge_decisions(maybe_outcome, decision)
 
     try:
         validated_outcome = Outcome.model_validate(maybe_outcome)
