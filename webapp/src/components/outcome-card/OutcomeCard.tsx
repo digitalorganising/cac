@@ -39,6 +39,12 @@ const classForState = (outcomeState: OutcomeState): string => {
   }
 };
 
+const isEra2025 = (outcome: Outcome) => {
+  const recognitionDecisionDate = dayjs(outcome.keyDates.outcomeConcluded);
+  // https://www.gov.uk/government/news/new-changes-due-to-the-employment-rights-act-2025
+  return recognitionDecisionDate.isAfter(dayjs("2026-04-06"));
+};
+
 const BargainingUnit = ({
   membership,
   size,
@@ -168,7 +174,7 @@ const OutcomeDetails = ({ outcome, className }: Props) => {
         <>
           <dt>Ballot results:</dt>
           <dd className="col-start-1! col-span-2">
-            <BallotResults {...outcome.ballot} />
+            <BallotResults {...outcome.ballot} era2025={isEra2025(outcome)} />
           </dd>
         </>
       ) : null}

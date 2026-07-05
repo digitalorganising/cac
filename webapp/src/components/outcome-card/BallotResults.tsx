@@ -102,10 +102,16 @@ export default function BallotResults({
   inFavor,
   against,
   spoiled,
-}: OutcomeBallot) {
+  era2025,
+}: OutcomeBallot & { era2025: boolean }) {
   return (
     <div>
-      <div className="w-full relative py-6 my-2 xs:my-1">
+      <div
+        className={cn(
+          "w-full relative my-2 xs:my-1",
+          era2025 ? "pt-0 pb-6" : "py-6",
+        )}
+      >
         <div className="w-full h-8 lg:h-10 bg-slate-200 flex rounded-md overflow-hidden relative">
           <TooltipProvider delayDuration={0}>
             <VoteBar
@@ -134,15 +140,19 @@ export default function BallotResults({
             />
           </TooltipProvider>
         </div>
-        <Arrow direction="down" className="left-[40%] top-4.5" />
+        {era2025 ? null : (
+          <Arrow direction="down" className="left-[40%] top-4.5" />
+        )}
         <Arrow
           direction="up"
           className="bottom-4.5"
           style={{ left: `${turnoutPercent / 2}%` }}
         />
-        <ChartLabel className="top-0 left-[40%]">
-          Required turnout in favour (40%)
-        </ChartLabel>
+        {era2025 ? null : (
+          <ChartLabel className="top-0 left-[40%]">
+            Required turnout in favour (40%)
+          </ChartLabel>
+        )}
         <ChartLabel
           className="bottom-0"
           style={{ left: `${turnoutPercent / 2}%` }}
@@ -160,7 +170,7 @@ export default function BallotResults({
           <Strong>{inFavor.percentBU.toFixed(1)}%</Strong> ({inFavor.n}) voted
           in favour of recognition (
           <Strong>{inFavor.percentVotes.toFixed(1)}%</Strong> of all votes)
-          {inFavor.percentVotes > 50 ? (
+          {inFavor.percentVotes > 50 && !era2025 ? (
             <>
               , <Strong>{inFavor.percentBU >= 40 ? "more" : "less"}</Strong>{" "}
               than the required 40%.
