@@ -11,7 +11,22 @@ from pipeline.decisions_to_outcomes import (
     merge_decisions_to_outcome,
     merge_without_none,
 )
+from pipeline.transforms import get_parties
 from pipeline.types.documents import DocumentType
+
+
+def disambiguate_request_from_acceptance_decision(decision: dict) -> DisambiguateCompanyRequest:
+    """Mirror ``merge_decisions_to_outcome`` company lookup fields."""
+    parties = get_parties(decision["outcome_title"])
+    extracted_data = decision.get("extracted_data", {})
+    bargaining_unit = extracted_data.get("bargaining_unit", {})
+    return DisambiguateCompanyRequest(
+        name=parties["employer"],
+        unions=parties["unions"],
+        application_date=extracted_data["decision_date"],
+        bargaining_unit=bargaining_unit["description"],
+        locations=bargaining_unit.get("locations"),
+    )
 
 
 @pytest.fixture
@@ -141,7 +156,7 @@ def sample_decisions():
             "document_url": "https://example.com/application_received",
             "extracted_data": {"decision_date": "2024-01-15"},
             "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
-            "outcome_title": "Test Outcome 1",
+            "outcome_title": "Test Union & Test Employer 1",
             "last_updated": "2024-02-01T10:00:00Z",
         },
         {
@@ -151,7 +166,7 @@ def sample_decisions():
             "document_url": "https://example.com/recognition_decision",
             "extracted_data": {"decision_date": "2024-02-01"},
             "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
-            "outcome_title": "Test Outcome 1",
+            "outcome_title": "Test Union & Test Employer 1",
             "last_updated": "2024-02-01T10:00:00Z",
         },
         {
@@ -161,7 +176,7 @@ def sample_decisions():
             "document_url": "https://example.com/application_received_2",
             "extracted_data": {"decision_date": "2024-01-20"},
             "outcome_url": "https://example.com/outcome/TUR1/5678/2024",
-            "outcome_title": "Test Outcome 2",
+            "outcome_title": "Test Union & Test Employer 2",
             "last_updated": "2024-02-01T10:00:00Z",
         },
     ]
@@ -292,14 +307,35 @@ async def test_merge_decisions_to_outcomes_single_reference(mock_client_with_dat
 async def test_merge_decisions_to_outcome_acceptance_decision_loads_disambiguated_company(
     merge_decisions_on_deepcopy,
 ):
-    """Acceptance decisions carry disambiguation fields; merge GETs ``disambiguated-companies`` by ``request_to_doc_id``."""
-    req = DisambiguateCompanyRequest(
-        name="Acme Ltd",
-        unions=["Unite"],
-        application_date="2023-06-01",
-        bargaining_unit="Shop floor",
-        locations=None,
-    )
+    """Acceptance decisions trigger a company lookup keyed by parties + extracted data."""
+    decisions = [
+        {
+            "reference": "TUR1/1234/2024",
+            "document_type": "acceptance_decision",
+            "document_content": "Application accepted",
+            "document_url": "https://example.com/acceptance",
+            "extracted_data": {
+                "decision_date": "2024-03-01",
+                "success": True,
+                "rejection_reasons": [],
+                "application_date": "2023-06-01",
+                "end_of_acceptance_period": "2024-03-10",
+                "bargaining_unit": {
+                    "description": "Shop floor",
+                    "size_considered": True,
+                    "size": 50,
+                    "claimed_membership": 30,
+                    "membership": 28,
+                },
+                "bargaining_unit_agreed": True,
+                "petition_signatures": 10,
+            },
+            "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
+            "outcome_title": "Unite & Acme Ltd",
+            "last_updated": "2024-03-01T10:00:00Z",
+        },
+    ]
+    req = disambiguate_request_from_acceptance_decision(decisions[0])
     company_id = request_to_doc_id(req)
     disambiguated = {
         "type": "identified",
@@ -318,38 +354,6 @@ async def test_merge_decisions_to_outcome_acceptance_decision_loads_disambiguate
             "_source": {"disambiguated_company": disambiguated},
         }
     }
-    decisions = [
-        {
-            "reference": "TUR1/1234/2024",
-            "document_type": "acceptance_decision",
-            "document_content": "Application accepted",
-            "document_url": "https://example.com/acceptance",
-            "extracted_data": {
-                "decision_date": "2024-03-01",
-                "success": True,
-                "rejection_reasons": [],
-                "application_date": req.application_date,
-                "end_of_acceptance_period": "2024-03-10",
-                "bargaining_unit": {
-                    "description": req.bargaining_unit,
-                    "size_considered": True,
-                    "size": 50,
-                    "claimed_membership": 30,
-                    "membership": 28,
-                },
-                "bargaining_unit_agreed": True,
-                "petition_signatures": 10,
-            },
-            "outcome_url": "https://example.com/outcome/TUR1/1234/2024",
-            "outcome_title": "Test Outcome 1",
-            "last_updated": "2024-03-01T10:00:00Z",
-            "name": req.name,
-            "unions": list(req.unions),
-            "application_date": req.application_date,
-            "bargaining_unit": req.bargaining_unit,
-            "locations": req.locations,
-        },
-    ]
     mock_client = MockOpenSearchClient(decisions, get_documents=get_documents)
 
     outcome = await merge_decisions_to_outcome(
@@ -360,7 +364,9 @@ async def test_merge_decisions_to_outcome_acceptance_decision_loads_disambiguate
     )
 
     assert outcome is not None
-    assert mock_client.get_calls == [{"index": "disambiguated-companies", "id": company_id}]
+    assert mock_client.get_calls == [
+        {"index": "disambiguated-companies", "id": company_id}
+    ]
     assert outcome.entities.company is not None
     assert outcome.entities.company.root.type == "identified"
     assert outcome.entities.company.root.company_name == "Acme Ltd"
@@ -652,14 +658,33 @@ async def test_merge_decisions_to_outcomes_para_35_with_other_decisions(
     merge_decisions_on_deepcopy,
 ):
     """Test merging Paragraph 35 decision along with other decisions for the same reference"""
-    acceptance_req = DisambiguateCompanyRequest(
-        name="Test Employer Ltd",
-        unions=["GMB"],
-        application_date="2023-12-01",
-        bargaining_unit="All workers at Test Ltd",
-        locations=None,
-    )
-    company_id = request_to_doc_id(acceptance_req)
+    acceptance_decision = {
+        "reference": "TUR1/9999/2024",
+        "document_type": "acceptance_decision",
+        "document_content": "Application accepted",
+        "document_url": "https://example.com/acceptance_decision",
+        "extracted_data": {
+            "decision_date": "2024-03-15",
+            "success": True,
+            "rejection_reasons": [],
+            "application_date": "2023-12-01",
+            "end_of_acceptance_period": "2024-03-10",
+            "bargaining_unit": {
+                "description": "All workers at Test Ltd",
+                "size_considered": True,
+                "size": 100,
+                "claimed_membership": 60,
+                "membership": 55,
+            },
+            "bargaining_unit_agreed": True,
+            "petition_signatures": 65,
+        },
+        "outcome_url": "https://example.com/outcome/TUR1/9999/2024",
+        "outcome_title": "GMB & Test Employer Ltd",
+        "last_updated": "2024-03-15T10:00:00Z",
+    }
+    req = disambiguate_request_from_acceptance_decision(acceptance_decision)
+    company_id = request_to_doc_id(req)
     disambiguated = {
         "type": "identified",
         "company_name": "Test Employer Ltd",
@@ -687,36 +712,7 @@ async def test_merge_decisions_to_outcomes_para_35_with_other_decisions(
                 "outcome_title": "Test Outcome 3",
                 "last_updated": "2024-03-15T10:00:00Z",
             },
-            {
-                "reference": "TUR1/9999/2024",
-                "document_type": "acceptance_decision",
-                "document_content": "Application accepted",
-                "document_url": "https://example.com/acceptance_decision",
-                "extracted_data": {
-                    "decision_date": "2024-03-15",
-                    "success": True,
-                    "rejection_reasons": [],
-                    "application_date": acceptance_req.application_date,
-                    "end_of_acceptance_period": "2024-03-10",
-                    "bargaining_unit": {
-                        "description": "All workers at Test Ltd",
-                        "size_considered": True,
-                        "size": 100,
-                        "claimed_membership": 60,
-                        "membership": 55,
-                    },
-                    "bargaining_unit_agreed": True,
-                    "petition_signatures": 65,
-                },
-                "outcome_url": "https://example.com/outcome/TUR1/9999/2024",
-                "outcome_title": "Test Outcome 3",
-                "last_updated": "2024-03-15T10:00:00Z",
-                "name": acceptance_req.name,
-                "unions": list(acceptance_req.unions),
-                "application_date": acceptance_req.application_date,
-                "bargaining_unit": acceptance_req.bargaining_unit,
-                "locations": acceptance_req.locations,
-            },
+            acceptance_decision,
         ],
         get_documents=get_documents,
     )
@@ -752,7 +748,9 @@ async def test_merge_decisions_to_outcomes_para_35_with_other_decisions(
     # Verify acceptance_decision data
     assert outcome.extracted_data["acceptance_decision"].success is True
 
-    assert mock_client.get_calls == [{"index": "disambiguated-companies", "id": company_id}]
+    assert mock_client.get_calls == [
+        {"index": "disambiguated-companies", "id": company_id}
+    ]
     assert outcome.entities.company is not None
     assert outcome.entities.company.root.company_name == "Test Employer Ltd"
 
