@@ -81,6 +81,7 @@ export type OutcomeBallot = {
 
 export type OutcomeKeyDates = {
   applicationReceived: string;
+  lastEvent: string;
   outcomeConcluded?: string;
   methodAgreed?: string;
 };

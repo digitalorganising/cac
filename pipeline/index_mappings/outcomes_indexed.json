@@ -132,6 +132,9 @@
         "keyDates.outcomeConcluded": {
           "type": "date"
         },
+        "keyDates.lastEvent": {
+          "type": "date"
+        },
         "keyDates.acceptanceDecided": {
           "type": "date"
         },

@@ -106,11 +106,14 @@ def get_key_dates(events: EventsBuilder):
     else:
         acceptance_decided = None
 
+    last_event = events.event_list[-1].date
+
     return {
         "applicationReceived": application_received.date,
         "acceptanceDecided": acceptance_decided,
         "outcomeConcluded": concluded,
         "methodAgreed": method_agreed,
+        "lastEvent": last_event,
     }
 
 
@@ -272,6 +275,7 @@ def transform_for_index(outcome: Outcome):
             "events.date": [e["date"] for e in events_json],
             "keyDates.applicationReceived": key_dates["applicationReceived"],
             "keyDates.outcomeConcluded": key_dates["outcomeConcluded"],
+            "keyDates.lastEvent": key_dates["lastEvent"],
             "durations.overall.value": durations["overall"]["value"],
             "durations.overall.relation": durations["overall"]["relation"],
             "durations.acceptance.value": durations["acceptance"]["value"],

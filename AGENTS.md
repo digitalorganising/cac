@@ -337,17 +337,21 @@ Use this when adding, renaming, or retyping data that crosses service boundaries
 **Python:** run all pipeline commands via [uv](https://docs.astral.sh/uv/) from `pipeline/` (matches CI in `.github/workflows/pipeline.yml`). Install deps first with `uv sync --locked --all-extras --dev`.
 
 ```bash
-# Pipeline tests (from pipeline/)
+# Pipeline unit tests (from pipeline/)
 uv run pytest test/unit_integration/
-uv run pytest test/e2e/          # requires local lambda containers + OpenSearch
+
+# Pipeline e2e tests — run from repo root; rebuild and restart containers every time
+docker compose build
+docker compose up -d
+cd pipeline && uv run pytest test/e2e/
 
 # Webapp (from webapp/)
 npm run dev
 ```
 
-E2E lambda ports: scraper 9000, augmenter 9001, indexer 9002, company_disambiguator 9003 (`pipeline/test/e2e/__init__.py`).
+E2E tests invoke the four pipeline Lambdas over HTTP (scraper 9000, augmenter 9001, indexer 9002, company_disambiguator 9003) plus OpenSearch (9200) and a fake GOV.UK/Companies House API (`pipeline/test/e2e/__init__.py`, `docker-compose.yml`). **`docker compose build` and `docker compose up -d` are required before each e2e run** — do not assume containers from a previous session are still valid.
 
-Set `MOCK_LLM=1` on augmenter to use `mock_augmentation.py` instead of live Gemini calls.
+Set `MOCK_LLM=1` on augmenter to use `mock_augmentation.py` instead of live Gemini calls (the compose file sets `MOCK_LLM=true` on augmenter and company_disambiguator already).
 
 ## Key files quick reference
 
