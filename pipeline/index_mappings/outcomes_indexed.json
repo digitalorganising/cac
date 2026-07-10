@@ -186,6 +186,12 @@
         "company.number": {
           "type": "keyword"
         },
+        "company.type": {
+          "type": "keyword"
+        },
+        "company.sics.section": {
+          "type": "keyword"
+        },
         "company.sics.code": {
           "type": "keyword"
         }
@@ -204,6 +210,12 @@
         },
         "bargainingUnit.size": {
           "type": "integer"
+        },
+        "company.type": {
+          "type": "keyword"
+        },
+        "company.sics.section": {
+          "type": "keyword"
         },
         "company.sics.code": {
           "type": "keyword"

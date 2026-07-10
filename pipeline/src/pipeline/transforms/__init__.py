@@ -217,6 +217,12 @@ def get_company(company: DisambiguatedCompany):
         raise ValueError(f"Unknown company type: {company.type}")
 
 
+def get_company_type_filter_value(company: dict):
+    if company["type"] == "identified":
+        return "identified"
+    return company.get("subtype")
+
+
 def flatten_facets(facets):
     def flatten(obj):
         if obj is None:
@@ -324,6 +330,14 @@ def transform_for_index(outcome: Outcome):
             "company.number": (
                 company["number"] if company and company.get("number") else None
             ),
+            "company.type": (
+                get_company_type_filter_value(company) if company else None
+            ),
+            "company.sics.section": (
+                list(dict.fromkeys(sic["section"] for sic in company["sics"]))
+                if company
+                else []
+            ),
             "company.sics.code": (
                 [sic["code"] for sic in company["sics"]] if company else []
             ),
@@ -333,8 +347,21 @@ def transform_for_index(outcome: Outcome):
                 "state": json_state,
                 "parties.unions": parties["unions"],
                 "events.type": [e["type"] for e in events_json],
+                "company.type": (
+                    get_company_type_filter_value(company) if company else None
+                ),
+                "company.sics.section": (
+                    list(dict.fromkeys(sic["section"] for sic in company["sics"]))
+                    if company
+                    else []
+                ),
                 "company.sics.code": (
-                    [sic["code"] for sic in company["sics"]] if company else []
+                    [
+                        {"value": sic["code"], "label": sic["description"]}
+                        for sic in company["sics"]
+                    ]
+                    if company
+                    else []
                 ),
             }
         )
