@@ -8,6 +8,7 @@ import BargainingUnitSizeVsTurnoutChartClient from "./BargainingUnitSizeVsTurnou
 import CategoryCountCardsClient from "./CategoryCountCards";
 import TimeToAcceptanceChartClient from "./TimeToAcceptanceChart";
 import TimeToConclusionChartClient from "./TimeToConclusionChart";
+import TopIndustrialSectionsChartClient from "./TopIndustrialSectionsChart";
 
 // Wrapper components that await the promise
 export async function CategoryCountCards({
@@ -100,5 +101,16 @@ export async function ApplicationsReceivedPerMonthChart({
     <ApplicationsReceivedPerMonthChartClient
       data={data.applicationsReceivedPerMonth}
     />
+  );
+}
+
+export async function TopIndustrialSectionsChart({
+  promise,
+}: {
+  promise: Promise<DashboardData>;
+}) {
+  const data = await promise;
+  return (
+    <TopIndustrialSectionsChartClient data={data.topIndustrialSections} />
   );
 }

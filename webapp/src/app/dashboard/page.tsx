@@ -12,6 +12,7 @@ import {
   CategoryCountCards,
   TimeToAcceptanceChart,
   TimeToConclusionChart,
+  TopIndustrialSectionsChart,
 } from "@/components/dashboard/dashboard-charts";
 import { getAllDashboardData } from "@/lib/queries/dashboard";
 
@@ -80,6 +81,13 @@ export default function Dashboard() {
         description="Distribution of time taken from application to acceptance, split by accepted and rejected decisions"
       >
         <TimeToAcceptanceChart promise={dashboardDataPromise} />
+      </DashboardCard>
+      <DashboardCard
+        className="col-span-2"
+        title="Top industrial sections"
+        description="The ten most common industry sections among employers with company data"
+      >
+        <TopIndustrialSectionsChart promise={dashboardDataPromise} />
       </DashboardCard>
     </div>
   );

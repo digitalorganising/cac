@@ -54,6 +54,14 @@ export type ApplicationsReceivedPerMonthData = {
   count: number;
 }[];
 
+export type TopIndustrialSectionsData = {
+  section: string;
+  successful: number;
+  unsuccessful: number;
+  pending: number;
+  withdrawn: number;
+}[];
+
 export type AverageDurations = {
   successful?: number;
   unsuccessful?: number;
@@ -238,6 +246,27 @@ const createApplicationsReceivedPerMonthRequest = () => {
     },
   };
 };
+
+const createTopIndustrialSectionsRequest = () => ({
+  size: 0,
+  aggs: {
+    sections: {
+      terms: {
+        field: "facet.company.sics.section",
+        size: 10,
+        order: { _count: "desc" },
+      },
+      aggs: {
+        states: {
+          terms: {
+            field: "facet.state",
+            size: 10,
+          },
+        },
+      },
+    },
+  },
+});
 
 const createBargainingUnitSizeVsTurnoutRequest = () => ({
   size: 1000,
@@ -523,6 +552,30 @@ const parseApplicationsReceivedPerMonthResponse = (
   });
 };
 
+const parseTopIndustrialSectionsResponse = (
+  response: OpenSearchTypes.Core_Msearch.ResponseItem,
+): TopIndustrialSectionsData => {
+  const body = isSearchResponse(response) ? response : undefined;
+  const agg = body?.aggregations
+    ?.sections as OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
+  const buckets =
+    agg?.buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
+
+  if (!buckets) {
+    return [];
+  }
+
+  return buckets.map((bucket) => {
+    const facet = getFacetProps(bucket.key);
+    const stateBuckets = bucket.states?.buckets || [];
+
+    return {
+      section: facet.value.toString(),
+      ...stateCounts(stateBuckets),
+    };
+  });
+};
+
 const parseAverageDurationsResponse = (
   response: OpenSearchTypes.Core_Msearch.ResponseItem,
 ): AverageDurations => {
@@ -584,6 +637,7 @@ export type DashboardData = {
   bargainingUnitSizeVsTurnout: BargainingUnitSizeVsTurnoutData;
   averageDurations: AverageDurations;
   applicationsReceivedPerMonth: ApplicationsReceivedPerMonthData;
+  topIndustrialSections: TopIndustrialSectionsData;
 };
 
 export async function getAllDashboardData(): Promise<DashboardData> {
@@ -610,6 +664,8 @@ export async function getAllDashboardData(): Promise<DashboardData> {
     createAverageDurationsRequest(),
     { index: outcomesIndex },
     createApplicationsReceivedPerMonthRequest(),
+    { index: outcomesIndex },
+    createTopIndustrialSectionsRequest(),
   ];
 
   const msearchResponse = await client.msearch({
@@ -631,5 +687,6 @@ export async function getAllDashboardData(): Promise<DashboardData> {
     applicationsReceivedPerMonth: parseApplicationsReceivedPerMonthResponse(
       responses[7],
     ),
+    topIndustrialSections: parseTopIndustrialSectionsResponse(responses[8]),
   };
 }
