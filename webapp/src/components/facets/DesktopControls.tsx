@@ -3,8 +3,7 @@ import {
   ChevronDownIcon,
   ClockIcon,
 } from "@radix-ui/react-icons";
-import { Entries } from "type-fest";
-import { Facets } from "@/lib/queries/facets";
+import { Facets, companyMultiSelectFacetNames, coreMultiSelectFacetNames } from "@/lib/queries/facets";
 import { DateRange } from "../ui/date-range";
 import { InputTriggerButton } from "../ui/input-trigger-button";
 import { BargainingUnitSizeSelect } from "./BargainingUnitSizeSelect";
@@ -43,22 +42,23 @@ export default async function DesktopControls({
   facetsPromise: Promise<Facets>;
 }) {
   const facets = await facetsPromise;
+  const renderMultiSelect = (names: readonly (keyof Facets["multiSelect"])[]) =>
+    names.map((name) => (
+      <MultiSelectDesktop
+        key={name}
+        label={filterLabels[name] ?? ""}
+        name={name}
+        form="outcomes-search-form"
+        options={facets.multiSelect[name].map(({ value, label, count }) => ({
+          value: value.toString(),
+          label: `${label ?? value} (${count})`,
+        }))}
+      />
+    ));
+
   return (
     <>
-      {(
-        Object.entries(facets.multiSelect) as Entries<Facets["multiSelect"]>
-      ).map(([name, buckets]) => (
-        <MultiSelectDesktop
-          key={name}
-          label={filterLabels[name] ?? ""}
-          name={name}
-          form="outcomes-search-form"
-          options={buckets.map(({ value, label, count }) => ({
-            value: value.toString(),
-            label: `${label ?? value} (${count})`,
-          }))}
-        />
-      ))}
+      {renderMultiSelect(coreMultiSelectFacetNames)}
       <EventDateSelect />
       <BargainingUnitSizeSelect
         bins={facets.histogram["bargainingUnit.size"].map(
@@ -69,6 +69,7 @@ export default async function DesktopControls({
         )}
       />
       <DurationSelect />
+      {renderMultiSelect(companyMultiSelectFacetNames)}
     </>
   );
 }

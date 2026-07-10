@@ -1,12 +1,18 @@
 import { ExternalLinkIcon } from "@radix-ui/react-icons";
 import Link from "next/link";
-import { companiesHouseUrl, getEntityTypeLabel } from "@/lib/company";
+import {
+  companiesHouseUrl,
+  getCompanyTypeFilterValue,
+  getEntityTypeLabel,
+} from "@/lib/company";
 import {
   addParamValue,
   appSearchParamsCache,
   appSearchParamsSerializer,
+  type AppSearchParams,
 } from "@/lib/search-params";
 import { Outcome, OutcomeCompanySic } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 type Props = {
   employer: Outcome["parties"]["employer"];
@@ -19,7 +25,11 @@ const typeBadgeLinkClass = `${typeBadgeClass} hover:bg-slate-300`;
 const filterLinkClass =
   "text-primary underline underline-offset-4 hover:font-medium";
 
-const sectionClass = "font-medium text-muted-foreground";
+const hoverFilterLinkClass =
+  "text-primary hover:underline underline-offset-4 hover:font-medium";
+
+const sectionLinkClass =
+  "font-medium text-muted-foreground hover:underline underline-offset-4 hover:text-foreground";
 
 const descriptionListClass = "list-none mt-1 space-y-1.5";
 
@@ -37,7 +47,19 @@ const groupSicsBySection = (
   return [...groups.entries()];
 };
 
-const NatureOfBusiness = ({ sics }: { sics: OutcomeCompanySic[] }) => {
+const filterHref = (
+  params: AppSearchParams,
+  key: keyof AppSearchParams,
+  value: string,
+) => appSearchParamsSerializer(addParamValue(params, key, value));
+
+const NatureOfBusiness = ({
+  sics,
+  params,
+}: {
+  sics: OutcomeCompanySic[];
+  params: AppSearchParams;
+}) => {
   if (sics.length === 0) {
     return null;
   }
@@ -45,8 +67,21 @@ const NatureOfBusiness = ({ sics }: { sics: OutcomeCompanySic[] }) => {
   if (sics.length === 1) {
     const sic = sics[0];
     return (
-      <p data-sic-code={sic.code}>
-        <span className={sectionClass}>{sic.section}</span>: {sic.description}
+      <p>
+        <Link
+          href={filterHref(params, "company.sics.section", sic.section)}
+          className={sectionLinkClass}
+        >
+          {sic.section}
+        </Link>
+        :{" "}
+        <Link
+          href={filterHref(params, "company.sics.code", sic.code)}
+          className={hoverFilterLinkClass}
+          data-sic-code={sic.code}
+        >
+          {sic.description}
+        </Link>
       </p>
     );
   }
@@ -57,15 +92,22 @@ const NatureOfBusiness = ({ sics }: { sics: OutcomeCompanySic[] }) => {
     const [section, entries] = sections[0];
     return (
       <div>
-        <p className={sectionClass}>{section}</p>
+        <Link
+          href={filterHref(params, "company.sics.section", section)}
+          className={sectionLinkClass}
+        >
+          {section}
+        </Link>
         <ul className={descriptionListClass}>
           {entries.map((sic) => (
-            <li
-              key={sic.code}
-              className={descriptionItemClass}
-              data-sic-code={sic.code}
-            >
-              {sic.description}
+            <li key={sic.code}>
+              <Link
+                href={filterHref(params, "company.sics.code", sic.code)}
+                className={cn(descriptionItemClass, hoverFilterLinkClass, "block")}
+                data-sic-code={sic.code}
+              >
+                {sic.description}
+              </Link>
             </li>
           ))}
         </ul>
@@ -77,15 +119,22 @@ const NatureOfBusiness = ({ sics }: { sics: OutcomeCompanySic[] }) => {
     <ul className="list-none space-y-2.5">
       {sections.map(([section, entries]) => (
         <li key={section}>
-          <span className={sectionClass}>{section}</span>
+          <Link
+            href={filterHref(params, "company.sics.section", section)}
+            className={sectionLinkClass}
+          >
+            {section}
+          </Link>
           <ul className={descriptionListClass}>
             {entries.map((sic) => (
-              <li
-                key={sic.code}
-                className={descriptionItemClass}
-                data-sic-code={sic.code}
-              >
-                {sic.description}
+              <li key={sic.code}>
+                <Link
+                  href={filterHref(params, "company.sics.code", sic.code)}
+                  className={cn(descriptionItemClass, hoverFilterLinkClass, "block")}
+                  data-sic-code={sic.code}
+                >
+                  {sic.description}
+                </Link>
               </li>
             ))}
           </ul>
@@ -97,21 +146,25 @@ const NatureOfBusiness = ({ sics }: { sics: OutcomeCompanySic[] }) => {
 
 const EmployerDetails = ({ employer, company }: Props) => {
   const params = appSearchParamsCache.all();
-  const filterHref = appSearchParamsSerializer(
-    addParamValue(params, "parties.employer", employer),
-  );
+  const employerFilterHref = filterHref(params, "parties.employer", employer);
 
   if (!company) {
     return (
-      <Link href={filterHref} className={filterLinkClass}>
+      <Link href={employerFilterHref} className={filterLinkClass}>
         {employer}
       </Link>
     );
   }
 
+  const companyTypeHref = filterHref(
+    params,
+    "company.type",
+    getCompanyTypeFilterValue(company),
+  );
+
   return (
     <div className="flex flex-col gap-y-2">
-      <Link href={filterHref} className={filterLinkClass}>
+      <Link href={employerFilterHref} className={filterLinkClass}>
         {company.name}
       </Link>
       <div className="pt-0.5">
@@ -126,12 +179,12 @@ const EmployerDetails = ({ employer, company }: Props) => {
             <ExternalLinkIcon className="size-3" />
           </Link>
         ) : (
-          <span className={typeBadgeClass}>
+          <Link href={companyTypeHref} className={typeBadgeLinkClass}>
             {getEntityTypeLabel(company)}
-          </span>
+          </Link>
         )}
       </div>
-      <NatureOfBusiness sics={company.sics} />
+      <NatureOfBusiness sics={company.sics} params={params} />
     </div>
   );
 };

@@ -24,6 +24,9 @@ export type FilterOptions = {
   reference?: string[];
   state?: string[];
   "events.type"?: string[];
+  "company.type"?: string[];
+  "company.sics.section"?: string[];
+  "company.sics.code"?: string[];
   "events.date.from"?: string;
   "events.date.to"?: string;
   "bargainingUnit.size.from"?: number;
@@ -168,6 +171,9 @@ export const getFilters = ({
   reference,
   state,
   "events.type": eventsType,
+  "company.type": companyType,
+  "company.sics.section": companySicsSection,
+  "company.sics.code": companySicsCode,
   "events.date.from": eventsDateFrom,
   "events.date.to": eventsDateTo,
   "bargainingUnit.size.from": bargainingUnitSizeFrom,
@@ -180,6 +186,9 @@ export const getFilters = ({
     filterText("parties.employer", employer),
     filterKeyword("state", state),
     filterKeyword("events.type", eventsType),
+    filterKeyword("company.type", companyType),
+    filterKeyword("company.sics.section", companySicsSection),
+    filterKeyword("company.sics.code", companySicsCode),
     filterKeyword("reference", reference),
     filterRange("events.date", eventsDateFrom, eventsDateTo),
     filterRange(

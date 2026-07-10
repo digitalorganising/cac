@@ -11,8 +11,8 @@ export const COMPANY_SUBTYPE_LABELS: Record<CompanySubtype, string> = {
   Unknown: "Unknown",
 };
 
-export const getSubtypeLabel = (subtype: string): string =>
-  COMPANY_SUBTYPE_LABELS[subtype as CompanySubtype]
+export const getSubtypeLabel = (subtype: CompanySubtype): string =>
+  COMPANY_SUBTYPE_LABELS[subtype];
 
 export const getEntityTypeLabel = (company: OutcomeCompany): string => {
   if (company.type === "identified") {
@@ -20,6 +20,18 @@ export const getEntityTypeLabel = (company: OutcomeCompany): string => {
   }
   return company.subtype ? getSubtypeLabel(company.subtype) : "Unknown";
 };
+
+export const getCompanyTypeFilterValue = (company: OutcomeCompany): string => {
+  if (company.type === "identified") {
+    return "identified";
+  }
+  return company.subtype ?? "Unknown";
+};
+
+export const getCompanyTypeLabel = (value: string): string =>
+  value === "identified"
+    ? "Company"
+    : COMPANY_SUBTYPE_LABELS[value as CompanySubtype];
 
 export const companiesHouseUrl = (companyNumber: string): string =>
   `https://find-and-update.company-information.service.gov.uk/company/${companyNumber}`;

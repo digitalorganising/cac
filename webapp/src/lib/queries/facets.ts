@@ -1,6 +1,7 @@
 import { Types as OpenSearchTypes } from "@opensearch-project/opensearch";
 import { cacheLife } from "next/cache";
 import "server-only";
+import { getCompanyTypeLabel } from "../company";
 import { hasDeepProperty } from "../utils";
 import { getClient } from "./client";
 import {
@@ -11,10 +12,19 @@ import {
   outcomesIndex,
 } from "./common";
 
-export const multiSelectFacetNames = [
+export const coreMultiSelectFacetNames = [
   "parties.unions",
   "state",
   "events.type",
+] as const;
+export const companyMultiSelectFacetNames = [
+  "company.type",
+  "company.sics.section",
+  "company.sics.code",
+] as const;
+export const multiSelectFacetNames = [
+  ...coreMultiSelectFacetNames,
+  ...companyMultiSelectFacetNames,
 ] as const;
 export type MultiSelectFacet = (typeof multiSelectFacetNames)[number];
 export const histogramFacetNames = ["bargainingUnit.size"] as const;
@@ -36,10 +46,12 @@ export const normalizeBuckets = (
       return [
         [
           name,
-          buckets.map(({ key, doc_count }) => ({
-            ...getFacetProps(key),
-            count: doc_count,
-          })),
+          buckets.map(({ key, doc_count }) =>
+            labelFacetBucket(name, {
+              ...getFacetProps(key),
+              count: doc_count,
+            }),
+          ),
         ],
       ];
     }),
@@ -78,6 +90,9 @@ export const getFacets = async (
       ...facetAgg("parties.unions", filters),
       ...facetAgg("state", filters),
       ...facetAgg("events.type", filters),
+      ...facetAgg("company.type", filters),
+      ...facetAgg("company.sics.section", filters),
+      ...facetAgg("company.sics.code", filters),
       ...histogramAgg("bargainingUnit.size", filters, {
         // These are magic numbers that make the histogram look nice
         min: 0,
@@ -182,4 +197,11 @@ export const getFacetProps = (
     default:
       return key as { value: string; label?: string };
   }
+};
+
+const labelFacetBucket = (name: string, bucket: Bucket): Bucket => {
+  if (name === "company.type" && typeof bucket.value === "string") {
+    return { ...bucket, label: getCompanyTypeLabel(bucket.value) };
+  }
+  return bucket;
 };

@@ -1,5 +1,4 @@
-import { Entries } from "type-fest";
-import { Facets } from "@/lib/queries/facets";
+import { Facets, companyMultiSelectFacetNames, coreMultiSelectFacetNames } from "@/lib/queries/facets";
 import { Accordion } from "../ui/accordion";
 import { BargainingUnitSizeSelectMobile } from "./BargainingUnitSizeSelect";
 import { DurationSelectMobile } from "./DurationSelect";
@@ -13,22 +12,23 @@ export default async function MobileControls({
   facetsPromise: Promise<Facets>;
 }) {
   const facets = await facetsPromise;
+  const renderMultiSelect = (names: readonly (keyof Facets["multiSelect"])[]) =>
+    names.map((name) => (
+      <MultiSelectMobile
+        key={name}
+        label={filterLabels[name] ?? ""}
+        name={name}
+        options={facets.multiSelect[name].map((bucket) => ({
+          value: bucket.value.toString(),
+          label: `${bucket.label ?? bucket.value} (${bucket.count})`,
+        }))}
+      />
+    ));
+
   return (
     <div>
       <Accordion type="multiple">
-        {(
-          Object.entries(facets.multiSelect) as Entries<Facets["multiSelect"]>
-        ).map(([name, buckets]) => (
-          <MultiSelectMobile
-            key={name}
-            label={filterLabels[name] ?? ""}
-            name={name}
-            options={buckets.map((bucket) => ({
-              value: bucket.value.toString(),
-              label: `${bucket.label ?? bucket.value} (${bucket.count})`,
-            }))}
-          />
-        ))}
+        {renderMultiSelect(coreMultiSelectFacetNames)}
         <EventDateSelectMobile />
         <BargainingUnitSizeSelectMobile
           bins={facets.histogram["bargainingUnit.size"].map(
@@ -39,6 +39,7 @@ export default async function MobileControls({
           )}
         />
         <DurationSelectMobile />
+        {renderMultiSelect(companyMultiSelectFacetNames)}
       </Accordion>
     </div>
   );
