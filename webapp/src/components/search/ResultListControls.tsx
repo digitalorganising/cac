@@ -58,10 +58,10 @@ export default function ResultListControls({
             Bargaining unit size (smallest to largest)
           </SelectItem>
 
-          <SelectItem value="lastUpdated-desc">
+          <SelectItem value="lastEvent-desc">
             Last updated (newest to oldest)
           </SelectItem>
-          <SelectItem value="lastUpdated-asc">
+          <SelectItem value="lastEvent-asc">
             Last updated (oldest to newest)
           </SelectItem>
 

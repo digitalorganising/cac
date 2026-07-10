@@ -67,7 +67,7 @@ export const getOutcomes = async (
 
 const getSort = (sortKey?: SortKey, sortOrder?: "asc" | "desc") => {
   const documentKeys = {
-    lastUpdated: "filter.lastUpdated",
+    lastEvent: "filter.keyDates.lastEvent",
     applicationDate: "filter.keyDates.applicationReceived",
     concludedDate: "filter.keyDates.outcomeConcluded",
     bargainingUnitSize: "filter.bargainingUnit.size",
@@ -82,7 +82,7 @@ const getSort = (sortKey?: SortKey, sortOrder?: "asc" | "desc") => {
 
   return [
     { _score: { order: "desc" as const } },
-    { "filter.lastUpdated": { order: "desc" as const } },
+    { "filter.keyDates.lastEvent": { order: "desc" as const } },
     tieBreak,
   ];
 };

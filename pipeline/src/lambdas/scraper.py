@@ -39,7 +39,7 @@ class Redrive(BaseModel):
 class ScraperEvent(BaseModel):
     indexSuffix: Optional[str] = None
     limitItems: Optional[int] = None
-    forceLastUpdated: Optional[str] = None
+    forceLastEvent: Optional[str] = None
     redrive: Optional[Redrive] = None
 
 
@@ -105,7 +105,7 @@ def handler(event, context):
                 "UNTERMINATED_OUTCOMES_AGE_LIMIT": (
                     timedelta(days=age_limit_days) if age_limit_days else None
                 ),
-                "FORCE_LAST_UPDATED": scraper_event.forceLastUpdated,
+                "FORCE_LAST_EVENT": scraper_event.forceLastEvent,
             },
             "OPENSEARCH": {
                 "INDEX": index,

@@ -200,7 +200,7 @@ const OutcomeCard = ({ outcome, showDebugView = false }: Props) => (
         className="shrink-0 self-start size-6 xs:size-auto p-0 xs:m-1 flex flex-row items-center justify-center text-nowrap xs:space-x-2 rounded-full border xs:px-2.5 xs:py-0.5 text-xs border-transparent bg-slate-200 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-slate-300"
       >
         <span className="hidden xs:inline">
-          Last updated:&nbsp;
+          Last published:&nbsp;
           <time className="hidden xs:inline" dateTime={outcome.lastUpdated}>
             {dayjs(outcome.lastUpdated).format("D MMMM YYYY")}
           </time>

@@ -9,6 +9,9 @@ export default function (context: Context) {
         cacUrl:
           "https://www.gov.uk/government/publications/cac-outcome-gmb-the-montefiore-hospital",
         lastUpdated: "2025-06-25T11:15:36+01:00",
+        keyDates: {
+          lastEvent: "2025-06-25",
+        },
       },
     ],
   });

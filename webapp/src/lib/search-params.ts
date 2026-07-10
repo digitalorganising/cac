@@ -15,7 +15,7 @@ import { eventTypes, outcomeStates } from "./types";
 
 const sortKeys = [
   "relevance",
-  "lastUpdated",
+  "lastEvent",
   "applicationDate",
   "concludedDate",
   "bargainingUnitSize",

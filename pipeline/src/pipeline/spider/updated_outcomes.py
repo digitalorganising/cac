@@ -29,20 +29,23 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
         return self.outcomes_settings.get("UNTERMINATED_OUTCOMES_AGE_LIMIT")
 
     @property
-    def force_last_updated(self):
-        str_date = self.outcomes_settings.get("FORCE_LAST_UPDATED")
+    def force_last_event(self):
+        str_date = self.outcomes_settings.get("FORCE_LAST_EVENT")
         return london_date(str_date) if str_date else None
 
-    async def get_last_updated(self):
-        if self.force_last_updated:
-            return self.force_last_updated
+    async def get_last_event(self):
+        if self.force_last_event:
+            return self.force_last_event
         async with httpx.AsyncClient(timeout=10) as client:
             try:
-                params = {"state": ",".join([t.value for t in terminal_states])}
+                params = {
+                    "state": ",".join([t.value for t in terminal_states]),
+                    "sort": "lastEvent-desc",
+                }
                 response = await client.get(f"{self.api_base}/outcomes", params=params)
                 response.raise_for_status()
                 data = response.json()
-                return london_date(data["outcomes"][0]["lastUpdated"])
+                return london_date(data["outcomes"][0]["keyDates"]["lastEvent"])
             except (httpx.HTTPStatusError, KeyError) as e:
                 return self.start_date
 
@@ -58,7 +61,7 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
                         yield {
                             "reference": outcome["reference"],
                             "cacUrl": outcome["cacUrl"],
-                            "lastUpdated": london_date(outcome["lastUpdated"]),
+                            "lastEvent": london_date(outcome["keyDates"]["lastEvent"]),
                         }
                     if data.get("nextPage"):
                         async for outcome in get_outcomes(data["nextPage"]):
@@ -74,15 +77,15 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
             async for outcome in get_outcomes(f"{self.api_base}/outcomes", params):
                 yield outcome
 
-    def request_year_list(self, year: int, last_updated: datetime):
+    def request_year_list(self, year: int, last_event: datetime):
         return Request(
             url=(self.list_url_prefix + str(year)),
-            cb_kwargs={"last_updated": last_updated, "this_year": year},
+            cb_kwargs={"last_event": last_event, "this_year": year},
             callback=self.updated_outcomes_from_list,
         )
 
     async def start(self):
-        last_updated = await self.get_last_updated()
+        last_event = await self.get_last_event()
         n_unterminated_outcomes = 0
         async for outcome in self.get_unterminated_outcomes():
             yield Request(url=outcome["cacUrl"])
@@ -91,10 +94,10 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
             f"Checking for updates in {n_unterminated_outcomes} unterminated outcomes"
         )
 
-        self.logger.info(f"Looking for outcomes updated since {last_updated}")
-        yield self.request_year_list(last_updated.year, last_updated)
+        self.logger.info(f"Looking for outcomes with events since {last_event}")
+        yield self.request_year_list(last_event.year, last_event)
 
-    def updated_outcomes_from_list(self, response, last_updated, this_year):
+    def updated_outcomes_from_list(self, response, last_event, this_year):
         outcome_list_items = response.css(
             "h3#trade-union-recognition + " "div + div > ul > li"
         )
@@ -104,8 +107,8 @@ class UpdatedOutcomesSpider(CacOutcomeSpider):
             outcome_last_updated = london_date(
                 outcome_list_item.css("ul time::attr(datetime)").get()
             )
-            if outcome_last_updated >= last_updated:
+            if outcome_last_updated >= last_event:
                 yield Request(url=outcome_url)
 
         maybe_next_year = this_year + 1
-        yield self.request_year_list(maybe_next_year, last_updated)
+        yield self.request_year_list(maybe_next_year, last_event)
