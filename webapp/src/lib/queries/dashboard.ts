@@ -7,6 +7,17 @@ import { getClient } from "./client";
 import { outcomesIndex } from "./common";
 import { getFacetProps } from "./facets";
 
+/** OpenSearch SDK bucket types omit nested sub-aggregations — extend when parsing. */
+type StringTermsBucketWithStates =
+  OpenSearchTypes.Common_Aggregations.StringTermsBucket & {
+    states?: OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
+  };
+
+type HistogramBucketWithStates =
+  OpenSearchTypes.Common_Aggregations.HistogramBucket & {
+    states?: OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
+  };
+
 export type CategoryCounts = {
   successful: number;
   unsuccessful: number;
@@ -87,6 +98,15 @@ const stateCounts = (
     }
   }
   return counts;
+};
+
+const stringTermsBuckets = (
+  buckets?: OpenSearchTypes.Common_Aggregations.StringTermsAggregate["buckets"],
+): OpenSearchTypes.Common_Aggregations.StringTermsBucket[] => {
+  if (!buckets) {
+    return [];
+  }
+  return Array.isArray(buckets) ? buckets : Object.values(buckets);
 };
 
 // Request creators
@@ -390,10 +410,10 @@ const parseApplicationsPerUnionResponse = (
   const unionBuckets =
     unionsAgg?.buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
 
-  return unionBuckets.map((unionBucket: any) => {
+  return unionBuckets.map((unionBucket: StringTermsBucketWithStates) => {
     const unionFacet = getFacetProps(unionBucket.key);
     const union = unionFacet.value.toString();
-    const stateBuckets = unionBucket.states?.buckets || [];
+    const stateBuckets = stringTermsBuckets(unionBucket.states?.buckets);
 
     return {
       union,
@@ -411,10 +431,10 @@ const parseBargainingUnitSizesResponse = (
   const buckets =
     agg?.buckets as OpenSearchTypes.Common_Aggregations.HistogramBucket[];
 
-  return buckets.map((bucket: any) => {
+  return buckets.map((bucket: HistogramBucketWithStates) => {
     const facet = getFacetProps(bucket.key);
     const sizeRange = facet.value.toString();
-    const stateBuckets = bucket.states?.buckets || [];
+    const stateBuckets = stringTermsBuckets(bucket.states?.buckets);
     return {
       sizeRange,
       ...stateCounts(stateBuckets),
@@ -480,11 +500,11 @@ const parseTimeToConclusionResponse = (
   const buckets =
     agg?.buckets as OpenSearchTypes.Common_Aggregations.HistogramBucket[];
 
-  return buckets.map((bucket: any) => {
+  return buckets.map((bucket: HistogramBucketWithStates) => {
     const facet = getFacetProps(bucket.key);
     const seconds = Number(facet.value);
     const timeRange = Math.floor(seconds / (7 * 24 * 60 * 60));
-    const stateBuckets = bucket.states?.buckets || [];
+    const stateBuckets = stringTermsBuckets(bucket.states?.buckets);
     return {
       timeRange,
       ...stateCounts(stateBuckets),
@@ -559,7 +579,7 @@ const parseTopIndustrialSectionsResponse = (
   const agg = body?.aggregations
     ?.sections as OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
   const buckets =
-    agg?.buckets as OpenSearchTypes.Common_Aggregations.StringTermsBucket[];
+    agg?.buckets as StringTermsBucketWithStates[] | undefined;
 
   if (!buckets) {
     return [];
@@ -567,7 +587,7 @@ const parseTopIndustrialSectionsResponse = (
 
   return buckets.map((bucket) => {
     const facet = getFacetProps(bucket.key);
-    const stateBuckets = bucket.states?.buckets || [];
+    const stateBuckets = stringTermsBuckets(bucket.states?.buckets);
 
     return {
       section: facet.value.toString(),

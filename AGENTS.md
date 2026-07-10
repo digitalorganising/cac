@@ -347,7 +347,12 @@ cd pipeline && uv run pytest test/e2e/
 
 # Webapp (from webapp/)
 npm run dev
+
+# Webapp typecheck (matches Vercel/CI — run after query/dashboard changes)
+npm run build
 ```
+
+**Webapp TypeScript:** After editing `webapp/src/lib/queries/` (especially `dashboard.ts`), run `npm run build` from `webapp/` — do not rely on filtered `tsc` output (`| rg …`) or `|| echo OK`, which can miss errors. The `@opensearch-project/opensearch` SDK types for aggregation buckets (`StringTermsBucket`, `HistogramBucket`, etc.) do not include nested sub-aggregations. When parsing nested aggs, extend the bucket type explicitly (see `StringTermsBucketWithStates` in `dashboard.ts`), matching the sub-agg name in your query (`states`, `byDecision`, etc.). Use `stringTermsBuckets()` to normalise `buckets`, which the SDK types as an array or keyed record.
 
 E2E tests invoke the four pipeline Lambdas over HTTP (scraper 9000, augmenter 9001, indexer 9002, company_disambiguator 9003) plus OpenSearch (9200) and a fake GOV.UK/Companies House API (`pipeline/test/e2e/__init__.py`, `docker-compose.yml`). **`docker compose build` and `docker compose up -d` are required before each e2e run** — do not assume containers from a previous session are still valid.
 
