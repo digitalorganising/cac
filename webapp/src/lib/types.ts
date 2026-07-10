@@ -91,16 +91,31 @@ export type OutcomeDuration = {
   relation: "eq" | "gte";
 };
 
+export const companySubtypes = [
+  "LocalAuthority",
+  "GovernmentDepartment",
+  "ArmsLengthBody",
+  "University",
+  "IndependentSchool",
+  "Charity",
+  "Other",
+  "Unknown",
+] as const;
+
+export type CompanySubtype = (typeof companySubtypes)[number];
+
+export type OutcomeCompanySic = {
+  code: string;
+  description: string;
+  section: string;
+};
+
 export type OutcomeCompany = {
   type: "identified" | "unidentified";
   name: string;
   number?: string;
-  subtype?: string;
-  sics: {
-    code: string;
-    description: string;
-    section: string;
-  }[];
+  subtype?: CompanySubtype;
+  sics: OutcomeCompanySic[];
 };
 
 export type Outcome = {

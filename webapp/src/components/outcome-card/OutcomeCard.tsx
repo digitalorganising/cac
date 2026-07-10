@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import { Fragment } from "react";
 import BallotResults from "@/components/outcome-card/BallotResults";
+import EmployerDetails from "@/components/outcome-card/EmployerDetails";
 import { Timeline } from "@/components/timeline/timeline";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDuration } from "@/lib/duration";
@@ -124,14 +125,10 @@ const OutcomeDetails = ({ outcome, className }: Props) => {
 
       <dt>Employer</dt>
       <dd>
-        <Link
-          href={appSearchParamsSerializer(
-            addParamValue(params, "parties.employer", outcome.parties.employer),
-          )}
-          className="text-primary underline underline-offset-4 hover:font-medium"
-        >
-          {outcome.parties.employer}
-        </Link>
+        <EmployerDetails
+          employer={outcome.parties.employer}
+          company={outcome.company}
+        />
       </dd>
 
       {outcome.bargainingUnit ? (
