@@ -4,7 +4,7 @@ import "server-only";
 import { StateCategory } from "@/components/timeline/types";
 import { getStateCategory } from "../utils";
 import { getClient } from "./client";
-import { outcomesIndex } from "./common";
+import { FilterOptions, getFilters, outcomesIndex } from "./common";
 import { getFacetProps } from "./facets";
 
 /** OpenSearch SDK bucket types omit nested sub-aggregations — extend when parsing. */
@@ -113,6 +113,66 @@ const stringTermsBuckets = (
     return [];
   }
   return Array.isArray(buckets) ? buckets : Object.values(buckets);
+};
+
+export type DashboardFilterOptions = Pick<FilterOptions, "parties.unions">;
+
+type DashboardSearchRequest = {
+  size?: number;
+  query?: OpenSearchTypes.Common_QueryDsl.QueryContainer;
+  aggs?: Record<string, unknown>;
+  _source?: string[];
+};
+
+/** AND-merge app filters into a request, preserving any existing query constraints. */
+const withFilters = (
+  request: DashboardSearchRequest,
+  filterOptions: DashboardFilterOptions,
+): DashboardSearchRequest => {
+  const appFilters = getFilters(filterOptions);
+  if (appFilters.length === 0) {
+    return request;
+  }
+
+  const existingQuery = request.query;
+  if (!existingQuery) {
+    return {
+      ...request,
+      query: { bool: { filter: appFilters } },
+    };
+  }
+
+  const existingBool = existingQuery.bool;
+  if (existingBool && Array.isArray(existingBool.filter)) {
+    return {
+      ...request,
+      query: {
+        bool: {
+          ...existingBool,
+          filter: [...existingBool.filter, ...appFilters],
+        },
+      },
+    };
+  }
+
+  return {
+    ...request,
+    query: {
+      bool: {
+        filter: [existingQuery, ...appFilters],
+      },
+    },
+  };
+};
+
+const normalizeDashboardFilters = (
+  filters: DashboardFilterOptions = {},
+): DashboardFilterOptions => {
+  const unions = filters["parties.unions"];
+  if (!unions?.length) {
+    return {};
+  }
+  return { "parties.unions": [...unions].sort() };
 };
 
 // Request creators
@@ -746,34 +806,37 @@ export type DashboardData = {
   recognitionToMethodAgreed: RecognitionToMethodAgreedData;
 };
 
-export async function getAllDashboardData(): Promise<DashboardData> {
+export async function getAllDashboardData(
+  filters: DashboardFilterOptions = {},
+): Promise<DashboardData> {
   "use cache: remote";
   cacheLife("hours");
 
   const client = await getClient();
+  const normalizedFilters = normalizeDashboardFilters(filters);
 
   // Build msearch body: alternating index and query pairs
   const msearchBody = [
     { index: outcomesIndex },
-    createCategoryCountsRequest(),
+    withFilters(createCategoryCountsRequest(), normalizedFilters),
     { index: outcomesIndex },
-    createApplicationsPerUnionRequest(),
+    withFilters(createApplicationsPerUnionRequest(), normalizedFilters),
     { index: outcomesIndex },
-    createBargainingUnitSizesRequest(),
+    withFilters(createBargainingUnitSizesRequest(), normalizedFilters),
     { index: outcomesIndex },
-    createTimeToAcceptanceRequest(),
+    withFilters(createTimeToAcceptanceRequest(), normalizedFilters),
     { index: outcomesIndex },
-    createTimeToConclusionRequest(),
+    withFilters(createTimeToConclusionRequest(), normalizedFilters),
     { index: outcomesIndex },
-    createBargainingUnitSizeVsTurnoutRequest(),
+    withFilters(createBargainingUnitSizeVsTurnoutRequest(), normalizedFilters),
     { index: outcomesIndex },
-    createAverageDurationsRequest(),
+    withFilters(createAverageDurationsRequest(), normalizedFilters),
     { index: outcomesIndex },
-    createApplicationsReceivedPerMonthRequest(),
+    withFilters(createApplicationsReceivedPerMonthRequest(), normalizedFilters),
     { index: outcomesIndex },
-    createTopIndustrialSectionsRequest(),
+    withFilters(createTopIndustrialSectionsRequest(), normalizedFilters),
     { index: outcomesIndex },
-    createRecognitionToMethodAgreedRequest(),
+    withFilters(createRecognitionToMethodAgreedRequest(), normalizedFilters),
   ];
 
   const msearchResponse = await client.msearch({

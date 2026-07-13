@@ -14,11 +14,15 @@ import RecognitionToMethodAgreedChartClient from "./RecognitionToMethodAgreedCha
 // Wrapper components that await the promise
 export async function CategoryCountCards({
   promise,
+  unions = [],
 }: {
   promise: Promise<DashboardData>;
+  unions?: string[];
 }) {
   const data = await promise;
-  return <CategoryCountCardsClient data={data.categoryCounts} />;
+  return (
+    <CategoryCountCardsClient data={data.categoryCounts} unions={unions} />
+  );
 }
 
 export async function ApplicationsPerUnionChart({

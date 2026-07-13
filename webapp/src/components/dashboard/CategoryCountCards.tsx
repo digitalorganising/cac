@@ -1,11 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { CategoryCounts } from "@/lib/queries/dashboard";
+import { appSearchParamsSerializer } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
 import Link from "next/link";
 
 type Props = {
   data?: CategoryCounts;
+  unions?: string[];
 };
 
 function CountCard({
@@ -39,32 +41,50 @@ function CountCard({
   );
 }
 
-export default function CategoryCountCards({ data }: Props) {
+export default function CategoryCountCards({ data, unions = [] }: Props) {
+  const unionParams =
+    unions.length > 0 ? { "parties.unions": unions } : {};
+
   return (
     <>
       <CountCard
         title="Successful"
         count={data?.successful}
         colorClass="text-green-600 dark:text-green-500"
-        href="/?state=recognized,method_agreed"
+        href={appSearchParamsSerializer({
+          state: ["recognized", "method_agreed"],
+          ...unionParams,
+        })}
       />
       <CountCard
         title="Unsuccessful"
         count={data?.unsuccessful}
         colorClass="text-red-600 dark:text-red-500"
-        href="/?state=application_rejected,not_recognized"
+        href={appSearchParamsSerializer({
+          state: ["application_rejected", "not_recognized"],
+          ...unionParams,
+        })}
       />
       <CountCard
         title="Pending"
         count={data?.pending}
         colorClass="text-amber-600 dark:text-amber-500"
-        href="/?state=pending_recognition_decision,pending_application_decision"
+        href={appSearchParamsSerializer({
+          state: [
+            "pending_recognition_decision",
+            "pending_application_decision",
+          ],
+          ...unionParams,
+        })}
       />
       <CountCard
         title="Withdrawn"
         count={data?.withdrawn}
         colorClass="text-slate-600 dark:text-slate-400"
-        href="/?state=withdrawn"
+        href={appSearchParamsSerializer({
+          state: ["withdrawn"],
+          ...unionParams,
+        })}
       />
     </>
   );

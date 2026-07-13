@@ -14,6 +14,7 @@ type Props = {
   onClearAll?: () => void;
   form?: string;
   loading?: boolean;
+  className?: string;
 };
 
 export default function MultiSelect({
@@ -25,6 +26,7 @@ export default function MultiSelect({
   onClearAll,
   form,
   loading,
+  className,
 }: Props) {
   return (
     <Popover modal={true}>
@@ -42,13 +44,16 @@ export default function MultiSelect({
           role="combobox"
           aria-label={`${label} filter`}
           loading={loading}
+          className={className}
           icon={<ChevronDownIcon className="size-4 opacity-50" />}
         >
-          {label}
-          {selected.size ? <CountBadge count={selected.size} /> : null}
+          <span className="inline-flex items-center gap-2">
+            {label}
+            {selected.size ? <CountBadge count={selected.size} /> : null}
+          </span>
         </InputTriggerButton>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-fit p-0">
+      <PopoverContent align="start" className="w-fit min-w-[var(--radix-popover-trigger-width)] p-0">
         <ScrollArea
           className="[&>[data-radix-scroll-area-viewport]]:max-h-[300px] p-2"
           type="auto"
