@@ -6,13 +6,12 @@ import {
   getEntityTypeLabel,
 } from "@/lib/company";
 import {
+  type AppSearchParams,
   addParamValue,
   appSearchParamsCache,
   appSearchParamsSerializer,
-  type AppSearchParams,
 } from "@/lib/search-params";
 import { Outcome, OutcomeCompanySic } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 type Props = {
   employer: Outcome["parties"]["employer"];
@@ -31,9 +30,10 @@ const hoverFilterLinkClass =
 const sectionLinkClass =
   "font-medium text-muted-foreground hover:underline underline-offset-4 hover:text-foreground";
 
-const descriptionListClass = "list-none mt-1 space-y-1.5";
+const descriptionListClass = "list-none mt-2 space-y-2";
 
-const descriptionItemClass = "border-l border-slate-300 pl-2 leading-snug";
+const descriptionItemClass =
+  "flex gap-x-1.5 leading-snug before:content-['–'] before:text-slate-400 before:shrink-0";
 
 const groupSicsBySection = (
   sics: OutcomeCompanySic[],
@@ -64,59 +64,10 @@ const NatureOfBusiness = ({
     return null;
   }
 
-  if (sics.length === 1) {
-    const sic = sics[0];
-    return (
-      <p>
-        <Link
-          href={filterHref(params, "company.sics.section", sic.section)}
-          className={sectionLinkClass}
-        >
-          {sic.section}
-        </Link>
-        :{" "}
-        <Link
-          href={filterHref(params, "company.sics.code", sic.code)}
-          className={hoverFilterLinkClass}
-          data-sic-code={sic.code}
-        >
-          {sic.description}
-        </Link>
-      </p>
-    );
-  }
-
   const sections = groupSicsBySection(sics);
 
-  if (sections.length === 1) {
-    const [section, entries] = sections[0];
-    return (
-      <div>
-        <Link
-          href={filterHref(params, "company.sics.section", section)}
-          className={sectionLinkClass}
-        >
-          {section}
-        </Link>
-        <ul className={descriptionListClass}>
-          {entries.map((sic) => (
-            <li key={sic.code}>
-              <Link
-                href={filterHref(params, "company.sics.code", sic.code)}
-                className={cn(descriptionItemClass, hoverFilterLinkClass, "block")}
-                data-sic-code={sic.code}
-              >
-                {sic.description}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  }
-
   return (
-    <ul className="list-none space-y-2.5">
+    <ul className="list-none space-y-3.5">
       {sections.map(([section, entries]) => (
         <li key={section}>
           <Link
@@ -127,10 +78,10 @@ const NatureOfBusiness = ({
           </Link>
           <ul className={descriptionListClass}>
             {entries.map((sic) => (
-              <li key={sic.code}>
+              <li key={sic.code} className={descriptionItemClass}>
                 <Link
                   href={filterHref(params, "company.sics.code", sic.code)}
-                  className={cn(descriptionItemClass, hoverFilterLinkClass, "block")}
+                  className={hoverFilterLinkClass}
                   data-sic-code={sic.code}
                 >
                   {sic.description}
@@ -163,11 +114,11 @@ const EmployerDetails = ({ employer, company }: Props) => {
   );
 
   return (
-    <div className="flex flex-col gap-y-2">
+    <div className="flex flex-col gap-y-3">
       <Link href={employerFilterHref} className={filterLinkClass}>
         {company.name}
       </Link>
-      <div className="pt-0.5">
+      <div>
         {company.type === "identified" && company.number ? (
           <Link
             href={companiesHouseUrl(company.number)}
@@ -184,7 +135,16 @@ const EmployerDetails = ({ employer, company }: Props) => {
           </Link>
         )}
       </div>
-      <NatureOfBusiness sics={company.sics} params={params} />
+      {company.sics.length > 0 ? (
+        <div className="xs:rounded-md xs:border xs:border-slate-200">
+          <div className="xs:px-3 xs:pt-2.5 xs:pb-1 text-md font-semibold">
+            Nature of business
+          </div>
+          <div className="xs:px-3 xs:pb-3 xs:pt-1 text-sm">
+            <NatureOfBusiness sics={company.sics} params={params} />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
