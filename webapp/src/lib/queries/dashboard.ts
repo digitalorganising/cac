@@ -73,6 +73,12 @@ export type TopIndustrialSectionsData = {
   withdrawn: number;
 }[];
 
+/** Weeks from recognition to method agreed (scripted metric histogram). */
+export type RecognitionToMethodAgreedData = {
+  timeRange: number;
+  count: number;
+}[];
+
 export type AverageDurations = {
   successful?: number;
   unsuccessful?: number;
@@ -283,6 +289,56 @@ const createTopIndustrialSectionsRequest = () => ({
             size: 10,
           },
         },
+      },
+    },
+  },
+});
+
+/**
+ * Durations (seconds) between recognition and method agreed.
+ *
+ * For method_agreed outcomes, transform_for_index sets
+ * filter.keyDates.outcomeConcluded to the recognition date and
+ * filter.keyDates.lastEvent to the method-agreed date. methodAgreed
+ * itself is display-only, so this uses a scripted_metric over those
+ * two filter date fields. Bucketing into weeks is done in the parser.
+ */
+const createRecognitionToMethodAgreedRequest = () => ({
+  size: 0,
+  query: {
+    term: {
+      "filter.state": "method_agreed",
+    },
+  },
+  aggs: {
+    recognitionToMethodAgreed: {
+      scripted_metric: {
+        init_script: "state.durations = [];",
+        map_script: `
+          if (doc['filter.keyDates.outcomeConcluded'].empty) return;
+          if (doc['filter.keyDates.lastEvent'].empty) return;
+          ZoneId london = ZoneId.of("Europe/London");
+          def recognition = doc['filter.keyDates.outcomeConcluded'].value
+            .withZoneSameInstant(london);
+          def methodAgreed = doc['filter.keyDates.lastEvent'].value
+            .withZoneSameInstant(london);
+          // Same-day pairs are incomplete legacy data — exclude until backfilled
+          if (recognition.toLocalDate().equals(methodAgreed.toLocalDate())) return;
+          long duration = methodAgreed.toEpochSecond() - recognition.toEpochSecond();
+          if (duration > 0) {
+            state.durations.add(duration);
+          }
+        `,
+        combine_script: "return state.durations;",
+        reduce_script: `
+          def all = [];
+          for (s in states) {
+            if (s != null) {
+              all.addAll(s);
+            }
+          }
+          return all;
+        `,
       },
     },
   },
@@ -578,8 +634,7 @@ const parseTopIndustrialSectionsResponse = (
   const body = isSearchResponse(response) ? response : undefined;
   const agg = body?.aggregations
     ?.sections as OpenSearchTypes.Common_Aggregations.StringTermsAggregate;
-  const buckets =
-    agg?.buckets as StringTermsBucketWithStates[] | undefined;
+  const buckets = agg?.buckets as StringTermsBucketWithStates[] | undefined;
 
   if (!buckets) {
     return [];
@@ -594,6 +649,36 @@ const parseTopIndustrialSectionsResponse = (
       ...stateCounts(stateBuckets),
     };
   });
+};
+
+const parseRecognitionToMethodAgreedResponse = (
+  response: OpenSearchTypes.Core_Msearch.ResponseItem,
+): RecognitionToMethodAgreedData => {
+  const body = isSearchResponse(response) ? response : undefined;
+  const agg = body?.aggregations?.recognitionToMethodAgreed as
+    | OpenSearchTypes.Common_Aggregations.ScriptedMetricAggregate
+    | undefined;
+  const durations = agg?.value;
+
+  const maxWeeks = 78;
+  const weekSeconds = 7 * 24 * 60 * 60;
+  const buckets = Array.from({ length: maxWeeks }, (_, timeRange) => ({
+    timeRange,
+    count: 0,
+  }));
+
+  if (!Array.isArray(durations)) {
+    return buckets;
+  }
+
+  for (const duration of durations) {
+    const seconds = Number(duration);
+    if (!Number.isFinite(seconds) || seconds < 0) continue;
+    const week = Math.min(Math.floor(seconds / weekSeconds), maxWeeks - 1);
+    buckets[week].count += 1;
+  }
+
+  return buckets;
 };
 
 const parseAverageDurationsResponse = (
@@ -658,6 +743,7 @@ export type DashboardData = {
   averageDurations: AverageDurations;
   applicationsReceivedPerMonth: ApplicationsReceivedPerMonthData;
   topIndustrialSections: TopIndustrialSectionsData;
+  recognitionToMethodAgreed: RecognitionToMethodAgreedData;
 };
 
 export async function getAllDashboardData(): Promise<DashboardData> {
@@ -686,6 +772,8 @@ export async function getAllDashboardData(): Promise<DashboardData> {
     createApplicationsReceivedPerMonthRequest(),
     { index: outcomesIndex },
     createTopIndustrialSectionsRequest(),
+    { index: outcomesIndex },
+    createRecognitionToMethodAgreedRequest(),
   ];
 
   const msearchResponse = await client.msearch({
@@ -708,5 +796,8 @@ export async function getAllDashboardData(): Promise<DashboardData> {
       responses[7],
     ),
     topIndustrialSections: parseTopIndustrialSectionsResponse(responses[8]),
+    recognitionToMethodAgreed: parseRecognitionToMethodAgreedResponse(
+      responses[9],
+    ),
   };
 }

@@ -9,6 +9,7 @@ import CategoryCountCardsClient from "./CategoryCountCards";
 import TimeToAcceptanceChartClient from "./TimeToAcceptanceChart";
 import TimeToConclusionChartClient from "./TimeToConclusionChart";
 import TopIndustrialSectionsChartClient from "./TopIndustrialSectionsChart";
+import RecognitionToMethodAgreedChartClient from "./RecognitionToMethodAgreedChart";
 
 // Wrapper components that await the promise
 export async function CategoryCountCards({
@@ -112,5 +113,18 @@ export async function TopIndustrialSectionsChart({
   const data = await promise;
   return (
     <TopIndustrialSectionsChartClient data={data.topIndustrialSections} />
+  );
+}
+
+export async function RecognitionToMethodAgreedChart({
+  promise,
+}: {
+  promise: Promise<DashboardData>;
+}) {
+  const data = await promise;
+  return (
+    <RecognitionToMethodAgreedChartClient
+      data={data.recognitionToMethodAgreed}
+    />
   );
 }

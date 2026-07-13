@@ -10,6 +10,7 @@ import {
   BargainingUnitSizeChart,
   BargainingUnitSizeVsTurnoutChart,
   CategoryCountCards,
+  RecognitionToMethodAgreedChart,
   TimeToAcceptanceChart,
   TimeToConclusionChart,
   TopIndustrialSectionsChart,
@@ -81,6 +82,13 @@ export default function Dashboard() {
         description="Distribution of time taken from application to acceptance, split by accepted and rejected decisions"
       >
         <TimeToAcceptanceChart promise={dashboardDataPromise} />
+      </DashboardCard>
+      <DashboardCard
+        className="col-span-2"
+        title="Recognition to method agreed"
+        description="Distribution of time between union recognition and declared bargaining method agreed"
+      >
+        <RecognitionToMethodAgreedChart promise={dashboardDataPromise} />
       </DashboardCard>
       <DashboardCard
         className="col-span-2"
