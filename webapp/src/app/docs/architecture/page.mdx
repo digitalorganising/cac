@@ -22,3 +22,19 @@ BAML is really excellent for the data extraction tasks, as shown by the suite of
 Once the data is extracted, it's transformed into the event-based format with a state machine for validation:
 
 ![The state machine diagram for this project](/assets/event_state_diagram.png)
+
+### Company disambiguation
+
+The pipeline uses the [**Companies House API**](https://developer.companieshouse.gov.uk/) to find companies house entries for the companies in the decisions.
+
+It disambiguates entries based on the LLM's reasoning on the following:
+
+- The company name
+- The union (ie whether this union would be likely to seek recognition in this industry)
+- The industrial classifications (nature of business) of the company
+- The location of the bargaining unit
+- The description of the bargaining unit (which sometimes contains clues as to the type of workers).
+
+If the LLM believes based on its own knowledge that it should search for a different company name in Companies House, it is allowed to do this _once_.
+
+The LLM is also allowed to identify an organisation as being a charity, a university, a central government department, or a local authority.
