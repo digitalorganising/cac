@@ -7,68 +7,31 @@ original request (input) from each hit, and invokes the company-disambiguator
 Lambda to re-run disambiguation and update the index.
 
 Usage:
-  reindex_companies.py '<query>'              # query_string query
-  reindex_companies.py '{"match":{"input.name":"Acme"}}'  # raw query JSON
-  reindex_companies.py --unidentified         # built-in unidentified query
-  reindex_companies.py --unidentified --clear-existing-disambiguation
+  uv run python scripts/reindex_companies.py '<query>'              # query_string query
+  uv run python scripts/reindex_companies.py '{"match":{"input.name":"Acme"}}'  # raw query JSON
+  uv run python scripts/reindex_companies.py --unidentified         # built-in unidentified query
+  uv run python scripts/reindex_companies.py --unidentified --clear-existing-disambiguation
 
 """
 
 import argparse
 import asyncio
 import json
-import os
 import sys
 
-import boto3
 from botocore.config import Config
 from opensearchpy import helpers
 from tqdm import tqdm
+
+from common import get_boto_session, get_opensearch_config
 
 BOTO_TIMEOUT = 900  # seconds
 
 from company_disambiguator.model import DisambiguateCompanyRequest, request_to_doc_id
 from pipeline.services.opensearch_utils import create_client
 
-AWS_ASSUME_ROLE_ARN = "arn:aws:iam::510900713680:role/digitalorganising-cac-admin"
-OPENSEARCH_CREDENTIALS_SECRET = "opensearch-credentials"
-OPENSEARCH_ENDPOINT_PARAMETER_NAME = "opensearch-endpoint"
-
 INDEX = "disambiguated-companies"
 DEFAULT_LAMBDA_NAME = "pipeline-company-disambiguator"
-
-
-def get_boto_session():
-    """Assume the admin role and return a boto3 session with those credentials."""
-    profile = os.environ.get("AWS_PROFILE", "sso-profile")
-    base = boto3.Session(profile_name=profile, region_name="eu-west-1")
-    sts = base.client("sts")
-    creds = sts.assume_role(
-        RoleArn=AWS_ASSUME_ROLE_ARN,
-        RoleSessionName="reindex-companies",
-    )["Credentials"]
-    return boto3.Session(
-        aws_access_key_id=creds["AccessKeyId"],
-        aws_secret_access_key=creds["SecretAccessKey"],
-        aws_session_token=creds["SessionToken"],
-        region_name="eu-west-1",
-    )
-
-
-def get_opensearch_config(session):
-    """Fetch endpoint from Parameter Store and credentials from Secrets Manager."""
-    ssm = session.client("ssm")
-    param = ssm.get_parameter(
-        Name=OPENSEARCH_ENDPOINT_PARAMETER_NAME, WithDecryption=True
-    )
-    endpoint = param["Parameter"]["Value"]
-
-    secrets = session.client("secretsmanager")
-    secret = secrets.get_secret_value(SecretId=OPENSEARCH_CREDENTIALS_SECRET)
-    creds = json.loads(secret["SecretString"])
-    auth = (creds["username"], creds["password"])
-
-    return endpoint, auth
 
 
 def unidentified_query() -> dict:
@@ -181,7 +144,7 @@ async def main():
     if not args.unidentified and not args.query:
         parser.error("query is required unless --unidentified is provided")
 
-    session = get_boto_session()
+    session = get_boto_session(role_session_name="reindex-companies")
     endpoint, auth = get_opensearch_config(session)
     client = create_client(
         cluster_host=endpoint,

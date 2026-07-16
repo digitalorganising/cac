@@ -1,3 +1,4 @@
+#!/usr/bin/env -S uv run python
 import argparse
 import asyncio
 import csv

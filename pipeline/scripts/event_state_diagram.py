@@ -1,3 +1,4 @@
+#!/usr/bin/env -S uv run python
 from pipeline.transforms.events_machine import machine_params
 from transitions.extensions.diagrams import GraphMachine
 

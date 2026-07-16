@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run python
 """Command-line script to search Companies House and get company details with SIC codes."""
 
 import argparse
