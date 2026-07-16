@@ -5,6 +5,5 @@ from dateutil.tz import gettz
 
 def london_date(date_str: str, **parse_kwargs):
     london_tz = gettz("Europe/London")
-    return default_tzinfo(
-        date_parse(date_str, dayfirst=True, **parse_kwargs), london_tz
-    )
+    parse_kwargs.setdefault("dayfirst", True)
+    return default_tzinfo(date_parse(date_str, **parse_kwargs), london_tz)
