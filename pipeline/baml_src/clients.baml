@@ -28,18 +28,13 @@ retry_policy ConservativeRetryPolicy {
   }
 }
 
-// Docs recommend a temperature of 1.0 for Gemini 3 regardless of task
-// I saw some infinite loop issues with 0.0
 
 client<llm> BestClient {
   provider google-ai
   retry_policy ConservativeRetryPolicy
   options {
-    model "gemini-3-flash-preview"
+    model "gemini-3.8-flash"
     api_key env.GOOGLE_API_KEY
-    generationConfig {
-      temperature 1.0
-    }
     http {
       connect_timeout_ms 10000
       time_to_first_token_timeout_ms 60000

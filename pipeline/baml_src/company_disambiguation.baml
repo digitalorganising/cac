@@ -633,7 +633,7 @@ test CharityTest {
 
     @@assert({{ this.type == "unidentified" }})
     @@assert({{ this.subtype == "Charity" }})
-    @@assert({{ this.sic_codes == ["94120", "72200", "94990"] }})
+    @@assert({{ this.sic_codes == ["94120", "94990"] }})
 }
 
 test GuessSicCodesTest {
