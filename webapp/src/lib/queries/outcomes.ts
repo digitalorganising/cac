@@ -24,7 +24,7 @@ export const getOutcomes = async (
   { from, size, sortKey, sortOrder, ...queryOptions }: GetOutcomesOptions,
   debug = false,
 ): Promise<{ size: number; docs: Outcome[] }> => {
-  "use cache: remote";
+  "use cache";
   cacheLife("hours");
 
   const client = await getClient();
