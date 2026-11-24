@@ -43,3 +43,7 @@ terraform.rc
 
 .env
 *.env
+
+# One-off UKGWA WARC downloads and local pywb collections
+pipeline/part-i-archive/
+pipeline/part-i-replay/
